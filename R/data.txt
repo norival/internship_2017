@@ -1,0 +1,425 @@
+# BDD culture
+Colza_Nectar
+Année_SuiviParcelle
+Expérimentation_autre
+point_X
+point_Y
+Type_Culture
+Type_CultureSimplifiée
+Surface_ha
+ID_Enquêteur
+Année_Enquête
+Type_Formulaire
+Type_Exploitation
+Syst_Prod
+Parcelle_MAE
+Type_de_sol
+Coop
+ETA
+Matériel_Exploitation_Type
+Matériel_Largeur (en m)
+Matériel_Puissance (en cv)
+Matériel_Conso (en l/heure)
+Matériel_Débit (ha/heure)
+Interculture
+Date_Semis_Inter
+Date_Récolte_Inter
+Récolte_Inter
+Mélange
+Variété
+Nom_ Variété
+Type_Variété
+Date_Semis
+Densité_Semis
+Unité_DensitéSemis
+Inter-rang_cm
+Enrobage
+Obj_Enrobage
+Produit_Enrobage
+Date_Récolte
+Paille_Récolte
+ObjRdt (qtx)
+Rdt_Qtx
+Date_Fauche
+Rdt_Fauche (en t MS/ha)
+Type_Tsol
+Profondeur_Tsol_ cm
+Prof_Estimée
+Date_Tsol
+Irrigation
+Rem_irrigation
+Fertilisation
+Produit_Ferti
+Dose_Ferti
+Unité_dose
+Date_Ferti
+Protection_visée
+Produit_phyto
+Dose_Phyto
+Unité_dose
+Surface_traitée_ha
+Date_Phyto
+Culture_précédente
+Culture_suivante
+
+
+# BDD robin
+R|vitesse de traitement (km/h)
+R|intervention
+R|unité/ha
+R|Produit seul ou mélange
+R|molécule(s)
+R|produit
+R|DH
+R|enrobage_1
+R|enrobage_2
+R|surface traitée
+R|IFT
+R|
+R|surface traitee init
+R|surface parcelle
+R|remarque
+R|"remarque
+R| vérif papier"
+R|DH
+R|DH (VV)
+R|IFT
+R|remarque autres parcelles
+R|SAU tot (ha)
+R|Surface en herbe (PP+PT)
+R|Nombre UTH
+R|Nb salariés/MO Familiale
+R|Qui réalise les traitements
+R|Surface de jachère (ha)
+R|Type d'intervention jachères
+R|Fréquence d'entretien jachères (/an)
+R|Surface de ZT (ha)
+R|Type d'intervention ZT
+R|°Fréquence d'entretien ZT  (/an)
+R|Linéaire de haie (km)
+R|Entretiens des haies
+R|Fréquence des passages mécaniques haies (1 tous les … ans)
+
+
+## Associations
+C|ID_Exploitation
+R|IDexploitation
+
+C|ID_Parcelle
+R|IDparcelle
+
+C|Colza_Nectar
+R|NA
+
+C|Année_SuiviParcelle
+R|NA
+
+C|Expérimentation_autre
+R|NA
+
+C|point_X
+R|point_X
+
+C|point_Y
+R|point_Y
+
+C|Type_Culture
+R|culture_2011
+
+C|Type_CultureSimplifiée
+R|culture_2011
+
+C|Surface_ha
+R|surface
+
+C|ID_Enquêteur
+R|NA
+
+C|Année_Enquête
+R|NA
+
+C|Type_Formulaire
+R|NA
+
+C|Type_Exploitation
+R|type_exploitation
+
+C|Syst_Prod
+R|NA
+
+C|Parcelle_MAE
+R|NA
+
+C|Type_de_sol
+R|type_de_sol
+
+C|Coop
+R|NA
+
+C|ETA
+R|NA
+
+C|Matériel_Exploitation_Type
+R|NA
+
+C|Matériel_Largeur (en m)
+R|NA
+
+C|Matériel_Puissance (en cv)
+R|NA
+
+C|Matériel_Conso (en l/heure)
+R|NA
+
+C|Matériel_Débit (ha/heure)
+R|NA
+
+C|Interculture
+R|cipan_2011
+
+C|Date_Semis_Inter
+R|NA
+
+C|Date_Récolte_Inter
+R|NA
+
+C|Récolte_Inter
+R|NA
+
+C|Mélange
+R|melange
+
+C|Variété
+R|NA
+
+C|Nom_ Variété
+R|NA
+
+C|Type_Variété
+R|NA
+
+C|Date_Semis
+R|date.V0 [R|intervention == semis]
+
+C|Densité_Semis
+R|densite de semis (kg/ha)
+  "densite.de.semis..kg.ha."
+
+C|Unité_DensitéSemis
+R|NA
+
+C|Inter-rang_cm
+R|NA
+
+C|Enrobage
+R|NA
+
+C|Obj_Enrobage
+R|NA
+
+C|Produit_Enrobage
+R|NA
+
+C|Date_Récolte
+R|NA
+
+C|Paille_Récolte
+R|NA
+
+C|ObjRdt (qtx)
+R|Objectif rdt (Qtx)
+  "Objectif.rdt..Qtx."
+
+C|Rdt_Qtx
+R|Rdt (Qtx)
+  "Rdt..Qtx."
+
+C|Date_Fauche
+R|NA
+
+C|Rdt_Fauche (en t MS/ha)
+R|NA
+
+C|Type_Tsol
+R| travail_sol__[1-7]
+
+C|Profondeur_Tsol_ cm
+R|pronf_travail
+
+C|Prof_Estimée
+R|pronf_travail_estime
+
+C|Date_Tsol
+R|date.V0 [R|intervention == mécanique]
+
+C|Irrigation
+R|irrig
+
+C|Rem_irrigation
+R|NA [voir dans R|irrigation]
+
+C|Fertilisation
+R|NA [à voir selon le produit...]
+
+C|Produit_Ferti
+R|produit [R|intervention == fertilisation]
+
+C|Dose_Ferti
+R|dose passage [R|intervention == fertilisation]
+  "dose.passage"
+
+C|Unité_dose
+R|unité/ha [R|interventaion == fertilisation]
+  "unité.ha"
+
+C|Date_Ferti
+R|date.V0 [R|intervention == fertilisation]
+
+C|Protection_visée
+R|intervention [R|intervention %in% fongicide
+                                    herbicide
+                                    insecticide
+                                    molluscide
+                                    raticide
+                                    répulsif]
+
+C|Produit_phyto
+R|produit [R|intervention %in% fongicide
+                               herbicide
+                               insecticide
+                               molluscide
+                               raticide
+                               répulsif]
+
+C|Dose_Phyto
+R|dose passage [R|intervention %in% fongicide
+                               herbicide
+                               insecticide
+                               molluscide
+                               raticide
+                               répulsif]
+  "dose.passage"
+
+C|Unité_dose
+R|unité/ha [R|intervention %in% fongicide
+                                herbicide
+                                insecticide
+                                molluscide
+                                raticide
+                                répulsif]
+  "unité.ha"
+
+C|Surface_traitée_ha
+R|surface traitee [pourcentage de la surface totale]
+  "surface.traitée"
+
+C|Date_Phyto
+R|date.V0 [R|intervention %in% fongicide
+                               herbicide
+                               insecticide
+                               molluscide
+                               raticide
+                               répulsif]
+
+C|Culture_précédente
+R|2011
+  "X2011"
+
+C|Culture_suivante
+R|2012
+  "X2012"
+
+
+# -- notes ---------------------------------------------------------------------
+
+Culture:
+C: tout dans la même cellule quand multivariété
+R: sur plusieurs lignes
+
+Surface:
+C: surface totale de la parcelle
+R: surface proportionnelle de chaque culture quand plusieurs cultures
+
+Année + année enquête :
+R: que 2011 ?
+
+Divers:
+R: Code pour le matériel
+
+Irrigation:
+Pour C|Rem_irrigation, voir R|irrig, il y a parfois des remarques
+
+Travail du sol:
+C: séparés dans pusieurs cellules
+R: Plusieurs trucs dans la même cellule + colonne remarques
+R: Ils sont séparés dans travail_sol__i [1-7]
+
+Produits + semis:
+R: tout est regroupé dans intervention
+  R|intervention|activateur
+  R|intervention|adjuvant
+  R|intervention|binage
+  R|intervention|divers
+  R|intervention|enrobage
+  R|intervention|fertilisation
+  R|intervention|fongicide
+  R|intervention|herbicide
+  R|intervention|insecticide
+  R|intervention|mécanique
+  R|intervention|mollusque
+  R|intervention|NA
+  R|intervention|raticide
+  R|intervention|regulateur
+  R|intervention|répulsif
+  R|intervention|semis
+
+
+# -- algorithme ----------------------------------------------------------------
+
+POUR chaque niveau de R$IDparcelle:
+  Créer un tableau vide avec les noms de colonnes de C et beaucoup de lignes
+  Récupérer les infos uniques disponibles dans la première ligne:
+    ID_Parcelle
+    ID_Exploitation
+    Année_SuiviParcelle = 2011
+    point_X
+    point_Y
+    Type_Culture
+    Type_CultureSimplifiée
+    Surface_ha
+    Type_Exploitation
+    Type_de_sol
+    Interculture
+    Mélange
+    Date_Semis
+    Densité_Semis
+    Unité_DensitéSemis = kg/ha
+    ObjRdt (qtx)
+    Rdt_Qtx
+    Culture_précédente
+    Culture_suivante
+
+  # Récupérer les informations mutliples, 1 info par ligne
+  POUR chaque ligne de R$intervention:
+    SI mécanique:
+      C|Type_Tsol <- R| travail_sol__[1-7]
+      C|Profondeur_Tsol_ cm <- R|pronf_travail
+      C|Prof_Estimée <- R|pronf_travail_estime
+      C|Date_Tsol <- R|date.V0 [R|intervention == mécanique]
+
+    SI fertilisation:
+      C|Protection_visée <- intervention
+      C|Produit_Ferti <- R|produit [R|intervention == fertilisation]
+      C|Dose_Ferti <- R|dose passage [R|intervention == fertilisation]
+        "dose.passage"
+      C|Unité_dose <- R|unité/ha [R|interventaion == fertilisation]
+        "unité.ha"
+      C|Date_Ferti <- R|date.V0 [R|intervention == fertilisation]
+
+    SI %in% [fongicide,herbicide,insecticide,molluscide,raticide,répulsif]:
+      C|Protection_visée <- R|intervention
+      C|Produit_phyto <- R|produit
+      C|Dose_Phyto <- R|dose passage
+        "dose.passage"
+      C|Unité_dose <- R|unité/ha
+        "unité.ha"
