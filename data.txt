@@ -374,7 +374,7 @@ R: tout est regroupé dans intervention
   R|intervention|semis
 
 
-# -- algorithme ----------------------------------------------------------------
+# -- algorithme BDD_Robin vers BDD_culture -------------------------------------
 
 POUR chaque niveau de R$IDparcelle:
   Créer un tableau vide avec les noms de colonnes de C et beaucoup de lignes
@@ -401,14 +401,7 @@ POUR chaque niveau de R$IDparcelle:
 
   # Récupérer les informations mutliples, 1 info par ligne
   POUR chaque ligne de R$intervention:
-    SI mécanique:
-      C|Type_Tsol <- R| travail_sol__[1-7]
-      C|Profondeur_Tsol_ cm <- R|pronf_travail
-      C|Prof_Estimée <- R|pronf_travail_estime
-      C|Date_Tsol <- R|date.V0 [R|intervention == mécanique]
-
     SI fertilisation:
-      C|Protection_visée <- intervention
       C|Produit_Ferti <- R|produit [R|intervention == fertilisation]
       C|Dose_Ferti <- R|dose passage [R|intervention == fertilisation]
         "dose.passage"
@@ -423,3 +416,10 @@ POUR chaque niveau de R$IDparcelle:
         "dose.passage"
       C|Unité_dose <- R|unité/ha
         "unité.ha"
+      C|Date_Phyto <- R|date.V0
+
+  POUR chaque colonnes dans travail_sol__[1-7]:
+    SI cellule != "0":
+      C|Type_Tsol <- R|travail_sol__i
+
+  Remplacer les NA par des "" pour que le format soit semblable à C
