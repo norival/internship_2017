@@ -16,12 +16,23 @@ library(stringi)
 
 # the functions who do the job, used only once but put into a function for
 # practical reasons
-complete_db1 <- function(R, B, verbose = FALSE) {
+complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
 
   # empty data.frame to store  the results
   B2 <- 
     data.frame(matrix(NA, nrow = 1, ncol = length(B)))
   colnames(B2) <- colnames(B)
+
+  cat("Converting data.frame. This might take a while...\n")
+
+  # set a progress bar
+  i   <- 0
+  if (progress & !verbose) {
+    pb  <-
+      txtProgressBar(min = 0,
+                     max = length(levels(as.factor(R$ID.parcelle.ZA))),
+                     style = 3, width = 80)
+  }
 
   # do the conversion for each plot from R
   for (parcelle in levels(as.factor(R$ID.parcelle.ZA))) {
@@ -30,6 +41,11 @@ complete_db1 <- function(R, B, verbose = FALSE) {
     r0 <- filter(R, ID.parcelle.ZA == parcelle)
 
     for (year in levels(as.factor(r0$annee_enquetee))) {
+
+      if (progress & !verbose) {
+        # print the progress bar
+        setTxtProgressBar(pb, i)
+      }
 
       # subset the R data.frame with only the year 'year'
       r <- filter(r0, annee_enquetee == year)
@@ -208,7 +224,10 @@ complete_db1 <- function(R, B, verbose = FALSE) {
       # bind the dataframe with the big dataframe
       B2 <- rbind.data.frame(B2, b)
     }
+    i <- i + 1
   }
+  # close the progress bar
+  close(pb)
   return(B2[2:nrow(B2),])
 }
 
@@ -219,7 +238,7 @@ B <- read.csv("data/BDD_dec2016_culture.csv",
               stringsAsFactors = FALSE)
 
 # convert the data
-resultat <- complete_db1(R, B, verbose = TRUE)
+resultat <- complete_db1(R, B, verbose = F)
 
 # write the converted data to a file
 write.csv(resultat, "data/converted_data.csv", row.names = FALSE)
