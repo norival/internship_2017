@@ -1,3 +1,7 @@
-Homogénéisation des données
+# -- LOGS ----------------------------------------------------------------------
 
-
+# 20/02/2017
+J'ai commencé la fusion des bases de données 'R/data/BDD_robin_full.csv' et
+'R/data/BDD_dec2016_culture.csv'. Tout est expliqué dans le script R.
+Il faut encore homogénéiser les valeurs avec celles de l'autre base de données
+et ressortir les ionformations manquantes.
