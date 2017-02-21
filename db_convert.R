@@ -238,7 +238,151 @@ B <- read.csv("data/BDD_dec2016_culture.csv",
               stringsAsFactors = FALSE)
 
 # convert the data
-resultat <- complete_db1(R, B, verbose = F)
+converted <- complete_db1(R, B, verbose = F)
+
+
+# -- homogeneize values before saving ------------------------------------------
+
+# clean 'Type_Culture'
+converted$Type_Culture <-
+  converted$Type_Culture %>%
+  stri_replace_all(fixed = "_", replacement = " ") %>%
+  stri_replace_all(fixed = "-", replacement = " ") %>%
+  stri_replace_all(fixed = "d'", replacement = " ") %>%
+  stri_trans_totitle() %>%
+  stri_replace_all(regex = "[ ]?\\+[ ]?", replacement = "+") %>%
+  stri_replace_all(regex = "[_ ]{1}[Aa]{1}[Bb]{1}", replacement = "_AB") %>%
+  stri_replace_all(regex = "\\s*", replacement = "") %>%
+  stri_replace_all(fixed = "Mais", replacement = "Maïs") %>%
+  stri_replace_all(fixed = "TournesolMais", replacement = "Tournesol+Maïs") %>%
+  stri_replace_all(regex = "RayGra[s]{1,2}.*$", replacement = "Raygrass") %>%
+  stri_replace_all(fixed = "Rg", replacement = "Raygrass") %>%
+  stri_replace_all(regex = "F[èe]?vero[l]{1,2}e[s]?", replacement = "Féverolle") %>%
+  stri_replace_all(regex = "^1/2.*$", replacement = "Ble+Orge")
+
+# clean 'Culture_précédente'
+converted$Culture_précédente <-
+  converted$Culture_précédente %>%
+  stri_replace_all(fixed = "_", replacement = " ") %>%
+  stri_replace_all(fixed = "-", replacement = " ") %>%
+  stri_replace_all(fixed = "d'", replacement = " ") %>%
+  stri_replace_all(fixed = "0", replacement = "NA") %>%
+  stri_trans_totitle() %>%
+  stri_replace_all(regex = "[ ]?\\+[ ]?", replacement = "+") %>%
+  stri_replace_all(regex = "[_ ]{1}[Aa]{1}[Bb]{1}", replacement = "_AB") %>%
+  stri_replace_all(regex = "\\s*", replacement = "") %>%
+  stri_replace_all(fixed = "Mais", replacement = "Maïs") %>%
+  stri_replace_all(fixed = "TournesolMais", replacement = "Tournesol+Maïs") %>%
+  stri_replace_all(regex = "RayGra[s]{1,2}.*$", replacement = "Raygrass") %>%
+  stri_replace_all(fixed = "Rg", replacement = "Raygrass") %>%
+  stri_replace_all(regex = "F[èe]?vero[l]{1,2}e[s]?", replacement = "Féverolle") %>%
+  stri_replace_all(regex = "^1/2.*$", replacement = "Ble+Orge") %>%
+  stri_replace_all(regex = "\\?/", replacement = "+")
+
+# clean 'Culture_suivante'
+converted$Culture_précédente <-
+  converted$Culture_précédente %>%
+  stri_replace_all(fixed = "_", replacement = " ") %>%
+  stri_replace_all(fixed = "-", replacement = " ") %>%
+  stri_replace_all(fixed = "d'", replacement = " ") %>%
+  stri_replace_all(fixed = "0", replacement = "NA") %>%
+  stri_trans_totitle() %>%
+  stri_replace_all(regex = "[ ]?\\+[ ]?", replacement = "+") %>%
+  stri_replace_all(regex = "[_ ]{1}[Aa]{1}[Bb]{1}", replacement = "_AB") %>%
+  stri_replace_all(regex = "\\s*", replacement = "") %>%
+  stri_replace_all(fixed = "Mais", replacement = "Maïs") %>%
+  stri_replace_all(fixed = "TournesolMais", replacement = "Tournesol+Maïs") %>%
+  stri_replace_all(regex = "RayGra[s]{1,2}.*$", replacement = "Raygrass") %>%
+  stri_replace_all(fixed = "Rg", replacement = "Raygrass") %>%
+  stri_replace_all(regex = "F[èe]?vero[l]{1,2}e[s]?", replacement = "Féverolle") %>%
+  stri_replace_all(regex = "^1/2.*$", replacement = "Ble+Orge") %>%
+  stri_replace_all(regex = "\\?/", replacement = "+")
+
+# clean 'Type_de_sol'
+converted$Type_de_sol <-
+  converted$Type_de_sol %>%
+  stri_replace_all(regex = "\\s?,\\s?", replacement = "+") %>%
+  stri_replace_all(fixed = "_", replacement = " ") %>%
+  stri_trans_totitle() %>%
+  stri_replace_all(fixed = " ", replacement = "") %>%
+  stri_replace_all(fixed = "Et", replacement = "+") %>%
+  stri_replace_all(fixed = "/", replacement = "+") %>%
+  stri_replace_all(regex = ".{0,}Argil.*", replacement = "Argileux") %>%
+  stri_replace_all(regex = "Limon.*", replacement = "Limoneux") %>%
+  stri_replace_all(regex = "Alluv.*", replacement = "Alluvions") %>%
+  stri_replace_all(regex = ".{0,}Groie.*", replacement = "Groie") %>%
+  stri_replace_all(regex = "Calcaire.*", replacement = "Calcaire") %>%
+  stri_replace_all(regex = "Terre[s]?Profond[es]{0,2}", replacement = "TerreProfonde") %>%
+  stri_replace_all(fixed = "Goie", replacement = "Groie") %>%
+  stri_replace_all(fixed = "TerresDeVarennes", replacement = "Varennes")
+
+# clean 'Interculture'
+converted$Interculture %>%
+  stri_replace_all(fixed = "d'", replacement = " ") %>%
+  stri_trans_totitle() %>%
+  stri_replace_all(regex = "[ ]?\\+[ ]?", replacement = "+") %>%
+  stri_replace_all(regex = "-", replacement = "+") %>%
+  stri_replace_all(regex = "[Rr]ay[\\+ -]?[Gg]ras", replacement = "Raygrass") %>%
+  stri_replace_all(regex = " \\(.*\\)", replacement = "") %>%
+  stri_replace_all(regex = "[Rr]epousse[s]?.*", replacement = "Repousse") %>%
+  stri_replace_all(fixed = "Melange", replacement = "") %>%
+  stri_replace_all(fixed = "0", replacement = "Aucune") %>%
+  stri_replace_all(fixed = " ", replacement = "") %>%
+  stri_replace_all(fixed = ",", replacement = "+") %>%
+  stri_replace_all(fixed = "VesceAvoineDiploïde", replacement = "Vesce+Avoine") %>%
+  stri_replace_all(fixed = "AvoineVesce", replacement = "Vesce+Avoine") %>%
+  as.factor() %>%
+  levels()
+
+# clean 'Produit_Enrobage'
+converted$Produit_Enrobage %>%
+  stri_trans_totitle() %>%
+  stri_replace_all(regex = "[ ]?\\+[ ]?", replacement = "+") %>%
+  stri_replace_all(regex = "Thiram[e ]{0,}[[:alnum:]]*", replacement = "Thirame") %>%
+  stri_replace_all(fixed = "Celest", replacement = "Célest") %>%
+  stri_replace_all(fixed = "Tt", replacement = "Trt") %>%
+  as.factor() %>%
+  levels()
+
+# clean 'Obj_Enrobage'
+converted$Obj_Enrobage %>%
+  stri_replace_all(regex = "C\\.?", replacement = "Corvicide") %>%
+  stri_replace_all(fixed = "F", replacement = "Fongicide") %>%
+  stri_replace_all(fixed = "contre_pourriture", replacement = "Fongicide") %>%
+  stri_replace_all(fixed = "&", replacement = "+") %>%
+  stri_replace_all(regex = "\\b[Ii]\\b", replacement = "Insecticide") %>%
+  as.factor() %>%
+  levels()
+
+# clean 'Type_Tsol'
+converted$Type_Tsol %>%
+  stri_replace_all(regex = "bin.*", replacement = "Binage") %>%
+  stri_replace_all(regex = "broy.*", replacement = "Broyage") %>%
+  stri_replace_all(regex = "cover.*", replacement = "Cover crop") %>%
+  stri_replace_all(regex = "dechaum.*dent", replacement = "Déchaumage_dents") %>%
+  stri_replace_all(regex = "dechaum.*disque", replacement = "Déchaumage_disques") %>%
+  stri_replace_all(regex = ".*disque.*", replacement = "Déchaumage_disques") %>%
+  stri_replace_all(regex = "dechaum.*", replacement = "Déchaumage") %>%
+  stri_replace_all(regex = "roul.*", replacement = "Roulage") %>%
+  stri_replace_all(regex = ".*vibro.*", replacement = "Vibro") %>%
+  stri_replace_all(regex = "herse_rotative", replacement = "Herse_rotative") %>%
+  stri_replace_all(regex = "herse.*", replacement = "Herse") %>%
+  stri_replace_all(regex = "interculture.*", replacement = "Interculture") %>%
+  stri_replace_all(regex = "desherbage.*", replacement = "Désherbage") %>%
+  stri_replace_all(regex = "labour.*", replacement = "Labour") %>%
+  stri_replace_all(regex = "travail.*", replacement = "Travail") %>%
+  stri_trans_totitle() %>%
+  as.factor() %>%
+  levels()
+
+# clean 'Protection_visée'
+converted$Protection_visée %>%
+  stri_replace_all(fixed = "molluscide", replacement = "Molluscicide") %>%
+  stri_replace_all(fixed = "repulsif", replacement = "répulsif") %>%
+  stri_replace_all(fixed = "regulateur", replacement = "Régulateur") %>%
+  stri_trans_totitle() %>%
+  as.factor() %>%
+  levels()
 
 # write the converted data to a file
 write.csv(resultat, "data/converted_data.csv", row.names = FALSE)
