@@ -6,12 +6,13 @@
 ##############################################################
 
 ##setwd("~/Stage/2016/M2_AlexandraCottel")
-setwd("~/Donnees/Chize-Enquetes/Prog")
+#setwd("~/Donnees/Chize-Enquetes/Prog")
 
 source("functions.R") #fonctions utilisées dans le script
 
 ##Charger le fichier de données enquêtes
-fich= read.table("BDD_R_new_19aout2016.csv",sep=";",dec=",",h=T,na.strings = c("NA",""))
+fich= read.table("BDD_R_new_19aout2016.csv",sep=";",dec=",",h=T,na.strings = c("NA",""),
+                 encoding = "latin1")
 ##data <- read.csv("BDD_R.csv",dec=",", quote="",na.strings = "NA")
 summary(fich) # synthèse des données du fichier
 names(fich) #nom des colonnes
@@ -51,7 +52,7 @@ fich_general=data.frame(
   ID_Parcelle=as.character(fich_general[,1]),
   ID_Exploitation=as.character(fich_general[,2]),
   Année_SuiviParcelle=factor(fich_general[,3]),
-  Colza_Nectar=fich_general,
+  Colza_Nectar=fich_general$Colza_Nectar,
   Expérimentation_autre=funlist_multi(fich_general$Expérimentation_autre,missing.data="Aucune"),
   point_X=funlist(fich_general$point_X),
   point_Y=funlist(fich_general$point_Y),
