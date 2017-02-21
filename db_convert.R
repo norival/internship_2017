@@ -169,7 +169,7 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
       if (nrow(rtmp) > 0) {
         for (j in 1:nrow(rtmp)) {
           b$Protection_visée[j] <-
-            stri_split_fixed(rtmp$intervention[j], "_", simplify = TRUE)[2]
+            stri_split_fixed(rtmp$Intervention[j], "_", simplify = TRUE)[2]
           b$Produit_phyto[j]    <- rtmp$produit[j]
           b$Dose_Phyto[j]       <- rtmp$Dose[j]
           b$Unité_dose[j]       <- rtmp$unite.Dose[j]
@@ -317,7 +317,8 @@ converted$Type_de_sol <-
   stri_replace_all(fixed = "TerresDeVarennes", replacement = "Varennes")
 
 # clean 'Interculture'
-converted$Interculture %>%
+converted$Interculture <-
+  converted$Interculture %>%
   stri_replace_all(fixed = "d'", replacement = " ") %>%
   stri_trans_totitle() %>%
   stri_replace_all(regex = "[ ]?\\+[ ]?", replacement = "+") %>%
@@ -330,32 +331,29 @@ converted$Interculture %>%
   stri_replace_all(fixed = " ", replacement = "") %>%
   stri_replace_all(fixed = ",", replacement = "+") %>%
   stri_replace_all(fixed = "VesceAvoineDiploïde", replacement = "Vesce+Avoine") %>%
-  stri_replace_all(fixed = "AvoineVesce", replacement = "Vesce+Avoine") %>%
-  as.factor() %>%
-  levels()
+  stri_replace_all(fixed = "AvoineVesce", replacement = "Vesce+Avoine")
 
 # clean 'Produit_Enrobage'
-converted$Produit_Enrobage %>%
+converted$Produit_Enrobage <-
+  converted$Produit_Enrobage %>%
   stri_trans_totitle() %>%
   stri_replace_all(regex = "[ ]?\\+[ ]?", replacement = "+") %>%
   stri_replace_all(regex = "Thiram[e ]{0,}[[:alnum:]]*", replacement = "Thirame") %>%
   stri_replace_all(fixed = "Celest", replacement = "Célest") %>%
-  stri_replace_all(fixed = "Tt", replacement = "Trt") %>%
-  as.factor() %>%
-  levels()
+  stri_replace_all(fixed = "Tt", replacement = "Trt")
 
 # clean 'Obj_Enrobage'
-converted$Obj_Enrobage %>%
+converted$Obj_Enrobage <-
+  converted$Obj_Enrobage %>%
   stri_replace_all(regex = "C\\.?", replacement = "Corvicide") %>%
   stri_replace_all(fixed = "F", replacement = "Fongicide") %>%
   stri_replace_all(fixed = "contre_pourriture", replacement = "Fongicide") %>%
   stri_replace_all(fixed = "&", replacement = "+") %>%
-  stri_replace_all(regex = "\\b[Ii]\\b", replacement = "Insecticide") %>%
-  as.factor() %>%
-  levels()
+  stri_replace_all(regex = "\\b[Ii]\\b", replacement = "Insecticide")
 
 # clean 'Type_Tsol'
-converted$Type_Tsol %>%
+converted$Type_Tsol <-
+  converted$Type_Tsol %>%
   stri_replace_all(regex = "bin.*", replacement = "Binage") %>%
   stri_replace_all(regex = "broy.*", replacement = "Broyage") %>%
   stri_replace_all(regex = "cover.*", replacement = "Cover crop") %>%
@@ -371,18 +369,14 @@ converted$Type_Tsol %>%
   stri_replace_all(regex = "desherbage.*", replacement = "Désherbage") %>%
   stri_replace_all(regex = "labour.*", replacement = "Labour") %>%
   stri_replace_all(regex = "travail.*", replacement = "Travail") %>%
-  stri_trans_totitle() %>%
-  as.factor() %>%
-  levels()
+  stri_trans_totitle()
 
 # clean 'Protection_visée'
 converted$Protection_visée %>%
   stri_replace_all(fixed = "molluscide", replacement = "Molluscicide") %>%
   stri_replace_all(fixed = "repulsif", replacement = "répulsif") %>%
   stri_replace_all(fixed = "regulateur", replacement = "Régulateur") %>%
-  stri_trans_totitle() %>%
-  as.factor() %>%
-  levels()
+  stri_trans_totitle()
 
 # write the converted data to a file
 write.csv(resultat, "data/converted_data.csv", row.names = FALSE)
