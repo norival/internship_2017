@@ -1,3 +1,41 @@
+# ------------------------------------------------------------------------------
+
+Signification des valeurs de 'Type_Exploitation':
+
+Api
+Avi
+BL
+BV
+CL
+CP
+EQ
+GC
+MA
+OV
+
+Syst_Prod:
+Ab
+Ac
+Conv
+Mae
+Raisonne
+
+Parcelle_MAE:
+> levels(as.factor(stri_trans_totitle(converted$Parcelle_MAE)))
+ [1] "Bio"                              "Cad"
+ [3] "Ferti+Herbi"                      "Ferti+Herbi (Pc_pvsd_gc3)"
+ [5] "Mae Desir+Ferti"                  "Mae Ferti"
+ [7] "Non"                              "Reduction Phyto Et Engrais Arret"
+ [9] "Reduction Phyto Et N"             "Rotationelle"
+> levels(as.factor(target$Parcelle_MAE))
+[1] "non" "oui"
+
+Vérifier la densité de semis.
+
+Besoin d'homogénéiser les produits de fertilisation sur les 2 bases de données.
+
+Besoin d'homogénéiser les produits phytosanitaires sur les 2 bases de données.
+
 # -- LOGS ----------------------------------------------------------------------
 
 # 20/02/2017
