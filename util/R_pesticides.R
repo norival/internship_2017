@@ -5,101 +5,146 @@
 #
 ##############################################################
 
-setwd("~/Donnees/Chize-Enquetes/Referentiel")
+# setwd("~/Donnees/Chize-Enquetes/Referentiel")
 ##setwd("~/BaseDonnees/Herbicides")
-dose_recommandee=read.table("dose-reference-ift-grande-culture.csv",h=T,sep=";",
-                            na.strings = "")
+dose_recommandee <- read.table("data/dose-reference-ift-grande-culture.csv",
+                               h = T,
+                               sep = ";",
+                               na.strings = "",
+                               encoding = "latin1")
 
-setwd("~/Donnees/Chize-Enquetes/Prog")
+# setwd("~/Donnees/Chize-Enquetes/Prog")
 
-Intensite_Traitement= function (tab=fich_Herbi,tab_info=info_Herbi,
-                                surf.trait=Surf_traitH,Nb_Trait_Rep=Nb_TraitH_Rep,
-                                  type="HERBICIDE",crop="Colza")
+tab          = fich_Herbi
+tab_info     = info_Herbi
+surf.trait   = Surf_traitH
+Nb_Trait_Rep = Nb_TraitH_Rep
+type         = "HERBICIDE"
+crop         = "Colza"
+
+Intensite_Traitement <- function(tab          = fich_Herbi,
+                                 tab_info     = info_Herbi,
+                                 surf.trait   = Surf_traitH,
+                                 Nb_Trait_Rep = Nb_TraitH_Rep,
+                                 type         = "HERBICIDE",
+                                 crop         = "Colza")
 {
-  # tab= tableau de contingence créé avec load_enquete.R exemple avec fich_Herbi
-  # tab_info = tableau créé avec load_enquete.R contenant les éléments relatifs au traitement (ID_parcelle, ID_exploitant, Date, Surface...)
-  #surf.trait = tableau de contingence créé avec load_enquete.R avec les valeurs de surfaces traitées. Ex. Surf_traitH
-  #Nb_Trait_Rep = tableau de contingence contenant le nb de fois qu'un produit a été utilisé dans une parcelle
-  # type = catégorie des produit: AUTRE, FONGICIDE, HERBICIDE ou INSECTICIDE / ACARICIDE
-  # crop = type de cultures.
+  # -- arguments ---------------------------------------------------------------
+  # tab           = tableau de contingence créé avec load_enquete.R exemple avec
+  #                 fich_Herbi
+  # tab_info      = tableau créé avec load_enquete.R contenant les éléments
+  #                 relatifs au traitement (ID_parcelle, ID_exploitant, Date,
+  #                 Surface...)
+  # surf.trait    = tableau de contingence créé avec load_enquete.R avec les
+  #                 valeurs de surfaces traitées. Ex. Surf_traitH
+  # Nb_Trait_Rep  = tableau de contingence contenant le nb de fois qu'un produit
+  #                 a été utilisé dans une parcelle
+  # type          = catégorie des produit: AUTRE, FONGICIDE, HERBICIDE ou
+  #                 INSECTICIDE / ACARICIDE
+  # crop          = type de cultures
   
-  colnames(tab)=gsub(x = colnames(tab),pattern = "\\.",replacement = " ")
+  # remplacer les "." par des " "
+  colnames(tab) <- gsub(x = colnames(tab), pattern = "\\.", replacement = " ")
   
   ##Calcul de la dose
-  dose=rowSums(tab)
-  hist(dose,main="Histogramme des doses (KG/HA)",breaks=20)
+  dose <- rowSums(tab)
+  hist(dose, main = "Histogramme des doses (KG/HA)", breaks <- 20)
   
   ##Calcul IFT
   #####Sélection des doses recommandées par type et culture
-  DoseReco=subset(dose_recommandee,dose_recommandee$Catégorie.de.produit==type)
-  DoseReco$Culture=DoseReco$Culture[,drop=T]
-  DoseReco$Nom.du.produit=DoseReco$Nom.du.produit[,drop=T]
-  x=match(as.character(DoseReco$Nom.du.produit),as.character(colnames(tab)))
-  x[is.na(x)]=0
-  x[x>0]=1
-  DoseReco_tab=DoseReco[x==1,]
-  DoseReco_tab$Nom.du.produit=DoseReco_tab$Nom.du.produit[,drop=T]
-  
-  if(length(unique(DoseReco_tab$Nom.du.produit))<length(colnames(tab)))
+  # récupére la dose recommandée pour le type de produit demandé
+  DoseReco <- subset(dose_recommandee, dose_recommandee$Catégorie.de.produit == type)
+  DoseReco$Culture <- DoseReco$Culture[,drop=T]
+  DoseReco$Nom.du.produit <- DoseReco$Nom.du.produit[,drop=T]
+
+  # Sélection des produits de DoseReco qui sont dans tab
+  DoseReco_tab <- DoseReco[DoseReco$Nom.du.produit %in% colnames(tab),]
+  DoseReco_tab <- droplevels(DoseReco_tab)
+
+  # s'il y a des herbicides qui ne sont pas dans dose_recommandee
+  if (length(unique(DoseReco_tab$Nom.du.produit)) < length(colnames(tab)))
   {
-    sel=setdiff(colnames(tab),levels( DoseReco_tab$Nom.du.produit))
-    x=NULL
-    for (i in sel)
+    # pesticides qui sont dans tab mais pas dans DoseReco_tab
+    sel <- setdiff(colnames(tab), levels(DoseReco_tab$Nom.du.produit))
+
+    # sélection uniquement des produits qui sont dans dose_recommandee pour
+    # éviter que le 'if' plante parce que la valeur est nulle
+    sel_in <- sel[sel %in% dose_recommandee$Nom.du.produit]
+    sel_out <- sel[!(sel %in% dose_recommandee$Nom.du.produit)]
+    cat("Les pesticides suivants ne sont pas dans le tableau 'dose_recommandee':\n")
+    print(sel_out)
+
+    x <- NULL
+
+    cat("Vérification du type de pesticide...\n")
+    for (i in levels(as.factor(sel_in)))
     {
       if(dose_recommandee$Catégorie.de.produit[dose_recommandee$Nom.du.produit==i]==type)
       {
         print(i)
-        x=c(x,i)
+        x <- c(x,i)
       }
-      else { print(paste("A corriger",i,"est un", 
-                        dose_recommandee$Catégorie.de.produit[dose_recommandee$Nom.du.produit==i],sep=" ")) }
+      else {
+        print(paste("A corriger",i,"est un",
+                    dose_recommandee$Catégorie.de.produit[dose_recommandee$Nom.du.produit==i][1],
+                    sep = " "))
+      }
     }
   }
-   
-  
+
+
   ##Calcul des doses de reférence pour la culture cible
   ##Si la culture n'est pas présente dans le référentiel, on prend le min des doses
-  DoseRef=NULL
-  temp=unique(DoseReco_tab$Nom.du.produit)
-  DoseReco_tab$Dose=as.numeric(as.character(DoseReco_tab$Dose))
+  DoseRef <- NULL
+  temp <- unique(DoseReco_tab$Nom.du.produit)
+  DoseReco_tab$Dose <- as.numeric(as.character(DoseReco_tab$Dose))
+
   for (i in 1:length(temp))
   {
-    #print(i)
-    if(sum(intersect(DoseReco_tab$Culture[DoseReco_tab$Nom.du.produit==temp[i]],
-                     crop)==crop)>0)
-    {DoseRef=c(DoseRef,DoseReco_tab$Dose[ DoseReco_tab$Nom.du.produit==temp[i] &
-      DoseReco_tab$Culture==crop]) }
-    else {DoseRef=c(DoseRef,min(DoseReco_tab$Dose[ DoseReco_tab$Nom.du.produit==temp[i]]))}
+    if (crop %in% DoseReco_tab$Culture[DoseReco_tab$Nom.du.produit==temp[i]])
+    {
+      DoseRef <-
+        c(DoseRef,
+          DoseReco_tab$Dose[DoseReco_tab$Nom.du.produit==temp[i]
+                            & DoseReco_tab$Culture==crop])
+    }
+    else {
+      DoseRef <-
+        c(DoseRef,
+          min(DoseReco_tab$Dose[DoseReco_tab$Nom.du.produit==temp[i]]))
+    }
   }
-  DoseRef=data.frame(DoseRef)
-  DoseRef$Nom.du.produit=temp  
+
+  DoseRef <- data.frame(DoseRef)
+  DoseRef$Nom.du.produit <- temp
   rm(temp)
-  DoseRef=DoseRef[order(DoseRef$Nom.du.produit,colnames(tab)),]
-  
+  ordering <- colnames(tab)[colnames(tab) %in% DoseRef$Nom.du.produit]
+  DoseRef <- DoseRef[order(DoseRef$Nom.du.produit, ordering), ]
+
   ##Calcul de l'IFT produit
   ###prise en compte des produits appliqués à plusieurs dates (somme dans tab)
-  MDoseRef=t(Nb_Trait_Rep)*DoseRef$DoseRef
-  MDoseRef=apply(MDoseRef,1,funRatio)
-  MDoseRef[MDoseRef=="Inf"]=0
+  MDoseRef <- t(Nb_Trait_Rep)*DoseRef$DoseRef
+  MDoseRef <- apply(MDoseRef, 1, funRatio)
+  MDoseRef[MDoseRef=="Inf"] <- 0
   ####rapport doses apportées sur doses recommandées (à ajouter année)
   ## Ratio=t(tab)*(1/DoseRef$DoseRef)
-  Ratio=tab*MDoseRef
+  Ratio <- tab*MDoseRef
   ####prise en compte de la surface traitée
-  R1=surf.trait/tab_info$Surface_ha
-  Ratio=Ratio * R1
-  IFT=rowSums(Ratio,na.rm=T)
-  
+  R1 <- surf.trait/tab_info$Surface_ha
+  Ratio <- Ratio * R1
+  IFT <- rowSums(Ratio,na.rm=T)
+
   ###Fichier sortie
-  tab_IFT=data.frame(
-    ID_Parc_Tri=tab_info$ID_Parc_Tri,
-    ID_Parcelle=tab_info$ID_Parcelle,
-    ID_Exploitation=tab_info$ID_Exploitation,
-    Surface_ha=tab_info$Surface_ha,
-    Culture=rep(crop,length(IFT)),
-    Protection_visée=rep(type,length(IFT)),
-    NbProd=as.vector(apply(tab,1,funSum)),
-    Dose=dose,
-    IFT=IFT)
+  tab_IFT <-
+    data.frame(ID_Parc_Tri      = tab_info$ID_Parc_Tri,
+               ID_Parcelle      = tab_info$ID_Parcelle,
+               ID_Exploitation  = tab_info$ID_Exploitation,
+               Surface_ha       = tab_info$Surface_ha,
+               Culture          = rep(crop, length(IFT)),
+               Protection_visée = rep(type, length(IFT)),
+               NbProd           = as.vector(apply(tab, 1, funSum)),
+               Dose             = dose,
+               IFT              = IFT)
   
   return(tab_IFT)
 
