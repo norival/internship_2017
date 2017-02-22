@@ -126,7 +126,16 @@ funlist_multi = function(x,missing.data=NA,date=F)
   for (i in 1:n)
     {
     if(date==F){
-      X[i,(1:length(x[[i]]))]=levels(x[[1]])[x[[i]][1:length(x[[i]])]]
+      # Xavier: ajout d'une vérification: remplacer par NA quand la valeur de
+      # 'test' est numérique et inférieure à 1. La valeur renvoyée par x[0.5]
+      # est 'character(0)' alors que celle renvoyée par x[1.5] est 'NA'. Cela
+      # faisait donc planter la fonction quand l'indice était < 1.
+      test <- x[[i]][1:length(x[[i]])][1]
+      if (is.numeric(test) && test < 1) {
+        X[i,(1:length(x[[i]]))] <- NA
+      } else {
+        X[i,(1:length(x[[i]]))]=levels(as.factor(x[[1]]))[x[[i]][1:length(x[[i]])]]
+      }
     }
     if(date==T){
       X[i,(1:length(x[[i]]))]=as.Date(x[[i]][1:length(x[[i]])],"%d/%m/%Y")
