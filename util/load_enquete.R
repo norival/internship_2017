@@ -56,7 +56,7 @@ fich_general <-
   data.frame(ID_Parcelle            = as.character(fich_general[,1]),
              ID_Exploitation        = as.character(fich_general[,2]),
              Année_SuiviParcelle    = factor(fich_general[,3]),
-             Colza_Nectar           = fich_general,
+             Colza_Nectar           = funlist(fich_general$Colza_Nectar),
              Expérimentation_autre  = funlist_multi(fich_general$Expérimentation_autre,
                                                     missing.data = "Aucune"),
              point_X                = funlist(fich_general$point_X),
@@ -346,7 +346,7 @@ info_Herbi <-
 x <- match(as.character(surf[, 1]), as.character(info_Herbi[, 1]))
 x[is.na(x)] <- 0
 x[x>0] <- 1
-info_Herbi$Surface_ha <- surf[, 2][, 1][x==1]
+info_Herbi$Surface_ha <- surf[, 2][x==1]
 
 info_Herbi <-
   data.frame(ID_Parc_Tri          = as.character(info_Herbi[, 1]),
@@ -368,7 +368,7 @@ funDose(z = fich_Herbi$ID_Parc_Tri,
 #################TROUVER LES EQUIVALENTS PACK/HA POUR NOVALL et SPRINGBOK
 ###Tables de contingence
 
-temp <- count(fich_Herbi, c("ID_Parc_Tri", "Produit_phyto", "Date_Phyto") )
+temp <- plyr::count(fich_Herbi, c("ID_Parc_Tri", "Produit_phyto", "Date_Phyto"))
 Nb_TraitH_Rep <- xtabs(temp$freq ~ ID_Parc_Tri + Produit_phyto, data = temp)
 
 Surf_traitH <-
@@ -395,7 +395,7 @@ info_Insect <-
 x <- match(as.character(surf[, 1]), as.character(info_Insect[,1]))
 x[is.na(x)] <- 0
 x[x>0] <- 1
-info_Insect$Surface_ha <- surf[, 2][, 1][x == 1]
+info_Insect$Surface_ha <- surf[, 2][x == 1]
 
 info_Insect <-
   data.frame(ID_Parc_Tri          = as.character(info_Insect[, 1]),
@@ -418,7 +418,7 @@ funDose(z = fich_Insect$ID_Parc_Tri,
 ##########"6029_IB1_2013:KARATE K"  "6029_IB1_2013:MAGEOS MD" en G/HA => dose à modifier /1000
 
 ###Tables de contingence
-temp <- count(fich_Insect, c("ID_Parc_Tri", "Produit_phyto", "Date_Phyto"))
+temp <- plyr::count(fich_Insect, c("ID_Parc_Tri", "Produit_phyto", "Date_Phyto"))
 Nb_TraitI_Rep <- xtabs(temp$freq ~ ID_Parc_Tri + Produit_phyto,
                        data = temp)
 Surf_traitI <- xtabs(as.numeric(as.character(Surface_traitée_ha)) ~ ID_Parc_Tri + Produit_phyto, 
@@ -441,7 +441,7 @@ info_Fongi <- aggregate(fich_Fongi[, c(1, 2, 3, 8, 9, 10)],
 x <- match(as.character(surf[,1]),as.character(info_Fongi[,1]))
 x[is.na(x)] <- 0
 x[x>0] <- 1
-info_Fongi$Surface_ha <- surf[, 2][, 1][x==1]
+info_Fongi$Surface_ha <- surf[, 2][x==1]
 
 info_Fongi <-
   data.frame(ID_Parc_Tri          = as.character(info_Fongi[, 1]),
@@ -465,7 +465,7 @@ funDose(z = fich_Fongi$ID_Parc_Tri,
 ## "11075_A122_2015:PROPULSE"  "9874_A187_2015:PICTOR PRO"
 
 ###Table de contingence
-temp <- count(fich_Fongi, c("ID_Parc_Tri","Produit_phyto", "Date_Phyto") )
+temp <- plyr::count(fich_Fongi, c("ID_Parc_Tri","Produit_phyto", "Date_Phyto") )
 Nb_TraitF_Rep <- xtabs(temp$freq ~ ID_Parc_Tri + Produit_phyto,
                        data=temp)
 Surf_traitF <- xtabs(as.numeric(as.character(Surface_traitée_ha)) ~ ID_Parc_Tri + Produit_phyto, 
