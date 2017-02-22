@@ -192,8 +192,7 @@ fich_recolte <-
              ObjRdt..qtx.             = funlist(fich_recolte$ObjRdt..qtx.),
              Rdt_Qtx                  = funlist(fich_recolte$Rdt_Qtx),
              Date_Fauche              = funlist(fich_recolte$Date_Fauche),# funlist_multi(fich_recolte$Date_Fauche,date=T)
-             Rdt_Fauche..en.t.MS.ha.  = funlist(fich_recolte$Rdt_Fauche..en.t.MS.ha.)
-)
+             Rdt_Fauche..en.t.MS.ha.  = funlist(fich_recolte$Rdt_Fauche..en.t.MS.ha.))
 
 ############################TRAVAIL DU SOL###############################################
 ##Création d'un sous-jeu de données correspondant aux informations sur le travail du sol
@@ -346,8 +345,7 @@ info_Herbi <-
 x <- match(as.character(surf[, 1]), as.character(info_Herbi[, 1]))
 x[is.na(x)] <- 0
 x[x>0] <- 1
-surf[, 2][x == 1]
-info_Herbi$Surface_ha <- surf[, 2][x==1]
+info_Herbi$Surface_ha <- surf[, 2][, 1][x==1]
 
 info_Herbi <-
   data.frame(ID_Parc_Tri          = as.character(info_Herbi[, 1]),
@@ -391,10 +389,11 @@ info_Insect <-
   aggregate(fich_Insect[, c(1, 2, 3, 8, 9, 10)], 
             by = list(fich_Insect$ID_Parc_Tri),
             unique)
+
 x <- match(as.character(surf[, 1]), as.character(info_Insect[,1]))
 x[is.na(x)] <- 0
 x[x>0] <- 1
-info_Insect$Surface_ha <- surf[, 2][x == 1]
+info_Insect$Surface_ha <- surf[, 2][, 1][x == 1]
 
 info_Insect <-
   data.frame(ID_Parc_Tri          = as.character(info_Insect[, 1]),
@@ -439,7 +438,7 @@ info_Fongi <- aggregate(fich_Fongi[, c(1, 2, 3, 8, 9, 10)],
 x <- match(as.character(surf[,1]),as.character(info_Fongi[,1]))
 x[is.na(x)] <- 0
 x[x>0] <- 1
-info_Fongi$Surface_ha <- surf[, 2][x==1]
+info_Fongi$Surface_ha <- surf[, 2][, 1][x==1]
 
 info_Fongi <-
   data.frame(ID_Parc_Tri          = as.character(info_Fongi[, 1]),
