@@ -1,7 +1,7 @@
 # Lecture des fichiers enquetes
 #
 # Crée le 2 aout 2016 par Sabrina Gaba
-# Modifié le XX  par XX
+# Modifié le 22/02/2017 par Xavier Laviron
 #
 ##############################################################
 
@@ -343,10 +343,7 @@ info_Herbi <-
             by = list(fich_Herbi$ID_Parc_Tri),
             unique)
 
-x <- match(as.character(surf[, 1]), as.character(info_Herbi[, 1]))
-x[is.na(x)] <- 0
-x[x>0] <- 1
-info_Herbi$Surface_ha <- surf[, 2][x==1]
+info_Herbi$Surface_ha <- surf[(surf[, 1] %in% info_Herbi[, 1]), 2]
 
 info_Herbi <-
   data.frame(ID_Parc_Tri          = as.character(info_Herbi[, 1]),
@@ -392,10 +389,7 @@ info_Insect <-
             by = list(fich_Insect$ID_Parc_Tri),
             unique)
 
-x <- match(as.character(surf[, 1]), as.character(info_Insect[,1]))
-x[is.na(x)] <- 0
-x[x>0] <- 1
-info_Insect$Surface_ha <- surf[, 2][x == 1]
+info_Insect$Surface_ha <- surf[(surf[, 1] %in% info_Insect[, 1]), 2]
 
 info_Insect <-
   data.frame(ID_Parc_Tri          = as.character(info_Insect[, 1]),
@@ -438,10 +432,7 @@ info_Fongi <- aggregate(fich_Fongi[, c(1, 2, 3, 8, 9, 10)],
                         by = list(fich_Fongi$ID_Parc_Tri),
                         unique)
 
-x <- match(as.character(surf[,1]),as.character(info_Fongi[,1]))
-x[is.na(x)] <- 0
-x[x>0] <- 1
-info_Fongi$Surface_ha <- surf[, 2][x==1]
+info_Fongi$Surface_ha <- surf[(surf[, 1] %in% info_Fongi[, 1]), 2]
 
 info_Fongi <-
   data.frame(ID_Parc_Tri          = as.character(info_Fongi[, 1]),
