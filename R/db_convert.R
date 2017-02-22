@@ -19,7 +19,7 @@ library(stringi)
 complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
 
   # empty data.frame to store  the results
-  B2 <- 
+  B2 <-
     data.frame(matrix(NA, nrow = 1, ncol = length(B)))
   colnames(B2) <- colnames(B)
 
@@ -242,6 +242,8 @@ converted <- complete_db1(R, B, verbose = F)
 
 
 # -- homogeneize values before saving ------------------------------------------
+# Values must be homogeneous between the converted db and the target db.
+# This is just a lot of string replacements.
 
 # clean 'Type_Culture'
 converted$Type_Culture <-
@@ -377,6 +379,7 @@ converted$Protection_visée %>%
   stri_replace_all(fixed = "repulsif", replacement = "répulsif") %>%
   stri_replace_all(fixed = "regulateur", replacement = "Régulateur") %>%
   stri_trans_totitle()
+
 
 # write the converted data to a file
 write.csv(resultat, "data/converted_data.csv", row.names = FALSE)
