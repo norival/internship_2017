@@ -381,5 +381,5 @@ converted$Protection_visée %>%
   stri_trans_totitle()
 
 
-# write the converted data to a file
-write.csv(resultat, "data/converted_data.csv", row.names = FALSE)
+# finally, write the converted data to a file
+write.csv(converted, "data/converted_data.csv", row.names = FALSE)
