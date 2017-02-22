@@ -44,7 +44,7 @@ funDoseN = function(z=Id_Parc,x=unite_dose,y=produit)
     temp=paste(z[na.omit(x)==setdiff(levels(na.omit(x)),ref)],
                y[na.omit(x)==setdiff(levels(na.omit(x)),ref)],sep=":")
   }
-  temp
+  print(temp)
 }
 ###########################################################
 ##Fonction pour vérification des doses phyto
@@ -58,7 +58,7 @@ funDose = function(z=Id_Parc,x=unite_dose,y=produit)
     temp=paste(z[na.omit(x)==setdiff(levels(na.omit(x)),ref)],
                y[na.omit(x)==setdiff(levels(na.omit(x)),ref)],sep=":")
   }
-  temp
+  print(temp)
 }
 
 #funDose(z=fich_Herbi$ID_Parc_Tri,x=fich_Herbi$Dose_Phyto,y=fich_Herbi$Produit_phyto)
