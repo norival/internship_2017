@@ -34,3 +34,6 @@ write.csv(data_full, "data/BDD_full.csv", row.names = FALSE)
 # formatting and subsetting the data.frame with Sabrina's scripts
 cat("Conversion et subsetting du fichier enquêtes...\n")
 source("util/load_enquete.R", encoding = "latin1")
+
+source("util/R_pesticides.R", encoding = "latin1")
+ift_herbi <- Intensite_Traitement()
