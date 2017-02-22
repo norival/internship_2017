@@ -301,6 +301,7 @@ info_Ferti <-
                                                   date = TRUE))
 
 ###Vérification que l'ensemble des valeurs soit en KG/HA, L/HA ou Unités/HA
+cat("Vérification des doses de fertilisants:\n")
 funDoseN(z = fich_Ferti$ID_Parcelle,
          x = fich_Ferti$Unité_dose,
          y = fich_Ferti$Produit_Ferti)
@@ -360,6 +361,7 @@ info_Herbi <-
                                                   date=TRUE))
 
 ###Vérification que l'ensemble des valeurs soit en KG/HA ou L/HA
+cat("Vérification des doses d'herbicides:\n")
 funDose(z = fich_Herbi$ID_Parc_Tri,
         x = fich_Herbi$Unité_dose.1,
         y = fich_Herbi$Produit_phyto)
@@ -409,6 +411,7 @@ info_Insect <-
                                                   date = TRUE))
 
 ###Vérification que l'ensemble des valeurs soit en KG/HA ou L/HA
+cat("Vérification des doses d'insecticides:\n")
 funDose(z = fich_Insect$ID_Parc_Tri,
         x = fich_Insect$Unité_dose.1,
         y = fich_Insect$Produit_phyto)
@@ -454,6 +457,7 @@ info_Fongi <-
                                                   date=TRUE))
 
 ###Vérification que l'ensemble des valeurs soit en KG/HA ou L/HA
+cat("Vérification des doses de fongicides:\n")
 funDose(z = fich_Fongi$ID_Parc_Tri,
         x = fich_Fongi$Unité_dose.1,
         y = fich_Fongi$Produit_phyto)
