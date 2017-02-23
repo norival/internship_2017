@@ -6,9 +6,12 @@
 
 # -- packages ------------------------------------------------------------------
 library(plyr)
+library(dplyr)
 
 # -- data management -----------------------------------------------------------
 # loads and converts the data
+# This has to be run only once and, when databases will be clean, it should not
+# be run again.
 
 # loading
 if (!(file.exists("data/converted_data.csv"))) {
@@ -25,11 +28,21 @@ other_data <- read.csv("data/BDD_dec2016_culture.csv",
                        dec = ",",
                        encoding = "utf8")
 
+# merge the 2 databases into one data.frame
 data_full <- rbind.data.frame(other_data, converted_data)
 
-# merging the 2 databases into one data.frame
+# remove trailing and leading whitespace from dataframe
+data_full <-
+  data_full %>%
+  mutate_all(.funs = trimws)
 
+data_full$Protection_visée[data_full$Produit_phyto == "KARATE K"] <- "insecticide"
+data_full$Produit_phyto[data_full$Produit_phyto == "U46D"] <- "U 46 D"
+
+# write it to a file
 write.csv(data_full, "data/BDD_full.csv", row.names = FALSE)
+
+# ------------------------------------------------------------------------------
 
 # formatting and subsetting the data.frame with Sabrina's scripts
 cat("Conversion et subsetting du fichier enquêtes...\n")
