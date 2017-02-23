@@ -7,16 +7,16 @@
 #               for the analyses
 # ------------------------------------------------------------------------------
 
-# packages
-library(tidyverse)
-library(stringi)
-
 # ------------------------------------------------------------------------------
 # converting data/BDD_enquetes_2011_robin_pr_xavier.csv
 
 # the functions who do the job, used only once but put into a function for
 # practical reasons
 complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
+
+  # packages
+  library(tidyverse)
+  library(stringi)
 
   # empty data.frame to store  the results
   B2 <-
@@ -383,3 +383,5 @@ converted$Protection_visée %>%
 
 # finally, write the converted data to a file
 write.csv(converted, "data/converted_data.csv", row.names = FALSE)
+
+rm(R, B, converted)
