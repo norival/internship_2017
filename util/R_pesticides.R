@@ -12,7 +12,8 @@ dose_recommandee <- read.table("data/dose-reference-ift-grande-culture.csv",
                                sep = ";",
                                na.strings = "",
                                encoding = "latin1")
-
+ephy <- read.csv("~/downloads/usages_des_produits_autorises_v2_utf8-26012017.csv",
+                sep = ";", encoding = "utf8")
 # setwd("~/Donnees/Chize-Enquetes/Prog")
 
 Intensite_Traitement <- function(tab          = fich_Herbi,
@@ -64,12 +65,30 @@ Intensite_Traitement <- function(tab          = fich_Herbi,
     # éviter que le 'if' plante parce que la valeur est nulle
     sel_in <- sel[sel %in% dose_recommandee$Nom.du.produit]
     sel_out <- sel[!(sel %in% dose_recommandee$Nom.du.produit)]
-    cat("Les pesticides suivants ne sont pas dans le tableau 'dose_recommandee':\n")
+    cat("\nLes pesticides suivants ne sont pas dans le tableau 'dose_recommandee':\n")
     print(sel_out)
+
+    # vérification des correspondances partielles
+    cat("\nVérification de correspondances partielles entre produits...\n")
+    dr_pdts <- as.character(dose_recommandee$Nom.du.produit)
+    for (i in sel_out) {
+      if (sum(grepl(i, dr_pdts)) > 0) {
+        print(paste(i, ": il y a", dr_pdts[grepl(i, dr_pdts)][1], "dans le tableau"))  # 
+      }
+    }
+
+    # vérifier dans la base de données EPHY
+    cat("\nVérification de correspondances partielles dans la BDD EPHY...\n")
+    ephy_pdts <- as.character(ephy$X.produit..nom.produit)
+    for (i in sel_out) {
+      if (sum(grepl(i, ephy_pdts)) > 0) {
+        print(paste(i, ": il y a", ephy_pdts[grepl(i, ephy_pdts)][1], "dans EPHY"))
+      }
+    }
 
     x <- NULL
 
-    cat("Vérification du type de pesticide...\n")
+    cat("\nVérification du type de pesticide...\n")
     for (i in levels(as.factor(sel_in)))
     {
       # récupérer la catégorie du produit dans le tableau dose_recommandee,
