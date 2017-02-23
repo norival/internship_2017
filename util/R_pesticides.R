@@ -99,19 +99,18 @@ Intensite_Traitement <- function(tab          = fich_Herbi,
   temp <- unique(DoseReco_tab$Nom.du.produit)
   DoseReco_tab$Dose <- as.numeric(as.character(DoseReco_tab$Dose))
 
-  for (i in 1:length(temp))
+  for (i in levels(temp))
   {
-    if (crop %in% DoseReco_tab$Culture[DoseReco_tab$Nom.du.produit==temp[i]])
+    if (crop %in% DoseReco_tab$Culture[DoseReco_tab$Nom.du.produit==i])
     {
       DoseRef <-
         c(DoseRef,
-          DoseReco_tab$Dose[DoseReco_tab$Nom.du.produit==temp[i]
-                            & DoseReco_tab$Culture==crop])
+          DoseReco_tab$Dose[DoseReco_tab$Nom.du.produit==i & DoseReco_tab$Culture==crop][1])
     }
     else {
       DoseRef <-
         c(DoseRef,
-          min(DoseReco_tab$Dose[DoseReco_tab$Nom.du.produit==temp[i]]))
+          min(DoseReco_tab$Dose[DoseReco_tab$Nom.du.produit==i][1]))
     }
   }
 
