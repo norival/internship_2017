@@ -15,13 +15,6 @@ dose_recommandee <- read.table("data/dose-reference-ift-grande-culture.csv",
 
 # setwd("~/Donnees/Chize-Enquetes/Prog")
 
-tab          = fich_Herbi
-tab_info     = info_Herbi
-surf.trait   = Surf_traitH
-Nb_Trait_Rep = Nb_TraitH_Rep
-type         = "HERBICIDE"
-crop         = "Colza"
-
 Intensite_Traitement <- function(tab          = fich_Herbi,
                                  tab_info     = info_Herbi,
                                  surf.trait   = Surf_traitH,
@@ -53,7 +46,7 @@ Intensite_Traitement <- function(tab          = fich_Herbi,
   ##Calcul IFT
   #####Sélection des doses recommandées par type et culture
   # récupére la dose recommandée pour le type de produit demandé
-  DoseReco <- subset(dose_recommandee, dose_recommandee$Catégorie.de.produit == type)
+  DoseReco <- subset(dose_recommandee, grepl(type, dose_recommandee$Catégorie.de.produit))
   DoseReco$Culture <- DoseReco$Culture[,drop=T]
   DoseReco$Nom.du.produit <- DoseReco$Nom.du.produit[,drop=T]
 
@@ -79,7 +72,14 @@ Intensite_Traitement <- function(tab          = fich_Herbi,
     cat("Vérification du type de pesticide...\n")
     for (i in levels(as.factor(sel_in)))
     {
-      if(dose_recommandee$Catégorie.de.produit[dose_recommandee$Nom.du.produit==i]==type)
+      # récupérer la catégorie du produit dans le tableau dose_recommandee,
+      # séparation dans une variable intermédiaire pour que la condition du 'if'
+      # soit plus claire. Et utilisation de 'grepl' pour permettre une
+      # correspondance partielle entre 'INSECTICIDE' et 'INSECTICIDE /
+      # ACARICIDE'
+      cat_produit <- dose_recommandee$Catégorie.de.produit[dose_recommandee$Nom.du.produit==i]
+
+      if(grepl(type, cat_produit))
       {
         print(i)
         x <- c(x,i)
