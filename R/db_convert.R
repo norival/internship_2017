@@ -78,7 +78,7 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
       b$point_Y[1]                <- r$point_Y[1]
       b$Type_Culture[1]           <- r$culture[1]
       b$Type_CultureSimplifiée[1] <- r$classe.culture[1]
-      b$Surface_ha[1]             <- r$surface.parcelle.ha.[1]
+      b$Surface_ha[1]             <- r$surface.2.ha[1]
       b$Type_Exploitation[1]      <- r$type.exploitation[1]
       b$Type_de_sol[1]            <- r$type.de.sol[1]
       b$Interculture[1]           <- r$interculture.annee.N[1]
