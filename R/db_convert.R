@@ -97,7 +97,7 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
         r %>%
         filter(grepl("^[Ss]emis[_ ]?", Intervention)) %>%
         filter(!(grepl("interculture", Intervention))) %>%
-        .[1, "date.intervention.V0"]
+        .[1, "dateV05"]
 
       ## intercrop sowing date
       if (!(is.na(b$Interculture[1])) && b$Interculture[1] == 1) {
@@ -105,14 +105,14 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
           r %>%
           filter(grepl("^[Ss]emis[_ ]?", Intervention)) %>%
           filter(grepl("interculture", Intervention)) %>%
-          .[1, "date.intervention.V0"]
+          .[1, "dateV05"]
       }
 
       ## intercrop harvest
       b$Date_Récolte_Inter[1] <-
         r %>%
         filter(Intervention == "autre_recolte_interculture") %>%
-        .[1, "date.intervention.V0"]
+        .[1, "dateV05"]
 
       ## melange
       if (grepl("\\+", paste(r$culture, collapse = ""))) {
@@ -129,14 +129,14 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
         r %>%
         filter(Intervention == "autre_recolte") %>%
         filter(grepl("interculture", Intervention)) %>%
-        .[1, "date.intervention.V0"]
+        .[1, "dateV05"]
 
       ## cutting date
       b$Date_Récolte_Inter[1] <-
         r %>%
         filter(Intervention == "autre_fauch") %>%
         filter(!(grepl("interculture", Intervention))) %>%
-        .[1, "date.intervention.V0"]
+        .[1, "dateV05"]
 
 
       # -- infos about fetilization --------------------------------------------
@@ -150,7 +150,7 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
           b$Produit_Ferti[j]  <- rtmp$produit[j]
           b$Dose_Ferti[j]     <- rtmp$Dose[j]
           b$Unité_dose[j]     <- rtmp$unite.Dose[j]
-          b$Date_Ferti[j]     <- rtmp$date.intervention.V0[j]
+          b$Date_Ferti[j]     <- rtmp$dateV05[j]
         }
       }
 
@@ -171,9 +171,9 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
           b$Protection_visée[j] <-
             stri_split_fixed(rtmp$Intervention[j], "_", simplify = TRUE)[2]
           b$Produit_phyto[j]    <- rtmp$produit[j]
-          b$Dose_Phyto[j]       <- rtmp$Dose[j]
-          b$Unité_dose.1[j]     <- rtmp$unite.Dose[j]
-          b$Date_Phyto[j]       <- rtmp$date.intervention.V0[j]
+          b$Dose_Phyto[j]       <- rtmp$Dose.convertie.trt[j]
+          b$Unité_dose.1[j]     <- rtmp$unite.Dose.convertie[j]
+          b$Date_Phyto[j]       <- rtmp$dateV05[j]
         }
       }
 
@@ -187,7 +187,7 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
           paste(stri_split_fixed(rtmp$Intervention[j], "_", simplify = TRUE)[-1],
                 collapse = "_")
         b$Profondeur_Tsol_.cm[j]  <- rtmp$pronf_travail[j]
-        b$Date_Tsol[j]            <- rtmp$date.intervention.V0[j]
+        b$Date_Tsol[j]            <- rtmp$dateV05[j]
       }
 
       # -- infos about caoting -------------------------------------------------
@@ -380,6 +380,10 @@ converted$Protection_visée %>%
   stri_replace_all(fixed = "regulateur", replacement = "Régulateur") %>%
   stri_trans_totitle()
 
+# removes plot 2768 for 2011 because ambiguous units in 'Dose_Ferti'
+converted <-
+  converted[-which(converted$ID_Parcelle == "2768" &
+                   converted$Année_SuiviParcelle == "2011"),]
 
 # finally, write the converted data to a file
 write.csv(converted, "data/converted_data.csv", row.names = FALSE)
