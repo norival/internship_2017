@@ -172,13 +172,13 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
             stri_split_fixed(rtmp$Intervention[j], "_", simplify = TRUE)[2]
           b$Produit_phyto[j]    <- rtmp$produit[j]
           b$Dose_Phyto[j]       <- rtmp$Dose[j]
-          b$Unité_dose[j]       <- rtmp$unite.Dose[j]
+          b$Unité_dose.1[j]     <- rtmp$unite.Dose[j]
           b$Date_Phyto[j]       <- rtmp$date.intervention.V0[j]
         }
       }
 
       # -- infos about soil work -----------------------------------------------
-      # informations are stored on rows wit hIntervention begining with "sol"
+      # informations are stored on rows with Intervention begining with "sol"
       rtmp <-
         filter(r, grepl("^sol", Intervention))
 
