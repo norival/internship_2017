@@ -147,10 +147,37 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
       if (nrow(rtmp) > 0) {
         # then get informations from each line
         for (j in 1:nrow(rtmp)) {
+          b$Dose_Ferti[j] <-
+            ifelse(is.na(rtmp$Dose.convertie.trt[j]),
+                   rtmp$Dose[j],
+                   rtmp$Dose.convertie.trt[j])
+          b$Unité_dose[j] <-
+            ifelse(is.na(rtmp$unite.Dose.convertie[j]),
+                   rtmp$unite.Dose[j],
+                   rtmp$unite.Dose.convertie[j])
+
           b$Produit_Ferti[j]  <- rtmp$produit[j]
-          b$Dose_Ferti[j]     <- rtmp$Dose[j]
-          b$Unité_dose[j]     <- rtmp$unite.Dose[j]
           b$Date_Ferti[j]     <- rtmp$dateV05[j]
+
+          # convert the unit
+          if (!is.na(b$Unité_dose[j])) {
+            if (!grepl("/[Hh][Aa]", b$Unité_dose[j])) {
+              if (toupper(b$Unité_dose[j]) == "KG") {
+                b$Dose_Ferti[j] <-
+                  as.numeric(b$Dose_Ferti[j]) / as.numeric(b$Surface_ha[1])
+              }
+              if (toupper(b$Unité_dose[j]) == "G") {
+                print(paste(b$Unité_dose[j], b$Dose_Ferti[j]))
+                b$Dose_Ferti[j] <-
+                  as.numeric(b$Dose_Ferti[j]) / (1000 * as.numeric(b$Surface_ha[1]))
+              }
+              if (toupper(b$Unité_dose[j]) == "T") {
+                b$Dose_Ferti[j] <-
+                  as.numeric(b$Dose_Ferti[j]) * 1000 / as.numeric(b$Surface_ha[1])
+              }
+              b$Unité_dose[j] <- "Kg/Ha"
+            }
+          }
         }
       }
 
@@ -384,6 +411,12 @@ converted$Protection_visée %>%
 converted <-
   converted[-which(converted$ID_Parcelle == "2768" &
                    converted$Année_SuiviParcelle == "2011"),]
+
+# clean units
+converted$Unité_dose <-
+  converted$Unité_dose %>%
+  stri_replace_all(regex = "[uU]{1}.*/[Hh][aA]", repl = "Unité/HA") %>%
+  stri_replace_all(regex = "[Kk][Gg].*/[Hh][aA]", repl = "Kg/HA")
 
 # finally, write the converted data to a file
 write.csv(converted, "data/converted_data.csv", row.names = FALSE)
