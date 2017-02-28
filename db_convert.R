@@ -90,6 +90,10 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
       b$ID_Enquêteur[1]           <- r$nom.enqueteur[1]
       b$Syst_Prod[1]              <- r$Conduite.exploit[1]
       b$Surface_traitée_ha[1]     <- r$surface.traitee..ha.[1]
+      b$Irrigation[1] <-
+        ifelse(!is.na(r$irrigation.bolleen[1]) && r$irrigation.bolleen != 0,
+               "oui",
+               "non")
 
       # these informations are a bit more tricky to get
       ## sowing date of crop
@@ -181,9 +185,6 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
         }
       }
 
-      ## irrigation
-      R$irrigation.bolleen
-      levels(as.factor(R$irrigation.mm.ha.))
 
       # -- infos about phyto ---------------------------------------------------
       rtmp <-
