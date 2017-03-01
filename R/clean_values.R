@@ -125,8 +125,8 @@ data_full_tmp$Type_Tsol <-
   data_full_tmp$Type_Tsol %>%
   stri_replace_all(regex = "bin.*", replacement = "Binage") %>%
   stri_replace_all(regex = "broy.*", replacement = "Broyage") %>%
-  stri_replace_all(regex = "cover.*", replacement = "Cover crop") %>%
-  stri_replace_all(regex = "dechaum.*dent", replacement = "Déchaumage_dents") %>%
+  stri_replace_all(regex = "[Cc]over.*", replacement = "Cover_crop") %>%
+  stri_replace_all(regex = "[Dd][ée]chaum.*[Dd]ent", replacement = "Déchaumage_dents") %>%
   stri_replace_all(regex = "dechaum.*disque", replacement = "Déchaumage_disques") %>%
   stri_replace_all(regex = ".*disque.*", replacement = "Déchaumage_disques") %>%
   stri_replace_all(regex = "dechaum.*", replacement = "Déchaumage") %>%
