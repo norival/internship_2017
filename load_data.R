@@ -14,6 +14,7 @@ library(dplyr)
 # be run again.
 
 # loading
+cat("Chargement des données...\n")
 if (!(file.exists("data/converted_data.csv"))) {
   # if not done already
   source("db_convert.R")
@@ -35,10 +36,13 @@ data_full_tmp <-
   data_full_tmp %>%
   mutate_all(.funs = trimws)
 
+
 # write it to a file
 write.csv(data_full_tmp, "data/BDD_full_tmp.csv", row.names = FALSE)
 
+cat("Nettoyage des valeurs...\n")
 source("clean_values.R")
+
 data_full <- read.csv("data/BDD_full.csv", stringsAsFactors = FALSE)
 
 # ------------------------------------------------------------------------------
