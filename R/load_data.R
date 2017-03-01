@@ -28,6 +28,9 @@ other_data <- read.csv("data/BDD_dec2016_culture.csv",
                        dec = ",",
                        encoding = "utf8")
 
+# récupération de la dose d'azote depuis la base de Robin
+other_data$dose_n <- NA
+
 # merge the 2 databases into one data.frame
 data_full_tmp <- rbind.data.frame(other_data, converted_data)
 
