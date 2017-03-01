@@ -1,4 +1,21 @@
-# ------------------------------------------------------------------------------
+# -- done ----------------------------------------------------------------------
+Conversion pour doses fertilisants:
+  - Parcelle 2144 SUPER18: 50 kg/ha de P pour un produit à 18% de P donc 100%
+    du produit représente 100*50/18 = 277.8 kg/ha
+  - Parcelle 4219 SUPER18: 55 kg/ha de P pour un produit à 18% de P donc 100%
+    du produit représente 100*55/18 = 305 kg/ha
+  - Parcelle xxxx 18/46/0: semble être Best Diammonium Phosphate ->
+    conversion: 15 kg/ha de N pour un produit à 18% de N donc 83.3 kg/ha de
+    produit.
+  - Parcelle 5767 0/25/20: 25 kg/ha de P pour un produit à 25% de P donc 100%
+    du produit représente 100 kg/ha.
+
+Parcelle 2768, 2011: dose amibgue pour la fertilisation -> suppression de la BDD
+
+Problème surface parcelle 3953: '1.69 (14 ?)' -> dans l'autre BDD, c'est
+marqué 1.69, donc je remplace par ça.
+
+# -- todo ----------------------------------------------------------------------
 
 Signification des valeurs de 'Type_Exploitation':
 
