@@ -1,20 +1,20 @@
 library(stringi)
 
 # -- stuff ok ------------------------------------------------------------------
-data_full_tmp <- read.csv("data/BDD_full_tmp.csv", stringsAsFactors = FALSE)
+data_full_dirty <- read.csv("data/generated/BDD_full_dirty.csv", stringsAsFactors = FALSE)
 
-data_full_tmp$Protection_visée[data_full_tmp$Produit_phyto == "KARATE K"] <- "insecticide"
-data_full_tmp$Produit_phyto[data_full_tmp$Produit_phyto == "U46D"] <- "U 46 D"
+data_full_dirty$Protection_visée[data_full_dirty$Produit_phyto == "KARATE K"] <- "insecticide"
+data_full_dirty$Produit_phyto[data_full_dirty$Produit_phyto == "U46D"] <- "U 46 D"
 
 # Sélection des années > 2005
-data_full_tmp <-
-  data_full_tmp %>%
+data_full_dirty <-
+  data_full_dirty %>%
   filter(Année_SuiviParcelle > 2005) %>%
   droplevels()
 
 # clean 'Type_Culture'
-data_full_tmp$Type_Culture <-
-  data_full_tmp$Type_Culture %>%
+data_full_dirty$Type_Culture <-
+  data_full_dirty$Type_Culture %>%
   stri_replace_all(fixed = "_", replacement = " ") %>%
   stri_replace_all(fixed = "-", replacement = " ") %>%
   stri_replace_all(fixed = "d'", replacement = " ") %>%
@@ -30,8 +30,8 @@ data_full_tmp$Type_Culture <-
   stri_replace_all(regex = "^1/2.*$", replacement = "Ble+Orge")
 
 # clean 'Culture_précédente'
-data_full_tmp$Culture_précédente <-
-  data_full_tmp$Culture_précédente %>%
+data_full_dirty$Culture_précédente <-
+  data_full_dirty$Culture_précédente %>%
   stri_replace_all(fixed = "_", replacement = " ") %>%
   stri_replace_all(fixed = "-", replacement = " ") %>%
   stri_replace_all(fixed = "d'", replacement = " ") %>%
@@ -49,8 +49,8 @@ data_full_tmp$Culture_précédente <-
   stri_replace_all(regex = "\\?/", replacement = "+")
 
 # clean 'Culture_suivante'
-data_full_tmp$Culture_précédente <-
-  data_full_tmp$Culture_précédente %>%
+data_full_dirty$Culture_précédente <-
+  data_full_dirty$Culture_précédente %>%
   stri_replace_all(fixed = "_", replacement = " ") %>%
   stri_replace_all(fixed = "-", replacement = " ") %>%
   stri_replace_all(fixed = "d'", replacement = " ") %>%
@@ -68,8 +68,8 @@ data_full_tmp$Culture_précédente <-
   stri_replace_all(regex = "\\?/", replacement = "+")
 
 # clean 'Type_de_sol'
-data_full_tmp$Type_de_sol <-
-  data_full_tmp$Type_de_sol %>%
+data_full_dirty$Type_de_sol <-
+  data_full_dirty$Type_de_sol %>%
   stri_replace_all(regex = "\\s?,\\s?", replacement = "+") %>%
   stri_replace_all(fixed = "_", replacement = " ") %>%
   stri_trans_totitle() %>%
@@ -86,8 +86,8 @@ data_full_tmp$Type_de_sol <-
   stri_replace_all(fixed = "TerresDeVarennes", replacement = "Varennes")
 
 # clean 'Interculture'
-data_full_tmp$Interculture <-
-  data_full_tmp$Interculture %>%
+data_full_dirty$Interculture <-
+  data_full_dirty$Interculture %>%
   stri_replace_all(fixed = "d'", replacement = " ") %>%
   stri_trans_totitle() %>%
   stri_replace_all(regex = "[ ]?\\+[ ]?", replacement = "+") %>%
@@ -103,8 +103,8 @@ data_full_tmp$Interculture <-
   stri_replace_all(fixed = "AvoineVesce", replacement = "Vesce+Avoine")
 
 # clean 'Produit_Enrobage'
-data_full_tmp$Produit_Enrobage <-
-  data_full_tmp$Produit_Enrobage %>%
+data_full_dirty$Produit_Enrobage <-
+  data_full_dirty$Produit_Enrobage %>%
   stri_trans_totitle() %>%
   stri_replace_all(regex = "[ ]?\\+[ ]?", replacement = "+") %>%
   stri_replace_all(regex = "Thiram[e ]{0,}[[:alnum:]]*", replacement = "Thirame") %>%
@@ -112,8 +112,8 @@ data_full_tmp$Produit_Enrobage <-
   stri_replace_all(fixed = "Tt", replacement = "Trt")
 
 # clean 'Obj_Enrobage'
-data_full_tmp$Obj_Enrobage <-
-  data_full_tmp$Obj_Enrobage %>%
+data_full_dirty$Obj_Enrobage <-
+  data_full_dirty$Obj_Enrobage %>%
   stri_replace_all(regex = "C\\.?", replacement = "Corvicide") %>%
   stri_replace_all(fixed = "F", replacement = "Fongicide") %>%
   stri_replace_all(fixed = "contre_pourriture", replacement = "Fongicide") %>%
@@ -121,8 +121,8 @@ data_full_tmp$Obj_Enrobage <-
   stri_replace_all(regex = "\\b[Ii]\\b", replacement = "Insecticide")
 
 # clean 'Type_Tsol'
-data_full_tmp$Type_Tsol <-
-  data_full_tmp$Type_Tsol %>%
+data_full_dirty$Type_Tsol <-
+  data_full_dirty$Type_Tsol %>%
   stri_replace_all(regex = "bin.*", replacement = "Binage") %>%
   stri_replace_all(regex = "broy.*", replacement = "Broyage") %>%
   stri_replace_all(regex = "[Cc]over.*", replacement = "Cover_crop") %>%
@@ -141,53 +141,54 @@ data_full_tmp$Type_Tsol <-
   stri_trans_totitle()
 
 # clean 'Protection_visée'
-data_full_tmp$Protection_visée %>%
+data_full_dirty$Protection_visée <-
+  data_full_dirty$Protection_visée %>%
   stri_replace_all(fixed = "molluscide", replacement = "Molluscicide") %>%
   stri_replace_all(fixed = "repulsif", replacement = "répulsif") %>%
   stri_replace_all(fixed = "regulateur", replacement = "Régulateur") %>%
   stri_trans_totitle()
 
 # removes plot 2768 for 2011 because ambiguous units in 'Dose_Ferti'
-data_full_tmp <-
-  data_full_tmp[-which(data_full_tmp$ID_Parcelle == "2768" &
-                   data_full_tmp$Année_SuiviParcelle == "2011"),]
+data_full_dirty <-
+  data_full_dirty[-which(data_full_dirty$ID_Parcelle == "2768" &
+                   data_full_dirty$Année_SuiviParcelle == "2011"),]
 
 # clean units
-data_full_tmp$Unité_dose <-
-  data_full_tmp$Unité_dose %>%
+data_full_dirty$Unité_dose <-
+  data_full_dirty$Unité_dose %>%
   stri_replace_all(regex = "[uU]{1}.*/[Hh][aA]", repl = "Unité/HA") %>%
   stri_replace_all(regex = "[Kk][Gg].*/[Hh][aA]", repl = "Kg/HA")
 
 # -- fertilisation -------------------------------------------------------------
-data_full_tmp[data_full_tmp$Fertilisation %in% c("", " "),] <- NA
+data_full_dirty[data_full_dirty$Fertilisation %in% c("", " "),] <- NA
 
-data_full_tmp$Dose_Ferti <-
-  data_full_tmp$Dose_Ferti %>%
+data_full_dirty$Dose_Ferti <-
+  data_full_dirty$Dose_Ferti %>%
   stri_replace_all(regex = c(" ", ","), repl = c("", "."),
                    vectorize_all = FALSE) %>%
   as.numeric()
 
 # conversion des m^3 en litres
-data_full_tmp$Dose_Ferti <- ifelse(data_full_tmp$Unité_dose == "m3/ha",
-                               data_full_tmp$Dose_Ferti * 1000,
-                               data_full_tmp$Dose_Ferti)
-data_full_tmp$Dose_Ferti <- ifelse(data_full_tmp$Unité_dose == "qtx/ha",
-                               data_full_tmp$Dose_Ferti * 100,
-                               data_full_tmp$Dose_Ferti)
-data_full_tmp$Dose_Ferti <- ifelse(grepl("[Tt]/[Hh][Aa]", data_full_tmp$Unité_dose),
-                               data_full_tmp$Dose_Ferti * 1000,
-                               data_full_tmp$Dose_Ferti)
-data_full_tmp$Unité_dose <-
-  data_full_tmp$Unité_dose %>%
+data_full_dirty$Dose_Ferti <- ifelse(data_full_dirty$Unité_dose == "m3/ha",
+                                     data_full_dirty$Dose_Ferti * 1000,
+                                     data_full_dirty$Dose_Ferti)
+data_full_dirty$Dose_Ferti <- ifelse(data_full_dirty$Unité_dose == "qtx/ha",
+                                     data_full_dirty$Dose_Ferti * 100,
+                                     data_full_dirty$Dose_Ferti)
+data_full_dirty$Dose_Ferti <- ifelse(grepl("[Tt]/[Hh][Aa]", data_full_dirty$Unité_dose),
+                                     data_full_dirty$Dose_Ferti * 1000,
+                                     data_full_dirty$Dose_Ferti)
+data_full_dirty$Unité_dose <-
+  data_full_dirty$Unité_dose %>%
   stri_replace_all(regex = c("m3/ha", "qtx/ha", "[Tt]/[Hh][Aa]"),
                    repl = c("L/HA", "Kg/HA", "Kg/HA"),
                    vectorize_all = FALSE)
 
 # unités doses ferti
-data_full_tmp$Unité_dose <-
-  data_full_tmp$Unité_dose %>%
+data_full_dirty$Unité_dose <-
+  data_full_dirty$Unité_dose %>%
   stri_replace_all(regex = c("[uU]{1}.*/", "[Kk][Gg].*/", "[Ll].*/")%s+%"[Hh][aA]",
                    repl = c("Unité/HA", "Kg/HA", "L/HA"),
                    vectorize_all = FALSE)
 
-write.csv(data_full_tmp, "data/BDD_full.csv", row.names = FALSE)
+write.csv(data_full_dirty, "data/generated/BDD_full.csv", row.names = FALSE)
