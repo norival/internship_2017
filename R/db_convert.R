@@ -51,13 +51,7 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
       r <- filter(r0, annee_enquetee == year)
 
       # -- initialization of loop ----------------------------------------------
-      # check if the ID of the plot is in the good format
-      if (!(grepl("^[[:digit:]]+$", parcelle))) {
-        # if not, skip it and return a warning message
-        warning(paste("\"", parcelle, "\"", " n'est pas un nom de parcelle valide", sep = ""),
-                call. = FALSE)
-        next
-      } else if (verbose) {
+      if (verbose) {
         # echo the plot being processed
         cat("Processing plot ", parcelle, " for year ", year, "...\n", sep = "")
       }
@@ -171,7 +165,7 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
                   as.numeric(b$Dose_Ferti[j]) / as.numeric(b$Surface_ha[1])
               }
               if (toupper(b$Unité_dose[j]) == "G") {
-                print(paste(b$Unité_dose[j], b$Dose_Ferti[j]))
+                # print(paste(b$Unité_dose[j], b$Dose_Ferti[j]))
                 b$Dose_Ferti[j] <-
                   as.numeric(b$Dose_Ferti[j]) / (1000 * as.numeric(b$Surface_ha[1]))
               }
