@@ -71,7 +71,7 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
       b$ID_Parcelle               <- r$ID.parcelle.ZA[1]
       b$ID_Exploitation           <- r$ID.exploitation[1]
       b$Année_SuiviParcelle       <- r$annee_enquetee[1]
-      b$Année_Enquête[1]          <- r$annee.de.l.enquete[1]
+      b$Année_Enquête             <- r$annee.de.l.enquete[1]
       b$point_X[1]                <- r$point_X[1]
       b$point_Y[1]                <- r$point_Y[1]
       b$Type_Culture[1]           <- r$culture[1]
@@ -85,7 +85,7 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
       b$Rdt_Qtx[1]                <- r$rdt.qtx[!is.na(r$rdt.qtx)][1]
       b$Culture_précédente[1]     <- r$culture.annee.N.1[1]
       b$Culture_suivante[1]       <- r$Culture.N.1[1]
-      b$ID_Enquêteur[1]           <- r$nom.enqueteur[1]
+      b$ID_Enquêteur              <- r$nom.enqueteur[1]
       b$Syst_Prod[1]              <- r$Conduite.exploit[1]
       b$Surface_traitée_ha[1]     <- r$surface.traitee..ha.[1]
       b$Irrigation[1] <-
@@ -169,16 +169,15 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
             if (!grepl("/[Hh][Aa]", b$Unité_dose[j])) {
               if (toupper(b$Unité_dose[j]) == "KG") {
                 b$Dose_Ferti[j] <-
-                  as.numeric(b$Dose_Ferti[j]) / as.numeric(b$Surface_ha[1])
+                  as.numeric(b$Dose_Ferti[j])
               }
               if (toupper(b$Unité_dose[j]) == "G") {
-                # print(paste(b$Unité_dose[j], b$Dose_Ferti[j]))
                 b$Dose_Ferti[j] <-
-                  as.numeric(b$Dose_Ferti[j]) / (1000 * as.numeric(b$Surface_ha[1]))
+                  as.numeric(b$Dose_Ferti[j]) / 1000
               }
               if (toupper(b$Unité_dose[j]) == "T") {
                 b$Dose_Ferti[j] <-
-                  as.numeric(b$Dose_Ferti[j]) * 1000 / as.numeric(b$Surface_ha[1])
+                  as.numeric(b$Dose_Ferti[j]) * 1000
               }
               b$Unité_dose[j] <- "Kg/Ha"
             }
@@ -248,7 +247,7 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
 
       # -- format the table ----------------------------------------------------
       # strip the dataframe to remove lines with only NA
-      b <- b[rowSums(is.na(b[, 5:length(b)])) != length(b[, 5:length(b)]),]
+      b <- b[rowSums(is.na(b[, 17:length(b)])) != length(b[, 17:length(b)]),]
 
       # bind the dataframe with the big dataframe
       B2 <- rbind.data.frame(B2, b)
@@ -261,15 +260,15 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
 }
 
 # read the tables
-R <- read.csv("data/BDD_robin_full.csv",
+R <- read.csv("data/raw/BDD_robin_full.csv",
               stringsAsFactors = FALSE)
-B <- read.csv("data/BDD_dec2016_culture.csv",
+B <- read.csv("data/raw/BDD_dec2016_culture.csv",
               stringsAsFactors = FALSE)
 
 # convert the data
 converted <- complete_db1(R, B, verbose = F)
 
 # write the converted data to a file
-write.csv(converted, "data/converted_data.csv", row.names = FALSE)
+write.csv(converted, "data/generated/converted_data.csv", row.names = FALSE)
 
 rm(R, B, converted)
