@@ -1,3 +1,4 @@
+library(ggplot2)
 # analyses
 
 data_full <- read.csv("data/BDD_full.csv", stringsAsFactors = FALSE)
@@ -66,3 +67,36 @@ a <-
 
 plot(a$n_kg_ha, log(a$qtx_ha), cex = 3)
 lines(lowess(a$n_kg_ha, a$qtx_ha, f = 0.5))
+
+# travail du sol
+unique(data_sub$Type_Tsol)
+
+data_sub %>%
+  # filter(!is.na(n_kg_ha), !is.na(qtx_ha)) %>%
+  filter(!is.na(Type_Tsol), !is.na(qtx_ha),
+         !is.na(n_kg_ha)) %>%
+  filter(Type_CultureSimplifiée == "ble") %>%
+  ggplot(aes(x = n_kg_ha, y = qtx_ha)) +
+  geom_point(size = 4) +
+  facet_wrap(~ Type_Tsol, scales = "free_y")
+
+data_sub %>%
+  # filter(!is.na(n_kg_ha), !is.na(qtx_ha)) %>%
+  filter(!is.na(Type_Tsol), !is.na(qtx_ha)) %>%
+  filter(Type_CultureSimplifiée == "mais") %>%
+  ggplot(aes(x = n_kg_ha, y = qtx_ha)) +
+  geom_point(size = 4) +
+  facet_wrap(~ Type_Tsol, scales = "free_y")
+
+data_sub %>%
+  filter(Type_CultureSimplifiée %in% c("ble", "mais")) %>%
+  filter(!is.na(qtx_ha)) %>%
+  ggplot(aes(x = Type_Tsol, y = qtx_ha, fill = Type_CultureSimplifiée)) +
+  geom_boxplot()
+
+# aucune valeur pour la profondeur de travail
+# data_sub %>%
+#   filter(Type_CultureSimplifiée %in% c("ble", "mais")) %>%
+#   filter(!is.na(qtx_ha)) %>%
+#   ggplot(aes(x = Profondeur_Tsol_.cm, y = qtx_ha, fill = Type_CultureSimplifiée)) +
+#   geom_point()
