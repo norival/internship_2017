@@ -1,0 +1,102 @@
+---
+title: "Compte rendu"
+date: Mis à jour le \today
+lang: fr
+fontsize: 12pt
+output:
+  pdf_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=4, fig.height=4, fig.path='Figs/',
+                      echo=TRUE, warning=FALSE, message=FALSE)
+```
+```{r, loading_data, echo=FALSE}
+library(tidyverse)
+library(stringi)
+
+data_full <- read.csv("data/BDD_full.csv", stringsAsFactors = FALSE)
+
+# subsetting
+data_sub <-
+  data_full %>%
+  filter(ID_Enquêteur %in% c("inchausti", "grison"),
+         Année_Enquête %in% c(2007, 2011))
+         # Type_CultureSimplifiée == "ble")
+
+data_sub$Produit_Ferti <-
+  data_sub$Produit_Ferti %>%
+  stri_replace_all(fixed = "/", repl = "-")
+
+data_sub$id_parc_tri <- paste(data_sub$ID_Exploitation,
+                              data_sub$ID_Parcelle,
+                              data_sub$Année_SuiviParcelle,
+                              sep = "_")
+fert <- read.csv("data/BD_Fertilizers_dec2016.csv", stringsAsFactors = FALSE)
+fert$Fertilisant <- trimws(fert$Fertilisant)
+
+n_ha <- numeric(nrow(data_sub))
+n_ha[n_ha == 0] <- NA
+for (i in 1:nrow(data_sub)) {
+  if (is.na(data_sub$Unité_dose[i])) {
+    next
+  }
+  if (data_sub$Unité_dose[i] == "Unité/HA") {
+    n_ha[i] <- data_sub$Dose_Ferti[i]
+  }
+  else if (data_sub$Unité_dose[i] == "Kg/HA") {
+    if (toupper(data_sub$Produit_Ferti[i]) %in% toupper(fert$Fertilisant)) {
+      n_ha[i]  <-
+        fert$Ferti.N...kg.100.kg.ou.l.[toupper(fert$Fertilisant) ==
+                                       toupper(data_sub$Produit_Ferti[i])] * data_sub$Dose_Ferti[i] / 100
+    }
+  }
+}
+data_sub$n_kg_ha <- n_ha
+data_sub$Rdt_Qtx <- as.numeric(data_sub$Rdt_Qtx)
+data_sub$qtx_ha <- data_sub$Rdt_Qtx / as.numeric(data_sub$Surface_ha)
+```
+
+## Exploration des valeurs
+
+Sur les données pour lesquelles les relevés de flore sont présents :
+
+- Années de l'enquête : 2007 et 2011
+- Nom enquêteurs : `Inchausti` et `Grison`
+
+### Données de fertilisation
+
+Il manque beaucoup de valeurs pour l'analyse de la fertilisation.
+J'ai effectué la conversion des doses en "Kg/HA" pour les produits présents dans
+le tableau de référence (3 produits).
+Cela ne laisse donc pas beaucoup de points pour le moment :
+
+```{r, data_summary}
+data_sub %>%
+  filter(!is.na(n_kg_ha), !is.na(qtx_ha)) %>%
+  group_by(Type_CultureSimplifiée) %>%
+  summarise(n = length(unique(id_parc_tri))) %>%
+  knitr::kable()
+
+```
+
+```{r}
+# graphiques
+# ble
+data_sub %>%
+  filter(!is.na(n_kg_ha), Type_CultureSimplifiée == "ble",
+         !is.na(qtx_ha)) %>%
+  ggplot(aes(x = n_kg_ha, y = qtx_ha)) +
+  geom_point(size = 2) +
+  theme(axis.title = element_text(size = 17),
+        axis.text = element_text(size = 17))
+
+# mais
+data_sub %>%
+  filter(!is.na(n_kg_ha), Type_CultureSimplifiée == "mais",
+         !is.na(qtx_ha)) %>%
+  ggplot(aes(x = n_kg_ha, y = qtx_ha)) +
+  geom_point(size = 4) +
+  theme(axis.title = element_text(size = 17),
+        axis.text = element_text(size = 17))
+```

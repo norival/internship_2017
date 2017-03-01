@@ -23,10 +23,13 @@
 *.lof
 
 # specific files
+R/reporting.pdf
+R/junk.R
 
 # directories
 notes/
 admin/
 R/data/
+R/Figs/
 
 # keep specific files
