@@ -78,7 +78,7 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
       b$Interculture[1]           <- r$interculture.annee.N[1]
       b$Densité_Semis[1]          <- r$densite.semis.Kg.ha[1]
       b$Unité_DensitéSemis[1]     <- "KG/HA"
-      b$Rdt_Qtx[1]                <- r$rdt.qtx[1]
+      b$Rdt_Qtx[1]                <- r$rdt.qtx[!is.na(r$rdt.qtx)][1]
       b$Culture_précédente[1]     <- r$culture.annee.N.1[1]
       b$Culture_suivante[1]       <- r$Culture.N.1[1]
       b$ID_Enquêteur[1]           <- r$nom.enqueteur[1]
