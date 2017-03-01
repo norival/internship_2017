@@ -6,8 +6,7 @@ data_full <- read.csv("data/BDD_full.csv", stringsAsFactors = FALSE)
 data_sub <-
   data_full %>%
   filter(ID_Enquêteur %in% c("inchausti", "grison"),
-         Année_SuiviParcelle %in% c(2007, 2011),
-         Type_CultureSimplifiée == "ble")
+         Année_Enquête %in% c(2007, 2011))
 
 data_sub$Produit_Ferti <-
   data_sub$Produit_Ferti %>%
@@ -44,8 +43,26 @@ for (i in 1:nrow(data_sub)) {
 data_sub$n_kg_ha <- n_ha
 data_sub$Rdt_Qtx <- as.numeric(data_sub$Rdt_Qtx)
 
+# calcul dose d'azote / ha
+data_sub$qtx_ha <- data_sub$Rdt_Qtx / as.numeric(data_sub$Surface_ha)
+
 # graphiques
 data_sub %>%
-  ggplot(aes(x = n_kg_ha, y = Rdt_Qtx)) +
-  geom_point()
-cbind(data_sub$id_parc_tri, data_sub$n_kg_ha, data_sub$Rdt_Qtx)
+  filter(!is.na(n_kg_ha), toupper(Type_CultureSimplifiée) == "MAIS",
+         !is.na(qtx_ha)) %>%
+  ggplot(aes(x = n_kg_ha, y = qtx_ha)) +
+  geom_point(size = 4) +
+  geom_smooth()
+# cbind.data.frame(data_sub$id_parc_tri, data_sub$n_kg_ha, data_sub$Rdt_Qtx)
+# length(n_ha[!is.na(n_ha)]) / length(n_ha[is.na(n_ha)]) * 100
+
+a <- 
+  data_sub %>%
+  filter(!is.na(n_kg_ha), !is.na(qtx_ha)) %>%
+  filter(!is.na(qtx_ha)) %>%
+  filter(Type_CultureSimplifiée == "mais") #%>%
+  group_by(Type_CultureSimplifiée) %>%
+  summarise(n = length(unique(id_parc_tri)))
+
+plot(a$n_kg_ha, log(a$qtx_ha), cex = 3)
+lines(lowess(a$n_kg_ha, a$qtx_ha, f = 0.5))
