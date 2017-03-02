@@ -186,3 +186,42 @@ print(unique(a$ID.parcelle.ZA[!is.na(a$rdt.qtx)]))
   Ou le problème vient-il des données d'enquêtes ?
   Peut-il y avoir un problème dans les correspondances entre les identifiants
   des parcelles ?
+
+
+## Analyse de la flore
+
+Le rendement des cultures peut être influencé par les pratiques agricoles
+(travail du sol, fertilisation) ainsi que par la compétition exercée par les
+adventices.
+
+### Comment étudier l'effet des adventices ?
+
+__Problème :__
+Il y a beaucoup d'espèces différentes (> 100) avec plusieurs
+variables (abondance, richesse). Il faut trouver un moyen de regrouper ces
+variables afin d'exprimer clairement la relation entre flore et rendement.
+La solution consiste à définir un indice unique.
+
+__Procédure :__
+On se place dans un espace à n dimensions (avec n le nombre total d'espèces),
+chaque dimension représentant l'abondance relative des espèces au sein de la
+parcelle (somme des abondances = 1).
+On place ensuite chaque parcelle dans cet espace et on définit des groupes
+(clusters) basés sur les ressemblances entre parcelles.
+Chaque parcelle peut ensuite être définie par ses pourcentages d'appartenance à
+chacun des groupes préalablement définis.
+C'est-à-dire qu'on va mesurer une probabilité d'appartenance de la parcelle à
+chacun des groupes.
+La somme de ces probabilités doit être égale à 1.
+
+Si on considère que chacun des groupes a son influence propre sur le rendement
+de la culture, alors le profil de la parcelle préalablement défini permettra
+d'appréhender l'impact de la parcelle sur le rendement.
+On peut cependant se dire que l'impact dépend de l'abondance totale de la flore
+de la parcelle.
+Il faut donc pondérer cet indice par l'abondance totale.
+
+\[ I = \sum_{i=1}^{p} Ab \times P(x \in G_{i}) \]
+
+Avec $G_{i}$ le groupe d'indice $i$, $x$ la communauté adventice de la parcelle
+et $Ab$ l'abondance totale de la parcelle.
