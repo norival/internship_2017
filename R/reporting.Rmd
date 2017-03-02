@@ -19,7 +19,6 @@ source("load_data.R")
 
 data_full <- read.csv("data/generated/BDD_full_dirty.csv", stringsAsFactors = FALSE)
 data_sub  <- read.csv("data/generated/BDD_sub.csv", stringsAsFactors = FALSE)
-
 ```
 
 ## Exploration des valeurs
@@ -62,8 +61,22 @@ J'ai regardé dans la base de données de Robin, il y a une colonne `Kg.N.ha`.
 Il n'y a pas les calculs pour cette colonne dans ses scripts, mais il indique
 dans son rapport qu'il l'a calculée à partir des concentrations des produits sur
 les sites des revendeurs.
+J'ai verifié les doses qu'il y avait en commun avec celles calculées à partir du
+fichier de référence et elles sont identiques.
+Je considère donc qu'on peut utiliser cette colonne pour le moment, ce qui
+laisse plus de valeurs :
+
+```{r, data_summary_ferti2, echo=F}
+data_sub %>%
+  filter(!is.na(dose_n), !is.na(qtx_ha), Type_CultureSimplifiée != "autre") %>%
+  group_by(Type_CultureSimplifiée) %>%
+  summarise(n = length(unique(id_parc_tri))) %>%
+  knitr::kable()
+```
 
 #### Pour le blé
+
+Avec les 9 points pour lesquels la quantité d'azote a pu être calculée.
 ```{r graphique_ble, echo=F}
 # graphiques
 # ble
@@ -74,6 +87,8 @@ data_sub %>%
   theme(axis.title = element_text(size = 17),
         axis.text = element_text(size = 17))
 ```
+
+Avec les valeurs issues de la base de données de Robin (171 points).
 ```{r graphique_ble2, echo=F}
 data_sub %>%
   filter(!is.na(dose_n), Type_CultureSimplifiée == "ble",
@@ -83,6 +98,14 @@ data_sub %>%
         axis.text = element_text(size = 17))
 ```
 
+Il semble y avoir une augmentation moyenne du rendement du blé lorsque la
+quantité d'azote apportée augmente.
+Il y a en tout cas une augmentation dans la variabilité du rendement.
+
+
+#### Pour le maïs
+
+Avec les 5 points pour lesquels la quantité d'azote a pu être calculée.
 ```{r graphique_mais, echo=F}
 # graphiques
 # ble
@@ -93,6 +116,8 @@ data_sub %>%
   theme(axis.title = element_text(size = 17),
         axis.text = element_text(size = 17))
 ```
+
+Avec les valeurs issues de la base de données de Robin (22 points).
 ```{r graphique_mais2, echo=F}
 # mais
 data_sub %>%
@@ -103,3 +128,9 @@ data_sub %>%
   theme(axis.title = element_text(size = 17),
         axis.text = element_text(size = 17))
 ```
+
+Pour le maïs, il semble y avoir moins de lien entre l'apport d'azote et le
+rendement.
+
+
+### Travail du sol
