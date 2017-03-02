@@ -11,7 +11,8 @@ output:
 knitr::opts_chunk$set(fig.width=4, fig.height=3.6, fig.path='Figs/',
                       echo=F, warning=FALSE, message=FALSE, fig.align="center")
 ```
-```{r, loading_data, echo=FALSE}
+
+```{r, loading_data, echo=FALSE, include=FALSE}
 library(tidyverse)
 library(stringi)
 
@@ -30,11 +31,10 @@ Sur les données pour lesquelles les relevés de flore sont présents :
 
 ```{r, data_summary, echo=F}
 data_sub %>%
-  filter(!is.na(qtx_ha), Type_CultureSimplifiée != "autre") %>%
-  group_by(Type_CultureSimplifiée) %>%
-  summarise(n_plots = length(unique(id_parc_tri)),
-            n_years = length(unique(Année_SuiviParcelle))) %>%
-  arrange(desc(n_plots)) %>%
+  filter(!is.na(qtx_ha), Type_CultureSimplifiée %in% c("ble", "mais")) %>%
+  group_by(Type_CultureSimplifiée, Année_SuiviParcelle) %>%
+  summarise(n_plots = length(unique(id_parc_tri))) %>%
+  arrange(Type_CultureSimplifiée) %>%
   knitr::kable()
 ```
 
@@ -48,7 +48,7 @@ Cela ne laisse donc pas beaucoup de points pour le moment :
 ```{r, data_summary_ferti, echo=F}
 data_sub %>%
   filter(!is.na(kg_n_ha), !is.na(qtx_ha),
-         Type_CultureSimplifiée != "autre") %>%
+         Type_CultureSimplifiée %in% c("ble", "mais")) %>%
   group_by(Type_CultureSimplifiée) %>%
   summarise(n = length(unique(id_parc_tri))) %>%
   knitr::kable()
@@ -64,13 +64,15 @@ les sites des revendeurs.
 J'ai verifié les doses qu'il y avait en commun avec celles calculées à partir du
 fichier de référence et elles sont identiques.
 Je considère donc qu'on peut utiliser cette colonne pour le moment, ce qui
-laisse plus de valeurs :
+laisse plus de valeurs.
+_Est-ce que ça convient ?_
 
 ```{r, data_summary_ferti2, echo=F}
 data_sub %>%
   filter(!is.na(dose_n), !is.na(qtx_ha), Type_CultureSimplifiée != "autre") %>%
   group_by(Type_CultureSimplifiée) %>%
   summarise(n = length(unique(id_parc_tri))) %>%
+  arrange(desc(n)) %>%
   knitr::kable()
 ```
 
@@ -101,6 +103,8 @@ data_sub %>%
 Il semble y avoir une augmentation moyenne du rendement du blé lorsque la
 quantité d'azote apportée augmente.
 Il y a en tout cas une augmentation dans la variabilité du rendement.
+Cependant, les points au-dessus de 100 sont étranges.
+Peuvent-ils venir d'un problème dans le calcul de la dose ?
 
 
 #### Pour le maïs
@@ -133,4 +137,52 @@ Pour le maïs, il semble y avoir moins de lien entre l'apport d'azote et le
 rendement.
 
 
-### Travail du sol
+### Bases de données flore
+
+Je n'ai aucune valeur de rendement pour l'année 2007 et enquêteur Inchausti pour
+lesquelles il y a un relevé de flore (1 seul point en 2007).
+Pour les relevés de flore du tableau 'grison', il y a 16 parcelles pour
+lesquelles il y a une valeur de rendement.
+J'ai regardé directement dans le tableau de Robin pour être sûr qu'il n'y ait
+pas eu de problème dans la conversion des données et j'obtiens les mêmes
+résultats.
+
+Je mets un petit bout de code pour montrer comment j'ai regardé ça.
+```{r, flore, echo=T}
+# BDD Robin
+R <- read.csv("data/raw/BDD_robin_full.csv",
+              stringsAsFactors = FALSE)
+# BDD flore ESF
+flore_esf <- read.csv("data/raw/ESFplantes_verfi.csv", sep = ";",
+                      stringsAsFactors = FALSE)
+# BDD flore grison
+flore_grison <- read.csv("data/raw/GrisonAL_2011_releve_flore.csv", sep = ";",
+                         stringsAsFactors = FALSE)
+
+# sélection des parcelles dans 'R' qui sont présentes dans 'flore_esf' pour
+# l'année 2007
+a <- R[R$ID.parcelle.ZA %in% flore_esf$No_parcelle &
+       R$annee_enquetee == 2007, ]
+
+# identifiants des parcelles pour lesquelles il y a des valeurs de rendement
+print(unique(a$ID.parcelle.ZA[!is.na(a$rdt.qtx)]))
+
+# sélection des parcelles dans 'R' qui sont présentes dans 'flore_grison' pour
+# l'année 2011
+a <- R[R$ID.parcelle.ZA %in% flore_grison$code_parcelle &
+       R$annee_enquetee == 2011,]
+
+# identifiants des parcelles pour lesquelles il y a des valeurs de rendement
+print(unique(a$ID.parcelle.ZA[!is.na(a$rdt.qtx)]))
+```
+
+
+### Récapitulatif des questions
+
+- Est-ce que je peux utiliser la dose d'azote calculée dans la base de données
+  de Robin ? Sachant qu'il y a potentiellement des valeurs bizarres pour les
+  fortes quantités d'azote.
+- Y a-t-il un problème dans la façon dont j'ai interprété les données de flore ?
+  Ou le problème vient-il des données d'enquêtes ?
+  Peut-il y avoir un problème dans les correspondances entre les identifiants
+  des parcelles ?
