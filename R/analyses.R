@@ -20,7 +20,7 @@ data_sub$id_parc_tri <- paste(data_sub$ID_Exploitation,
 
 
 # -- fertilisation -------------------------------------------------------------
-fert <- read.csv("data/BD_Fertilizers_dec2016.csv", stringsAsFactors = FALSE)
+fert <- read.csv("data/raw/BD_Fertilizers_dec2016.csv", stringsAsFactors = FALSE)
 fert$Fertilisant <- trimws(fert$Fertilisant)
 
 # Récupérer les doses où j'ai les doses en Unité/HA
@@ -112,6 +112,18 @@ flore_esf <- read.csv("data/raw/ESFplantes_verfi.csv", sep = ";",
                       stringsAsFactors = FALSE)
 flore_grison <- read.csv("data/raw/GrisonAL_2011_releve_flore.csv", sep = ";",
                          stringsAsFactors = FALSE)
+a <- 
+flore_grison %>%
+  filter(indice_abondance > 0)
+sp_grison <- unique(a$espece)
+a <- flore_esf[,which(colSums(flore_esf[,6:length(flore_esf)])>0)]
+gsub("\\.", " ", flore_esf)
+library(stringi)
+aa <- stri_replace_all(fixed = ".", repl = " ", str = sp_tot)
+sp_esf <- colnames(a[,6:length(a)])
+sp_tot <- c(sp_esf, sp_grison)
+length(unique(sp_tot))
+length(unique(aa))
 
 a <- flore_esf[3,]
 sum(a[6:length(a)])
@@ -162,14 +174,44 @@ test <- as.matrix(flore_esf[, 6:length(flore_esf)])
 head(test)
 dimnames(test) <- NULL
 a <- test/rowSums(test)
-a <- apply(test, 2, FUN = function(x) x / sum(x))
+a <- t(apply(test, 2, FUN = function(x) x / sum(x)))
 a <- scale(a, center = FALSE, scale = colSums(a))
+
+rowSums(a)
 colSums(a)
 head(a)
-sum(a[1,])
+sum(t(a[1,]))
+a
+t(a)
+a
 
-LDA()
+
+
+library(tm)
+a <- apply(test, 2, FUN = function(x) x / sum(x))
+a <- t(a)
+a <- a[rowSums(a) != 0,]
+a <- a[,colSums(a) != 0]
+a[!is.finite(a)] <- 0
+a <- a[!rowSums(!is.finite(a)),]
+LDA(x = test, k = 3, method = "VEM")
+
+# ------------------------------------------------------------------------------
+a <- t(apply(test, 2, FUN = function(x) x / sum(x)))
+apply(test, 1, sum)
+apply(test, 2, sum)
+test <- as.matrix(flore_esf[, 6:length(flore_esf)])
+test <- test[which(rowSums(test) != 0),]
+test <- test[,which(colSums(test) != 0)]
+a <- a[,which(colSums(a) != 0)]
+result <- LDA(x = test, k = 3)
+result@loglikelihood
+# ------------------------------------------------------------------------------
 
 data("AssociatedPress", package = "topicmodels")
 lda <- LDA(AssociatedPress[1:20,], control = list(alpha = 0.1), k = 4)
 lda_inf <- posterior(lda, AssociatedPress[21:30,])
+crude
+tdm
+x <- cbind(x1 = 3, x2 = c(4:1, 2:5))
+rowSums(x); colSums(x)

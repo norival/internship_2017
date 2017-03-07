@@ -29,7 +29,7 @@ R/junk.R
 # directories
 notes/
 admin/
-R/data/
+R/data/generated/
 R/Figs/
 
 # keep specific files

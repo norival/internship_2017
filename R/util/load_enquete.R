@@ -12,7 +12,8 @@
 source("util/functions.R", encoding = "latin1")
 
 ##Charger le fichier de données enquêtes
-fich <- read.csv("data/BDD_full.csv", na.strings = c("NA", ""))
+fich <- read.csv("data/generated/BDD_full.csv", na.strings = c("NA", ""))
+# fich <- read.csv("data/raw/BDD_dec2016_culture.csv", na.strings = c("NA", ""))
 
 # summary(fich) # synthèse des données du fichier
 # names(fich) #nom des colonnes
@@ -390,6 +391,12 @@ info_Insect <-
             unique)
 
 info_Insect$Surface_ha <- surf[(surf[, 1] %in% info_Insect[, 1]), 2]
+
+Surface_traitée_ha <- funlist_multi(info_Insect$Surface_traitée_ha, missing.data = 0)
+a <- info_Insect$Surface_traitée_ha
+levels(as.factor(a[[1]]))
+length(a)
+head(a)
 
 info_Insect <-
   data.frame(ID_Parc_Tri          = as.character(info_Insect[, 1]),

@@ -45,6 +45,43 @@ cat("Nettoyage des valeurs...\n")
 source("clean_values.R")
 
 data_full <- read.csv("data/generated/BDD_full.csv", stringsAsFactors = FALSE)
+unique(data_full$Année_SuiviParcelle)
+data_full$id_unique <- paste(data_full$ID_Parcelle,
+                             data_full$ID_Exploitation,
+                             data_full$Année_SuiviParcelle)
+
+data_full %>%
+  filter(Type_CultureSimplifiée == "ble") %>%
+  # filter(!is.na(Rdt_Qtx)) %>%
+  filter(!is.na(n_kg_ha)) %>%
+  group_by(Année_SuiviParcelle) %>%
+  summarise(n = length(unique(id_unique)))
+
+fert <- read.csv("data/raw/BD_Fertilizers_dec2016.csv", stringsAsFactors = FALSE)
+fert$Fertilisant <- trimws(fert$Fertilisant)
+
+
+# Récupérer les doses où j'ai les doses en Unité/HA
+n_ha <- numeric(nrow(data_full))
+n_ha[n_ha == 0] <- NA
+for (i in 1:nrow(data_full)) {
+  if (is.na(data_full$Unité_dose[i])) {
+    next
+  }
+  if (data_full$Unité_dose[i] == "Unité/HA") {
+    n_ha[i] <- data_full$Dose_Ferti[i]
+  }
+  else if (data_full$Unité_dose[i] == "Kg/HA") {
+    if (toupper(data_full$Produit_Ferti[i]) %in% toupper(fert$Fertilisant)) {
+      n_ha[i]  <-
+        fert$Ferti.N...kg.100.kg.ou.l.[toupper(fert$Fertilisant) ==
+                                       toupper(data_full$Produit_Ferti[i])] * data_full$Dose_Ferti[i] / 100
+    }
+  }
+}
+data_full$n_kg_ha <- n_ha
+data_full$Rdt_Qtx <- as.numeric(data_full$Rdt_Qtx)
+
 
 # -- subsetting du jeu de données ----------------------------------------------
 cat("Subsetting...\n")
@@ -104,8 +141,8 @@ write.csv(data_sub, "data/generated/BDD_sub.csv", row.names = FALSE)
 # ------------------------------------------------------------------------------
 
 # formatting and subsetting the data.frame with Sabrina's scripts
-# cat("Conversion et subsetting du fichier enquêtes...\n")
-# source("util/load_enquete.R", encoding = "latin1")
+cat("Conversion et subsetting du fichier enquêtes...\n")
+source("util/load_enquete.R", encoding = "latin1")
 
 # source("util/R_pesticides.R", encoding = "latin1")
 # ift_herbi <- Intensite_Traitement()
