@@ -39,7 +39,7 @@ source("util/modifs_fichier_2.R")
 #data2006=data2006[data2006$Par!="ZPS197-2006-In",]
 #data2006=data2006[data2006$Par!="ZPS197-2006-Pa",]
 
-data2006=modifs_fichier(tab=data2006)
+# data2006=modifs_fichier(tab=data2006)
 
 ##pb with "6340-6918" field
 #data2006<-data2006[-which(data2006$Par=="6340-6918"),]
@@ -130,11 +130,12 @@ test <- aggregate(data.frame(abondance = weeds$abondance),
 ### Prepare an empty matrix filled with 0 (for 0 abundance observed)
 nrowA <- length(unique(test$carre.parc)) * length(unique(test$sp)) * 2
 
-A <- matrix(ncol=3+10, nrow=nrowA , data = rep(0, 13*nrowA ))
-A<-data.frame(A)
-colnames(A) <- c("sp", "carre.parc", "position", "q1","q2","q3","q4","q5","q6","q7","q8","q9","q10")
-#dim(A)
-#head(A)
+A <- matrix(ncol=3+32, nrow=nrowA , data = rep(-1, 35*nrowA ))
+A <- data.frame(A)
+colnames(A) <- c("sp", "carre.parc", "position",
+                 paste("q", 1:32, sep = ""))
+# dim(A)
+# head(A)
 
 ## Init the species, field number, and then position in A
 #species names
@@ -153,17 +154,28 @@ A$carre.parc <- rep(carre.parc,2)
 #positions (in,pa)
 A$position<-c(rep("pa",length(carre.parc)),rep("in",length(carre.parc)))
 
+# supprimer les quadrats en interface
+test_noin <- test[-which(test$position == "in"),]
+
 ## Remplis les quadrats vides (>15 min)
-for (i in 1:length(test$position)) {
-  #  for(i in (1:length(test[,1]))[test$carre.parc=="10986-11533"]){
-  spX <- test[i, 1]
-  fieldX <- test[i, 4]
-  positionX <- test[i, 3]
-  quadrat <- as.numeric(test[i, 2])
-  abondance <- test[i, 6]
+for (i in 1:length(test_noin$position)) {
+  spX       <- test_noin[i, 1]
+  fieldX    <- test_noin[i, 4]
+  positionX <- test_noin[i, 3]
+  quadrat   <- as.numeric(test_noin[i, 2])
+  abondance <- test_noin[i, 6]
   
-  A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, quadrat+3]<- abondance  
+  A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, quadrat+3] <-
+    abondance
 }
+A <- A[A$position != "in",]
+
+# vérifier la présence des espèces
+# suppression des lignes où les espèces ne sont présentes dans aucun quadra
+A <- A[!rowSums(A[, 4:ncol(A)]) == ncol(A) - 3,]
+
+# remplacement des '-1' par des 0
+A[A == -1] <- 0
 
 #head(A, 25)
 write.table(A, "data/generated/transpose_abondance_per_quadrat2006.csv", sep = ";")
