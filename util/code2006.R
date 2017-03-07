@@ -294,4 +294,93 @@ abline(0,1)
 
 write.table(A_Diversity, "data/generated/Diversity_fieldcore2006.csv", sep = ";")
 
+# -- estimation des abondances -------------------------------------------------
+
+# package
+library(compoisson)
+
+# on choppe les donnees
+data2006.dat <- read.csv("data/generated/transpose_abondance_per_quadrat2006.csv",
+                         sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
+a <- data2006.dat[data2006.dat$carre.parc == "A00-2006-In",]
+a[173,]
+
+h.fct <- function(ltheta,v=v) {
+  # print(c(ltheta, v))
+  theta <- exp(ltheta)
+
+  # si param est énorme, pas possible
+  if(max(theta)>30){return(100000)}
+  # proba de 0
+  lp0 <- com.log.density(0,theta[1],theta[2])  
+  # proba de 1
+  lp1 <- com.log.density(1,theta[1],theta[2])     
+  # proba de > 1
+  lp2 <- log(1-exp(lp0)-exp(lp1))
+  lp <- c(lp0,lp1,lp2)
+  ll <- (-1)*sum(lp[v+1])
+  return(ll)
+}
+
+Abondtotaleemp  <- NULL
+Abondt     <- NULL
+Abondtquad <- NULL
+cropt <- NULL
+longt <- NULL
+latt  <- NULL
+
+for (parc in unique(data2006.dat$carre.parc)) {
+
+  # parc <- "A00-2006-In"
+  dat_sub <- data2006.dat[data2006.dat$carre.parc == parc, ]
+
+  # calcule la vraissemblance des données des quadras
+  # v = observations
+  # ltheta = log du paramètre de poisson (intensité)
+  ab <- NULL
+  for(i in (1:nrow(dat_sub)))
+  {
+    # print(c(parc, i))
+    # i <- 1
+    # param de Poisson par kspèce
+    v1 <- as.numeric(dat_sub[i, 4:ncol(dat_sub)])
+    # ce morceau n'est utile que si il y a des sous quadras
+    #Zu <- nlm(h.fct,c(0,0),v=v1,iterlim=10000,stepmax=2)
+    #ab <- c(ab,exp(Zu$est[1]))
+
+    Zu <- nlminb(c(0,0),h.fct,v=v1,lower=c(-50,-50),upper=c(50,50))
+    mm <- com.mean(exp(Zu$par[1]),exp(Zu$par[2]))
+    ab <- c(ab,mm)
+
+  } ### fin boucle i (especes)
+
+  temp <- data2013a.dat[data2013a.dat[,5]==parc,]
+
+  Abondtquad <- rbind(Abondtquad,ab)
+  # cropt <- c(cropt,unique(temp$Crop))
+  # v1 <- as.character(temp$LONG)
+  # v1 <- sub(",",".",v1)
+  # longt <- c(longt,mean(as.numeric(v1)))
+  # v1 <- as.character(temp$lat)
+  # v1 <- sub(",",".",v1)
+  # latt  <- c(latt,mean(as.numeric(v1)))
+  print(parc)
+  print(ab)
+
+  Abondtotaleemp  <- c(Abondtotaleemp,sum(ab))
+
+} ## fin boucle parc
+
+plot(unique(data2006a.dat$Crop)[cropt],
+    apply(Abondtquad,1,sum),pch=19)
+
+plot(apply(Abondt,1,sum),apply(Abondtquad,1,sum),col=cropt,pch=19)
+
+sel <- !is.na(longt)
+symbols(longt[sel],latt[sel],
+   circles=0.002*(apply(Abondtquad,1,sum)[sel])**0.5,
+   bg=cropt[sel],inches=F)
+ legend(-0.65,46.33,levels(data2006a.dat$Crop),pch=19,
+    col=1:length(levels(data2006a.dat$Crop)))
+
 options(encoding = "utf8")
