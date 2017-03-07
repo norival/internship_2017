@@ -109,3 +109,10 @@ write.csv(data_sub, "data/generated/BDD_sub.csv", row.names = FALSE)
 
 # source("util/R_pesticides.R", encoding = "latin1")
 # ift_herbi <- Intensite_Traitement()
+
+# -- flora ---------------------------------------------------------------------
+# adds scripts to compute estimates of abundance
+
+if (!file.exists("data/generated/Diversity_fieldcore2006.csv")) {
+  source("util/code2006.R", encoding = "latin1")
+}
