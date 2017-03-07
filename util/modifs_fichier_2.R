@@ -11,7 +11,7 @@
 
 modifs_fichier = function(tab=data2012)
 {
-  afaire.dat <- read.csv("modifs_liste.csv",header=T,sep=";")
+  afaire.dat <- read.csv("util/modifs_liste.csv",header=T,sep=";")
   depart.dat <- tab
 
   ## suppression d'espece [col 4]

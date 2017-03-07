@@ -7,12 +7,12 @@
 # modifié le 
 #################################################################
 
-setwd("~/Donnees/Chize_Flore/Prog")
-rm(list=ls())
+# setwd("~/Donnees/Chize_Flore/Prog")
+# rm(list=ls())
 options(encoding = "latin1")
 
 #####Charge le fichier des relevés de flore 2006
-data2006=read.csv("monitoring2006.csv", sep=";", dec= "," , 
+data2006=read.csv("data/raw/monitoring2006.csv", sep=";", dec= "," , 
                   stringsAsFactors=FALSE,h=T)
 #vérification des données
 dim(data2006) #dimension du fichier de donnees 24787L & 31C
@@ -34,7 +34,7 @@ data2006$Espèce_origin[data2006$Espèce_origin=="Festuca-ovina/rubra"]="Festuca-r
 ###Correction des noms d'espèces adventices
 ##code Joël
 ##affiner pour tenir compte de 32 et 10 quadrats
-source("modifs_fichier_2.R")
+source("util/modifs_fichier_2.R")
 #data2006=data2006[data2006$No_parcelle!="ZPS197-2006",]
 #data2006=data2006[data2006$Par!="ZPS197-2006-In",]
 #data2006=data2006[data2006$Par!="ZPS197-2006-Pa",]
@@ -91,13 +91,13 @@ weeds2006C$Par.interf[weeds2006C$Par.interf=="Pa"]="pa"
 weeds2006C1 <- cbind(weeds2006C, as.factor(weeds2006C$Espèce_origin))
 colnames(weeds2006C1) [13] <- "sp"
 
-write.table(weeds2006C1, "Data-Prog/weeds2006.csv", sep = ";")
+write.table(weeds2006C1, "data/generated/weeds2006.csv", sep = ";")
 
 ###########################################
 ## Aggregation des especes
 ###########################################
 #weeds<-weeds2006C1
-weeds<-read.csv("Data-Prog/weeds2006.csv", sep = ";",dec=",")
+weeds<-read.csv("data/generated/weeds2006.csv", sep = ";",dec=",")
 test <- aggregate(data.frame(abondance = weeds$abondance), 
                   by = list(sp = weeds$sp, quadrat = weeds$pt, 
                             position = weeds$Par.interf,
@@ -166,7 +166,7 @@ for (i in 1:length(test$position)) {
 }
 
 #head(A, 25)
-write.table(A, "Data-Prog/transpose_abondance_per_quadrat2006.csv", sep = ";")
+write.table(A, "data/generated/transpose_abondance_per_quadrat2006.csv", sep = ";")
 
 #########################################################################
 # Matrice site x especes par parcelle (plein champ/pas interface)
@@ -181,7 +181,7 @@ test <- aggregate(data.frame(abondance = basics1$abondance),
                             crop=basics1$crop),sum)
 #colnames(test)
 
-write.table(test, "Data-Prog/transpose_abondance_per_fieldcore2006.csv", sep = ";")
+write.table(test, "data/generated/transpose_abondance_per_fieldcore2006.csv", sep = ";")
 
 #########################################################################
 # Matrice site x especes par parcelle 
@@ -191,7 +191,7 @@ test <- aggregate(data.frame(abondance = basics$abondance),
                             crop=basics$crop),sum)
 colnames(test)
 
-write.table(test, "Data-Prog/transpose_abondance_per_field2006.csv", sep = ";")
+write.table(test, "data/generated/transpose_abondance_per_field2006.csv", sep = ";")
 
 #################################################################
 ##Calcul des richesses observées 'nb hill 0, 1 et 2'
@@ -204,7 +204,7 @@ library(vegan)
 ##avec le fichier "transpose_abondance_per_field.csv" &
 ## "transpose_abondance_per_fieldcore.csv"
 ##Etape 1: estimation de la richesse observée sur 40 m²
-A=read.csv("Data-Prog/transpose_abondance_per_fieldcore2006.csv", sep = ";",h=T)
+A=read.csv("data/generated/transpose_abondance_per_fieldcore2006.csv", sep = ";",h=T)
 A_Diversity=matrix(NA,nrow=length(unique(A$carre.parc)),ncol=9)
 croptemp=matrix(NA,nrow=length(unique(A$carre.parc)),ncol=1)
 
@@ -235,7 +235,7 @@ mat2006 = xtabs(Richness~ carre.parc, A_Diversity)
 A_Diversity_obs=A_Diversity
 
 ##Etape 1: estimation de la richesse observée sur 40 m²
-A=read.csv("Data-Prog/transpose_abondance_per_quadrat2006.csv", sep = ";",h=T)
+A=read.csv("data/generated/transpose_abondance_per_quadrat2006.csv", sep = ";",h=T)
 A=droplevels(subset(A,A$position!="in"))
 
 A_Diversity=matrix(NA,nrow=length(unique(A$carre.parc)),ncol=10)
@@ -280,4 +280,6 @@ plot(A_Diversity$Richness,A_Diversity$Richness_mean,
      xlab="Species richness 40m²",ylab="Species richness 20m²")
 abline(0,1)
 
-write.table(A_Diversity, "Data-Prog/Diversity_fieldcore2006.csv", sep = ";")
+write.table(A_Diversity, "data/generated/Diversity_fieldcore2006.csv", sep = ";")
+
+options(encoding = "utf8")
