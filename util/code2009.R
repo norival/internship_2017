@@ -1,0 +1,275 @@
+#################################################################
+# Script pour calculer les richesses estimées sur 32*4m² (Eg-Solène) 
+# et 40 m² pour MAE à 20 m²sur les données 2009
+#
+# Sabrina Gaba
+# crée le 24 octobre 2016
+# modifié le 
+#################################################################
+
+setwd("~/Donnees/Chize_Flore/Prog")
+rm(list=ls())
+options(encoding="latin1")
+
+#####Charge le fichier des relevés de flore 2009
+data2009=read.csv("monitoring2009.csv", sep=";", dec= "," , 
+                  stringsAsFactors=FALSE,h=T)
+#vérification des données
+dim(data2009) #dimension du fichier de donnees 24787L & 31C
+head(data2009) #premieres lignes
+summary(data2009) #synthese des donnees
+var <- colnames(data2009)
+
+unique(data2009$Crop.Analyses) #céréale/Cereal, colza/Colza,Maïs/maïs
+levels(data2009$Crop.Analyses)=c("cereal","colza","luzerne","prairie")
+
+###Correction des noms d'espèces adventices
+##code Joël
+##affiner pour tenir compte de 32 et 10 quadrats
+source("modifs_fichier_2.R")
+#data2009=data2009[data2009$No_parcelle!="ZPS197-2009",]
+#data2009=data2009[data2009$Par!="ZPS197-2009-In",]
+#data2009=data2009[data2009$Par!="ZPS197-2009-Pa",]
+
+data2009=modifs_fichier(tab=data2009)
+
+##pb with "6340-6918" field
+#data2009<-data2009[-which(data2009$Par=="6340-6918"),]
+#############################################################
+#####Creation d'un jeu de donnees avec les cultures annuelles
+#############################################################
+
+# On conserve Year, date, Nb_parcelle, Par, Par.interf, 
+#Crop.Analyses, pt, lat, LONG, Espèce_origin, abondance, ParPoint
+kept <-  c(3,4,6,7,8,9,11,12,13,14,22,31)
+
+weeds2009 <- data2009[, kept ]
+colnames(weeds2009)
+weeds2009C<-subset(weeds2009,weeds2009$Crop.Analyses!="friche")
+weeds2009C<-subset(weeds2009,weeds2009$Crop.Analyses!="luzerne")
+weeds2009C<-subset(weeds2009C,weeds2009C$Crop.Analyses!="prairie")
+weeds2009C<-subset(weeds2009C,weeds2009C$Crop.Analyses!="trèfle")
+
+#weeds2009C$Crop.Analyses[weeds2009C$pt==1]
+unique(weeds2009C$pt)
+weeds2009C$pt=as.factor(weeds2009C$pt)
+colnames(weeds2009C)[4]="carre.parc"
+
+######################################################################            
+### Mise en forme pour matrice sites x especes et calcul par quadrat
+######################################################################
+
+## Another lines will be the field number and position
+#"carré-parc" :: numero de parcelle
+#"Par.interf" : in, pa
+#"Crop.Analyses" : cereal, colza, tournesol
+#"lat"
+#"LONG"
+###colnames(weeds2009C)
+###length(unique(weeds2009C$carre.parc))
+## 183 parcelles
+
+###unique(weeds2009C$Par.interf)
+#[1] "In"  "pa" "in" "Pa" 
+weeds2009C$Par.interf[weeds2009C$Par.interf=="In"]="in"
+weeds2009C$Par.interf[weeds2009C$Par.interf=="Pa"]="pa"
+
+###length(unique(weeds2009C$Crop.Analyses))
+## 5 cultures
+
+###length(unique(weeds2009$Espèce_origin))
+## 294 espèces soit 294 colonnes dans la matrice
+
+weeds2009C1 <- cbind(weeds2009C, as.factor(weeds2009C$Espèce_origin))
+colnames(weeds2009C1) [13] <- "sp"
+
+write.table(weeds2009C1, "Data-Prog/weeds2009.csv", sep = ";")
+
+###########################################
+## Aggregation des especes
+###########################################
+#weeds<-weeds2009C1
+weeds<-read.csv("Data-Prog/weeds2009.csv", sep = ";",dec=",")
+test <- aggregate(data.frame(abondance = weeds$abondance), 
+                  by = list(sp = weeds$sp, quadrat = weeds$pt, 
+                            position = weeds$Par.interf,
+                            carre.parc = weeds$carre.parc,
+                            crop=weeds$Crop.Analyses), sum)
+
+##Il y a des doublons dans le jeu de donnees 
+##(somme des abondances par sous-quadrat ne peut pas être supérieure à 1)
+#nrow(test[test$abondance > 1, ])
+# 21361
+
+## Juste set those lines with 1 value (the original data must be fixed after). 
+#test[test$abondance > 1, ]$abondance <- 1
+
+##nrow(test)
+# 29008
+
+## Création de la matrice par parcelles
+#tab <- xtabs(abondance~ sp + quadrat + position + carre.parc + crop, test)
+
+#############################################################################
+## Matrice site x especes avec ligne pour les quadrats vides
+#############################################################################
+#length(unique(test$sp))
+#240 species
+
+#length(unique(test$carre.parc))
+#183 different sampling of fields
+
+### Prepare an empty matrix filled with 0 (for 0 abundance observed)
+nrowA <- length(unique(test$carre.parc)) * length(unique(test$sp)) * 2
+
+A <- matrix(ncol=3+10, nrow=nrowA , data = rep(0, 13*nrowA ))
+A<-data.frame(A)
+colnames(A) <- c("sp", "carre.parc", "position", "q1","q2","q3","q4","q5","q6","q7","q8","q9","q10")
+#dim(A)
+#head(A)
+
+## Init the species, field number, and then position in A
+#species names
+A$sp <- rep(rep(levels(test$sp), length(unique(test$carre.parc))),2)
+
+#carre.parc names
+carre.parc<-list(NA)
+length(carre.parc)<-length(levels(test$carre.parc))
+for (i in 1:length(carre.parc))
+{
+  carre.parc[[i]]<-rep(levels(test$carre.parc)[i],length(levels(test$sp)))
+}
+carre.parc<-unlist(carre.parc)
+A$carre.parc <- rep(carre.parc,2)
+
+#positions (in,pa)
+A$position<-c(rep("pa",length(carre.parc)),rep("in",length(carre.parc)))
+
+## Remplis les quadrats vides (>15 min)
+for (i in 1:length(test$position)) {
+  #  for(i in (1:length(test[,1]))[test$carre.parc=="10986-11533"]){
+  spX <- test[i, 1]
+  fieldX <- test[i, 4]
+  positionX <- test[i, 3]
+  quadrat <- as.numeric(test[i, 2])
+  abondance <- test[i, 6]
+  
+  A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, quadrat+3]<- abondance  
+}
+
+#head(A, 25)
+write.table(A, "Data-Prog/transpose_abondance_per_quadrat2009.csv", sep = ";")
+
+#########################################################################
+# Matrice site x especes par parcelle (plein champ/pas interface)
+#########################################################################
+#############################################################################################
+##### Table avec les abondances par quadrats (ici plot)
+##################################################################################################
+basics <- test
+basics1=subset(basics,basics$position!="in")
+test <- aggregate(data.frame(abondance = basics1$abondance), 
+                  by = list(sp = basics1$sp,carre.parc = basics1$carre.parc,
+                            crop=basics1$crop),sum)
+#colnames(test)
+
+write.table(test, "Data-Prog/transpose_abondance_per_fieldcore2009.csv", sep = ";")
+
+#########################################################################
+# Matrice site x especes par parcelle 
+#########################################################################
+test <- aggregate(data.frame(abondance = basics$abondance), 
+                  by = list(sp = basics$sp, carre.parc = basics$carre.parc,
+                            crop=basics$crop),sum)
+colnames(test)
+
+write.table(test, "Data-Prog/transpose_abondance_per_field2009.csv", sep = ";")
+
+#################################################################
+##Calcul des richesses observées 'nb hill 0, 1 et 2'
+################################################################
+
+library(vegan)
+##on utilise les nb de Hill
+##renyi(x, scales = c(0,1, 2),hill = T)
+
+##avec le fichier "transpose_abondance_per_field.csv" &
+## "transpose_abondance_per_fieldcore.csv"
+##Etape 1: estimation de la richesse observée sur 40 m²
+A=read.csv("Data-Prog/transpose_abondance_per_fieldcore2009.csv", sep = ";",h=T)
+A_Diversity=matrix(NA,nrow=length(unique(A$carre.parc)),ncol=9)
+croptemp=matrix(NA,nrow=length(unique(A$carre.parc)),ncol=1)
+
+for (i in (1:length(unique(A$carre.parc))))
+{
+  # (paste("carre.parc=",i,sep=""))
+  temp=A[A$carre.parc==unique(A$carre.parc)[i],]
+  croptemp[i,1]=unique(temp$crop)
+  if(sum(temp[,4]>0)>0)
+  {
+    A_Diversity[i,7:9]=renyi(t(temp[,4]), scales = c(0,1,2),hill = T)
+  }
+  else{A_Diversity[i,7:9]=c(0,0,0)}
+}
+
+A_Diversity=as.data.frame(A_Diversity)
+colnames(A_Diversity)=c("carre.parc","crop","Year","NbQuadrats","SizeQuadrats",
+                        "Type_Rich","Richness","Shannon exp","Simpson inv")
+A_Diversity$carre.parc=unique(A$carre.parc)
+A_Diversity$Year=rep(2009,length(A_Diversity[,1]))
+A_Diversity$NbQuadrats=rep(10,length(A_Diversity[,1]))
+A_Diversity$SizeQuadrats=rep(4,length(A_Diversity[,1]))
+A_Diversity$Type_Rich=rep("Obs",length(A_Diversity[,1]))
+A_Diversity$crop=levels(A$crop)[croptemp]
+
+mat2009 = xtabs(Richness~ carre.parc, A_Diversity)
+
+A_Diversity_obs=A_Diversity
+
+##Etape 1: estimation de la richesse observée sur 40 m²
+A=read.csv("Data-Prog/transpose_abondance_per_quadrat2009.csv", sep = ";",h=T)
+A=droplevels(subset(A,A$position!="in"))
+
+A_Diversity=matrix(NA,nrow=length(unique(A$carre.parc)),ncol=10)
+
+for (i in (1:length(unique(A$carre.parc))))
+{
+  # (paste("carre.parc=",i,sep=""))
+  temp=A[A$carre.parc==unique(A$carre.parc)[i],]
+  xtemp=matrix(NA,nrow=100,ncol=3)
+  for (j in 1:100)
+  {
+    x=sample(4:13,5,replace=F)
+    x=apply(temp[,x],1,sum)
+    if(sum(temp[,4:13]>0)>0)
+    {
+      xtemp[j,1:3]=renyi(x, scales = c(0,1,2),hill = T)
+    }
+    else{
+      xtemp[j,1:3]=rep(0,3)}
+  }
+  
+  A_Diversity[i,5:7]=apply(xtemp,2,mean)
+  A_Diversity[i,8:10]=apply(xtemp,2,sd)
+}
+
+A_Diversity=as.data.frame(A_Diversity)
+colnames(A_Diversity)=c("carre.parc1","NbQuadrats_Stand","SizeQuadrats_Stand",
+                        "Type_Rich_stand","Richness_mean","Shannon exp_mean",
+                        "Simpson inv_mean","Richness_sd","Shannon exp_sd",
+                        "Simpson inv_sd")
+A_Diversity$carre.parc1=unique(A$carre.parc)
+#A_Diversity$Year=rep(2009,length(A_Diversity[,1]))
+A_Diversity$NbQuadrats_Stand=rep(5,length(A_Diversity[,1]))
+A_Diversity$SizeQuadrats_Stand=rep(4,length(A_Diversity[,1]))
+A_Diversity$Type_Rich_stand=rep("Stand",length(A_Diversity[,1]))
+
+##ici##
+x=match(A_Diversity_obs$carre.parc,A_Diversity$carre.parc)
+xtemp=A_Diversity[x,]
+A_Diversity=cbind(A_Diversity_obs,xtemp)
+plot(A_Diversity$Richness,A_Diversity$Richness_mean,
+     xlab="Species richness 40m²",ylab="Species richness 20m²")
+abline(0,1)
+
+write.table(A_Diversity, "Data-Prog/Diversity_fieldcore2009.csv", sep = ";")
