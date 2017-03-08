@@ -7,13 +7,10 @@
 # modifié le 
 #################################################################
 
-setwd("~/Donnees/Chize_Flore/Prog")
-rm(list=ls())
-options(encoding="latin1")
-
 #####Charge le fichier des relevés de flore 2009
-data2009=read.csv("monitoring2009.csv", sep=";", dec= "," , 
-                  stringsAsFactors=FALSE,h=T)
+data2009=read.csv("data/raw/monitoring2009.csv", sep=";", dec= "," , 
+                  stringsAsFactors=FALSE,h=T,
+                  encoding = "latin1")
 #vérification des données
 dim(data2009) #dimension du fichier de donnees 24787L & 31C
 head(data2009) #premieres lignes
@@ -26,7 +23,8 @@ levels(data2009$Crop.Analyses)=c("cereal","colza","luzerne","prairie")
 ###Correction des noms d'espèces adventices
 ##code Joël
 ##affiner pour tenir compte de 32 et 10 quadrats
-source("modifs_fichier_2.R")
+source("util/modifs_fichier_2.R",
+       encoding = "latin1")
 #data2009=data2009[data2009$No_parcelle!="ZPS197-2009",]
 #data2009=data2009[data2009$Par!="ZPS197-2009-In",]
 #data2009=data2009[data2009$Par!="ZPS197-2009-Pa",]
@@ -83,26 +81,25 @@ weeds2009C$Par.interf[weeds2009C$Par.interf=="Pa"]="pa"
 weeds2009C1 <- cbind(weeds2009C, as.factor(weeds2009C$Espèce_origin))
 colnames(weeds2009C1) [13] <- "sp"
 
-write.table(weeds2009C1, "Data-Prog/weeds2009.csv", sep = ";")
+write.table(weeds2009C1, "data/generated/weeds2009.csv", sep = ";")
 
 ###########################################
 ## Aggregation des especes
 ###########################################
 #weeds<-weeds2009C1
-weeds<-read.csv("Data-Prog/weeds2009.csv", sep = ";",dec=",")
+weeds<-read.csv("data/generated/weeds2009.csv", sep = ";",dec=",")
 test <- aggregate(data.frame(abondance = weeds$abondance), 
                   by = list(sp = weeds$sp, quadrat = weeds$pt, 
                             position = weeds$Par.interf,
                             carre.parc = weeds$carre.parc,
                             crop=weeds$Crop.Analyses), sum)
 
-##Il y a des doublons dans le jeu de donnees 
-##(somme des abondances par sous-quadrat ne peut pas être supérieure à 1)
-#nrow(test[test$abondance > 1, ])
-# 21361
+##Il y a des doublons dans le jeu de donnees
+# nrow(test[test$abondance > 2, ])
+# 51
 
-## Juste set those lines with 1 value (the original data must be fixed after). 
-#test[test$abondance > 1, ]$abondance <- 1
+## Juste set those lines with 2 value (the original data must be fixed after). 
+test[test$abondance > 2, ]$abondance <- 2
 
 ##nrow(test)
 # 29008
@@ -122,9 +119,10 @@ test <- aggregate(data.frame(abondance = weeds$abondance),
 ### Prepare an empty matrix filled with 0 (for 0 abundance observed)
 nrowA <- length(unique(test$carre.parc)) * length(unique(test$sp)) * 2
 
-A <- matrix(ncol=3+10, nrow=nrowA , data = rep(0, 13*nrowA ))
-A<-data.frame(A)
-colnames(A) <- c("sp", "carre.parc", "position", "q1","q2","q3","q4","q5","q6","q7","q8","q9","q10")
+A <- matrix(ncol=3+32, nrow=nrowA , data = rep(0, 35*nrowA))
+A <- data.frame(A)
+colnames(A) <- c("sp", "carre.parc", "position",
+                 paste("q", 1:32, sep = ""))
 #dim(A)
 #head(A)
 
@@ -145,20 +143,24 @@ A$carre.parc <- rep(carre.parc,2)
 #positions (in,pa)
 A$position<-c(rep("pa",length(carre.parc)),rep("in",length(carre.parc)))
 
+# supprimer les quadrats en interface
+test_noin <- test[-which(test$position == "in"),]
+
 ## Remplis les quadrats vides (>15 min)
-for (i in 1:length(test$position)) {
-  #  for(i in (1:length(test[,1]))[test$carre.parc=="10986-11533"]){
-  spX <- test[i, 1]
-  fieldX <- test[i, 4]
-  positionX <- test[i, 3]
-  quadrat <- as.numeric(test[i, 2])
-  abondance <- test[i, 6]
-  
-  A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, quadrat+3]<- abondance  
+for (i in 1:length(test_noin$position)) {
+  spX       <- test_noin[i, 1]
+  fieldX    <- test_noin[i, 4]
+  positionX <- test_noin[i, 3]
+  quadrat   <- as.numeric(test_noin[i, 2])
+  abondance <- test_noin[i, 6]
+
+  A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, quadrat+3] <-
+    abondance
 }
+A <- A[A$position != "in",]
 
 #head(A, 25)
-write.table(A, "Data-Prog/transpose_abondance_per_quadrat2009.csv", sep = ";")
+write.table(A, "data/generated/transpose_abondance_per_quadrat2009.csv", sep = ";")
 
 #########################################################################
 # Matrice site x especes par parcelle (plein champ/pas interface)
@@ -173,7 +175,7 @@ test <- aggregate(data.frame(abondance = basics1$abondance),
                             crop=basics1$crop),sum)
 #colnames(test)
 
-write.table(test, "Data-Prog/transpose_abondance_per_fieldcore2009.csv", sep = ";")
+write.table(test, "data/generated/transpose_abondance_per_fieldcore2009.csv", sep = ";")
 
 #########################################################################
 # Matrice site x especes par parcelle 
@@ -183,7 +185,7 @@ test <- aggregate(data.frame(abondance = basics$abondance),
                             crop=basics$crop),sum)
 colnames(test)
 
-write.table(test, "Data-Prog/transpose_abondance_per_field2009.csv", sep = ";")
+write.table(test, "data/generated/transpose_abondance_per_field2009.csv", sep = ";")
 
 #################################################################
 ##Calcul des richesses observées 'nb hill 0, 1 et 2'
@@ -196,7 +198,7 @@ library(vegan)
 ##avec le fichier "transpose_abondance_per_field.csv" &
 ## "transpose_abondance_per_fieldcore.csv"
 ##Etape 1: estimation de la richesse observée sur 40 m²
-A=read.csv("Data-Prog/transpose_abondance_per_fieldcore2009.csv", sep = ";",h=T)
+A=read.csv("data/generated/transpose_abondance_per_fieldcore2009.csv", sep = ";",h=T)
 A_Diversity=matrix(NA,nrow=length(unique(A$carre.parc)),ncol=9)
 croptemp=matrix(NA,nrow=length(unique(A$carre.parc)),ncol=1)
 
@@ -227,7 +229,7 @@ mat2009 = xtabs(Richness~ carre.parc, A_Diversity)
 A_Diversity_obs=A_Diversity
 
 ##Etape 1: estimation de la richesse observée sur 40 m²
-A=read.csv("Data-Prog/transpose_abondance_per_quadrat2009.csv", sep = ";",h=T)
+A=read.csv("data/generated/transpose_abondance_per_quadrat2009.csv", sep = ";",h=T)
 A=droplevels(subset(A,A$position!="in"))
 
 A_Diversity=matrix(NA,nrow=length(unique(A$carre.parc)),ncol=10)
@@ -272,4 +274,73 @@ plot(A_Diversity$Richness,A_Diversity$Richness_mean,
      xlab="Species richness 40m²",ylab="Species richness 20m²")
 abline(0,1)
 
-write.table(A_Diversity, "Data-Prog/Diversity_fieldcore2009.csv", sep = ";")
+write.table(A_Diversity, "data/generated/Diversity_fieldcore2009.csv", sep = ";")
+
+# -- estimation des abondances -------------------------------------------------
+
+# package
+library(compoisson)
+
+# on choppe les donnees
+data2009.dat <- read.csv("data/generated/transpose_abondance_per_quadrat2009.csv",
+                         sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
+
+# calcule la vraissemblance des données des quadras
+# v = observations
+# ltheta = log du paramètre de poisson (intensité)
+h.fct <- function(ltheta,v=v) {
+  # print(c(ltheta, v))
+  theta <- exp(ltheta)
+
+  # si param est énorme, pas possible
+  if(max(theta)>30){return(100000)}
+
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 0
+  lp0 <- com.log.density(0,theta[1],theta[2])
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 1
+  lp1 <- com.log.density(1,theta[1],theta[2])
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 2
+  lp2 <- log(1-exp(lp0)-exp(lp1))
+  lp <- c(lp0,lp1,lp2)
+  ll <- (-1)*sum(lp[v+1])
+  return(ll)
+}
+
+# Création d'un tableau vide pour récupérer les estmations d'abondances
+mat_vide <- matrix(Inf,
+                   ncol = length(unique(data2009.dat$sp)),
+                   nrow = length(unique(data2009.dat$carre.parc)))
+abond_per_plot <- as.data.frame(mat_vide)
+
+colnames(abond_per_plot) <- unique(data2009.dat$sp)
+rownames(abond_per_plot) <- unique(data2009.dat$carre.parc)
+
+for (parc in unique(data2009.dat$carre.parc)) {
+
+  # On récupère les lignes pour la parcelle parc
+  dat_sub <- data2009.dat[data2009.dat$carre.parc == parc, ]
+
+  # ab <- NULL
+  for (i in (1:nrow(dat_sub))) {
+    # param de Poisson par espèce
+    # ici on récupère la ligne i, qui correspond à un espèce pour la parelle
+    # parc
+    v1 <- as.numeric(dat_sub[i, 4:ncol(dat_sub)])
+
+    # on estime l'abondance de la parcelle par la loi de poisson
+    Zu <- nlminb(c(0, 0), h.fct, v = v1, lower = c(-50, -50),upper = c(50, 50))
+
+    # on fait la moyenne de poisson sur le paramètre de Zu, qui correspond aux
+    # moyennes. On repasse en exponentielle car on avait fait un log
+    mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
+
+    # On rajoute cette moyenne dans le tableau vide initial
+    abond_per_plot[parc, dat_sub$sp[i]] <- mm
+
+  }
+}
+
+write.csv(abond_per_plot, "data/generated/abondt_per_plot_2009.csv",
+          row.names = FALSE)
+
+rm(list = ls())
