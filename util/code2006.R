@@ -7,13 +7,10 @@
 # modifié le 
 #################################################################
 
-# setwd("~/Donnees/Chize_Flore/Prog")
-# rm(list=ls())
-options(encoding = "latin1")
-
 #####Charge le fichier des relevés de flore 2006
 data2006=read.csv("data/raw/monitoring2006.csv", sep=";", dec= "," , 
-                  stringsAsFactors=FALSE,h=T)
+                  stringsAsFactors=FALSE,h=T,
+                  encoding = "latin1")
 #vérification des données
 dim(data2006) #dimension du fichier de donnees 24787L & 31C
 head(data2006) #premieres lignes
@@ -34,7 +31,7 @@ data2006$Espèce_origin[data2006$Espèce_origin=="Festuca-ovina/rubra"]="Festuca-r
 ###Correction des noms d'espèces adventices
 ##code Joël
 ##affiner pour tenir compte de 32 et 10 quadrats
-source("util/modifs_fichier_2.R")
+source("util/modifs_fichier_2.R", encoding = "latin1")
 #data2006=data2006[data2006$No_parcelle!="ZPS197-2006",]
 #data2006=data2006[data2006$Par!="ZPS197-2006-In",]
 #data2006=data2006[data2006$Par!="ZPS197-2006-Pa",]
@@ -355,8 +352,6 @@ for (parc in unique(data2006.dat$carre.parc)) {
 
   } ### fin boucle i (especes)
 
-  temp <- data2013a.dat[data2013a.dat[,5]==parc,]
-
   Abondtquad <- rbind(Abondtquad,ab)
   # cropt <- c(cropt,unique(temp$Crop))
   # v1 <- as.character(temp$LONG)
@@ -383,5 +378,3 @@ for (parc in unique(data2006.dat$carre.parc)) {
 #    bg=cropt[sel],inches=F)
 #  legend(-0.65,46.33,levels(data2006a.dat$Crop),pch=19,
 #     col=1:length(levels(data2006a.dat$Crop)))
-
-options(encoding = "utf8")
