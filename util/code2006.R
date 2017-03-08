@@ -285,9 +285,9 @@ A_Diversity$Type_Rich_stand=rep("Stand",length(A_Diversity[,1]))
 x=match(A_Diversity_obs$carre.parc,A_Diversity$carre.parc)
 xtemp=A_Diversity[x,]
 A_Diversity=cbind(A_Diversity_obs,xtemp)
-plot(A_Diversity$Richness,A_Diversity$Richness_mean,
-     xlab="Species richness 40m²",ylab="Species richness 20m²")
-abline(0,1)
+# plot(A_Diversity$Richness,A_Diversity$Richness_mean,
+#      xlab="Species richness 40m²",ylab="Species richness 20m²")
+# abline(0,1)
 
 write.table(A_Diversity, "data/generated/Diversity_fieldcore2006.csv", sep = ";")
 
@@ -357,3 +357,5 @@ for (parc in unique(data2006.dat$carre.parc)) {
 
 write.csv(abond_per_plot, "data/generated/abondt_per_plot_2006.csv",
           row.names = FALSE)
+
+rm(list = ls())
