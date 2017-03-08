@@ -300,6 +300,9 @@ library(compoisson)
 data2006.dat <- read.csv("data/generated/transpose_abondance_per_quadrat2006.csv",
                          sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
 
+# calcule la vraissemblance des données des quadras
+# v = observations
+# ltheta = log du paramètre de poisson (intensité)
 h.fct <- function(ltheta,v=v) {
   # print(c(ltheta, v))
   theta <- exp(ltheta)
@@ -325,32 +328,50 @@ cropt <- NULL
 longt <- NULL
 latt  <- NULL
 
+# trier par espèce pour pouvoir remplir les noms d'espèces dans le tableau
+data2006.dat <- data2006.dat[order(data2006.dat$sp),]
+mat_vide <- matrix(Inf,
+                   ncol = length(unique(data2006.dat$sp)),
+                   nrow = length(unique(data2006.dat$carre.parc)))
+abond_per_plot <- as.data.frame(mat_vide)
+
+colnames(abond_per_plot) <- unique(data2006.dat$sp)
+rownames(abond_per_plot) <- unique(data2006.dat$carre.parc)
+
 for (parc in unique(data2006.dat$carre.parc)) {
 
   # parc <- "A00-2006-In"
+  # On récupère les lignes pour la parcelle parc
   dat_sub <- data2006.dat[data2006.dat$carre.parc == parc, ]
 
-  # calcule la vraissemblance des données des quadras
-  # v = observations
-  # ltheta = log du paramètre de poisson (intensité)
-  ab <- NULL
+  # ab <- NULL
   for (i in (1:nrow(dat_sub))) {
     # print(c(parc, i))
     # i <- 1
-    # param de Poisson par kspèce
+    # param de Poisson par espèce
+    # ici on récupère la ligne i,, qui correspond à un espèce pour la parelle
+    # parc
     v1 <- as.numeric(dat_sub[i, 4:ncol(dat_sub)])
 
     # ce morceau n'est utile que si il y a des sous quadras
     #Zu <- nlm(h.fct,c(0,0),v=v1,iterlim=10000,stepmax=2)
     #ab <- c(ab,exp(Zu$est[1]))
 
+    # on estime l'abondance de la parcelle par la loi de poisson
     Zu <- nlminb(c(0, 0), h.fct,v = v1, lower = c(-50, -50),upper = c(50, 50))
+    # on fait la moyenne de poisson sur le paramètre de Zu, qui correspond aux
+    # moyennes. On repasse en exponentielle car on avait fait un log
     mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
-    ab <- c(ab,mm)
+    # On remet cette moyenne dans le vecteur ab
+    # ab <- c(ab,mm)
+    # mat_vide
 
+    # à la fin de la boucle, on a un vecteur avec les abondances par espèce pour
+    # la parcelle parc
+    abond_per_plot[parc, dat_sub$sp[i]] <- mm
   } ### fin boucle i (especes)
 
-  Abondtquad <- rbind(Abondtquad,ab)
+  # Abondtquad <- rbind(Abondtquad,ab)
   # cropt <- c(cropt,unique(temp$Crop))
   # v1 <- as.character(temp$LONG)
   # v1 <- sub(",",".",v1)
@@ -358,12 +379,12 @@ for (parc in unique(data2006.dat$carre.parc)) {
   # v1 <- as.character(temp$lat)
   # v1 <- sub(",",".",v1)
   # latt  <- c(latt,mean(as.numeric(v1)))
-  print(parc)
-  print(ab)
+  # print(parc)
+  # print(ab)
 
-  Abondtotaleemp  <- c(Abondtotaleemp,sum(ab))
+  # Abondtotaleemp  <- c(Abondtotaleemp,sum(ab))
 
 } ## fin boucle parc
 
-write.csv(Abondtquad, "data/generated/abondt_per_quadra_2006.csv",
+write.csv(abond_per_plot, "data/generated/abondt_per_plot_2006.csv",
           row.names = FALSE)
