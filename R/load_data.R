@@ -113,6 +113,10 @@ write.csv(data_sub, "data/generated/BDD_sub.csv", row.names = FALSE)
 # -- flora ---------------------------------------------------------------------
 # adds scripts to compute estimates of abundance
 
-if (!file.exists("data/generated/Diversity_fieldcore2006.csv")) {
-  source("util/code2006.R", encoding = "latin1")
+library(doParallel)
+registerDoParallel(cores=4)
+foreach (i = 2006:2010) %dopar% {
+  print(i)
+  filename <- paste("util/code", i, ".R", sep = "")
+  source(filename, encoding = "latin1")
 }
