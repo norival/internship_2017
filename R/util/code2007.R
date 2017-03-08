@@ -7,12 +7,10 @@
 # modifié le 
 #################################################################
 
-setwd("~/Donnees/Chize_Flore/Prog")
-rm(list=ls())
 options(encoding="latin1")
 
 #####Charge le fichier des relevés de flore 2007
-data2007=read.csv("monitoring2007.csv", sep=";", dec= "," , 
+data2007=read.csv("data/raw/monitoring2007.csv", sep=";", dec= "," , 
                   stringsAsFactors=FALSE,h=T)
 #vérification des données
 dim(data2007) #dimension du fichier de donnees 24787L & 31C
@@ -34,7 +32,7 @@ data2007$Espèce_origin[data2007$Espèce_origin=="Festuca-ovina/rubra"]="Festuca-r
 ###Correction des noms d'espèces adventices
 ##code Joël
 ##affiner pour tenir compte de 32 et 10 quadrats
-source("modifs_fichier_2.R")
+source("util/modifs_fichier_2.R")
 #data2007=data2007[data2007$No_parcelle!="ZPS197-2007",]
 #data2007=data2007[data2007$Par!="ZPS197-2007-In",]
 #data2007=data2007[data2007$Par!="ZPS197-2007-Pa",]
@@ -91,13 +89,13 @@ weeds2007C$Par.interf[weeds2007C$Par.interf=="Pa"]="pa"
 weeds2007C1 <- cbind(weeds2007C, as.factor(weeds2007C$Espèce_origin))
 colnames(weeds2007C1) [13] <- "sp"
 
-write.table(weeds2007C1, "Data-Prog/weeds2007.csv", sep = ";")
+write.table(weeds2007C1, "data/generated/weeds2007.csv", sep = ";")
 
 ###########################################
 ## Aggregation des especes
 ###########################################
 #weeds<-weeds2007C1
-weeds<-read.csv("Data-Prog/weeds2007.csv", sep = ";",dec=",")
+weeds<-read.csv("data/generated/weeds2007.csv", sep = ";",dec=",")
 test <- aggregate(data.frame(abondance = weeds$abondance), 
                   by = list(sp = weeds$sp, quadrat = weeds$pt, 
                             position = weeds$Par.interf,
@@ -130,9 +128,10 @@ test <- aggregate(data.frame(abondance = weeds$abondance),
 ### Prepare an empty matrix filled with 0 (for 0 abundance observed)
 nrowA <- length(unique(test$carre.parc)) * length(unique(test$sp)) * 2
 
-A <- matrix(ncol=3+10, nrow=nrowA , data = rep(0, 13*nrowA ))
-A<-data.frame(A)
-colnames(A) <- c("sp", "carre.parc", "position", "q1","q2","q3","q4","q5","q6","q7","q8","q9","q10")
+A <- matrix(ncol=3+32, nrow=nrowA , data = rep(0, 35*nrowA ))
+A <- data.frame(A)
+colnames(A) <- c("sp", "carre.parc", "position",
+                 paste("q", 1:32, sep = ""))
 #dim(A)
 #head(A)
 
@@ -153,20 +152,27 @@ A$carre.parc <- rep(carre.parc,2)
 #positions (in,pa)
 A$position<-c(rep("pa",length(carre.parc)),rep("in",length(carre.parc)))
 
+# supprimer les quadrats en interface
+test_noin <- test[-which(test$position == "in"),]
+
+# supprimer les quadrats en interface
+test_noin <- test[-which(test$position == "in"),]
+
 ## Remplis les quadrats vides (>15 min)
-for (i in 1:length(test$position)) {
-  #  for(i in (1:length(test[,1]))[test$carre.parc=="10986-11533"]){
-  spX <- test[i, 1]
-  fieldX <- test[i, 4]
-  positionX <- test[i, 3]
-  quadrat <- as.numeric(test[i, 2])
-  abondance <- test[i, 6]
+for (i in 1:length(test_noin$position)) {
+  spX       <- test_noin[i, 1]
+  fieldX    <- test_noin[i, 4]
+  positionX <- test_noin[i, 3]
+  quadrat   <- as.numeric(test_noin[i, 2])
+  abondance <- test_noin[i, 6]
   
-  A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, quadrat+3]<- abondance  
+  A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, quadrat+3] <-
+    abondance
 }
+A <- A[A$position != "in",]
 
 #head(A, 25)
-write.table(A, "Data-Prog/transpose_abondance_per_quadrat2007.csv", sep = ";")
+write.table(A, "data/generated/transpose_abondance_per_quadrat2007.csv", sep = ";")
 
 #########################################################################
 # Matrice site x especes par parcelle (plein champ/pas interface)
@@ -181,7 +187,7 @@ test <- aggregate(data.frame(abondance = basics1$abondance),
                             crop=basics1$crop),sum)
 #colnames(test)
 
-write.table(test, "Data-Prog/transpose_abondance_per_fieldcore2007.csv", sep = ";")
+write.table(test, "data/generated/transpose_abondance_per_fieldcore2007.csv", sep = ";")
 
 #########################################################################
 # Matrice site x especes par parcelle 
@@ -191,7 +197,7 @@ test <- aggregate(data.frame(abondance = basics$abondance),
                             crop=basics$crop),sum)
 colnames(test)
 
-write.table(test, "Data-Prog/transpose_abondance_per_field2007.csv", sep = ";")
+write.table(test, "data/generated/transpose_abondance_per_field2007.csv", sep = ";")
 
 #################################################################
 ##Calcul des richesses observées 'nb hill 0, 1 et 2'
@@ -204,7 +210,7 @@ library(vegan)
 ##avec le fichier "transpose_abondance_per_field.csv" &
 ## "transpose_abondance_per_fieldcore.csv"
 ##Etape 1: estimation de la richesse observée sur 40 m²
-A=read.csv("Data-Prog/transpose_abondance_per_fieldcore2007.csv", sep = ";",h=T)
+A=read.csv("data/generated/transpose_abondance_per_fieldcore2007.csv", sep = ";",h=T)
 A_Diversity=matrix(NA,nrow=length(unique(A$carre.parc)),ncol=9)
 croptemp=matrix(NA,nrow=length(unique(A$carre.parc)),ncol=1)
 
@@ -235,7 +241,7 @@ mat2007 = xtabs(Richness~ carre.parc, A_Diversity)
 A_Diversity_obs=A_Diversity
 
 ##Etape 1: estimation de la richesse observée sur 40 m²
-A=read.csv("Data-Prog/transpose_abondance_per_quadrat2007.csv", sep = ";",h=T)
+A=read.csv("data/generated/transpose_abondance_per_quadrat2007.csv", sep = ";",h=T)
 A=droplevels(subset(A,A$position!="in"))
 
 A_Diversity=matrix(NA,nrow=length(unique(A$carre.parc)),ncol=10)
@@ -280,4 +286,4 @@ plot(A_Diversity$Richness,A_Diversity$Richness_mean,
      xlab="Species richness 40m²",ylab="Species richness 20m²")
 abline(0,1)
 
-write.table(A_Diversity, "Data-Prog/Diversity_fieldcore2007.csv", sep = ";")
+write.table(A_Diversity, "data/generated/Diversity_fieldcore2007.csv", sep = ";")
