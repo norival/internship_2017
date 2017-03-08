@@ -130,7 +130,7 @@ test <- aggregate(data.frame(abondance = weeds$abondance),
 ### Prepare an empty matrix filled with 0 (for 0 abundance observed)
 nrowA <- length(unique(test$carre.parc)) * length(unique(test$sp)) * 2
 
-A <- matrix(ncol=3+32, nrow=nrowA , data = rep(-1, 35*nrowA ))
+A <- matrix(ncol=3+32, nrow=nrowA , data = rep(0, 35*nrowA))
 A <- data.frame(A)
 colnames(A) <- c("sp", "carre.parc", "position",
                  paste("q", 1:32, sep = ""))
@@ -172,10 +172,10 @@ A <- A[A$position != "in",]
 
 # vérifier la présence des espèces
 # suppression des lignes où les espèces ne sont présentes dans aucun quadra
-A <- A[!rowSums(A[, 4:ncol(A)]) == ncol(A) - 3,]
+# A <- A[!rowSums(A[, 4:ncol(A)]) == ncol(A) - 3,]
 
 # remplacement des '-1' par des 0
-A[A == -1] <- 0
+# A[A == -1] <- 0
 
 #head(A, 25)
 write.table(A, "data/generated/transpose_abondance_per_quadrat2006.csv", sep = ";")
@@ -311,11 +311,12 @@ h.fct <- function(ltheta,v=v) {
 
   # si param est énorme, pas possible
   if(max(theta)>30){return(100000)}
-  # proba de 0
+
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 0
   lp0 <- com.log.density(0,theta[1],theta[2])  
-  # proba de 1
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 1
   lp1 <- com.log.density(1,theta[1],theta[2])     
-  # proba de > 1
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 2
   lp2 <- log(1-exp(lp0)-exp(lp1))
   lp <- c(lp0,lp1,lp2)
   ll <- (-1)*sum(lp[v+1])
@@ -323,8 +324,8 @@ h.fct <- function(ltheta,v=v) {
 }
 
 Abondtotaleemp  <- NULL
-Abondt     <- NULL
-Abondtquad <- NULL
+Abondt          <- NULL
+Abondtquad      <- NULL
 cropt <- NULL
 longt <- NULL
 latt  <- NULL
@@ -338,18 +339,18 @@ for (parc in unique(data2006.dat$carre.parc)) {
   # v = observations
   # ltheta = log du paramètre de poisson (intensité)
   ab <- NULL
-  for(i in (1:nrow(dat_sub)))
-  {
+  for (i in (1:nrow(dat_sub))) {
     # print(c(parc, i))
     # i <- 1
     # param de Poisson par kspèce
     v1 <- as.numeric(dat_sub[i, 4:ncol(dat_sub)])
+
     # ce morceau n'est utile que si il y a des sous quadras
     #Zu <- nlm(h.fct,c(0,0),v=v1,iterlim=10000,stepmax=2)
     #ab <- c(ab,exp(Zu$est[1]))
 
-    Zu <- nlminb(c(0,0),h.fct,v=v1,lower=c(-50,-50),upper=c(50,50))
-    mm <- com.mean(exp(Zu$par[1]),exp(Zu$par[2]))
+    Zu <- nlminb(c(0, 0), h.fct,v = v1, lower = c(-50, -50),upper = c(50, 50))
+    mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
     ab <- c(ab,mm)
 
   } ### fin boucle i (especes)
@@ -371,16 +372,16 @@ for (parc in unique(data2006.dat$carre.parc)) {
 
 } ## fin boucle parc
 
-plot(unique(data2006a.dat$Crop)[cropt],
-    apply(Abondtquad,1,sum),pch=19)
+# plot(unique(data2006a.dat$Crop)[cropt],
+#     apply(Abondtquad,1,sum),pch=19)
 
-plot(apply(Abondt,1,sum),apply(Abondtquad,1,sum),col=cropt,pch=19)
+# plot(apply(Abondt,1,sum),apply(Abondtquad,1,sum),col=cropt,pch=19)
 
-sel <- !is.na(longt)
-symbols(longt[sel],latt[sel],
-   circles=0.002*(apply(Abondtquad,1,sum)[sel])**0.5,
-   bg=cropt[sel],inches=F)
- legend(-0.65,46.33,levels(data2006a.dat$Crop),pch=19,
-    col=1:length(levels(data2006a.dat$Crop)))
+# sel <- !is.na(longt)
+# symbols(longt[sel],latt[sel],
+#    circles=0.002*(apply(Abondtquad,1,sum)[sel])**0.5,
+#    bg=cropt[sel],inches=F)
+#  legend(-0.65,46.33,levels(data2006a.dat$Crop),pch=19,
+#     col=1:length(levels(data2006a.dat$Crop)))
 
 options(encoding = "utf8")
