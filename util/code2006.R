@@ -299,8 +299,6 @@ library(compoisson)
 # on choppe les donnees
 data2006.dat <- read.csv("data/generated/transpose_abondance_per_quadrat2006.csv",
                          sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
-a <- data2006.dat[data2006.dat$carre.parc == "A00-2006-In",]
-a[173,]
 
 h.fct <- function(ltheta,v=v) {
   # print(c(ltheta, v))
@@ -367,14 +365,5 @@ for (parc in unique(data2006.dat$carre.parc)) {
 
 } ## fin boucle parc
 
-# plot(unique(data2006a.dat$Crop)[cropt],
-#     apply(Abondtquad,1,sum),pch=19)
-
-# plot(apply(Abondt,1,sum),apply(Abondtquad,1,sum),col=cropt,pch=19)
-
-# sel <- !is.na(longt)
-# symbols(longt[sel],latt[sel],
-#    circles=0.002*(apply(Abondtquad,1,sum)[sel])**0.5,
-#    bg=cropt[sel],inches=F)
-#  legend(-0.65,46.33,levels(data2006a.dat$Crop),pch=19,
-#     col=1:length(levels(data2006a.dat$Crop)))
+write.csv(Abondtquad, "data/generated/abondt_per_quadra_2006.csv",
+          row.names = FALSE)
