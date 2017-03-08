@@ -287,3 +287,73 @@ plot(A_Diversity$Richness,A_Diversity$Richness_mean,
 abline(0,1)
 
 write.table(A_Diversity, "data/generated/Diversity_fieldcore2007.csv", sep = ";")
+
+# -- estimation des abondances -------------------------------------------------
+
+# package
+library(compoisson)
+
+# on choppe les donnees
+data2007.dat <- read.csv("data/generated/transpose_abondance_per_quadrat2007.csv",
+                         sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
+
+h.fct <- function(ltheta,v=v) {
+  # print(c(ltheta, v))
+  theta <- exp(ltheta)
+
+  # si param est énorme, pas possible
+  if(max(theta)>30){return(100000)}
+
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 0
+  lp0 <- com.log.density(0,theta[1],theta[2])  
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 1
+  lp1 <- com.log.density(1,theta[1],theta[2])     
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 2
+  lp2 <- log(1-exp(lp0)-exp(lp1))
+  lp <- c(lp0,lp1,lp2)
+  ll <- (-1)*sum(lp[v+1])
+  return(ll)
+}
+
+Abondtotaleemp  <- NULL
+Abondt          <- NULL
+Abondtquad      <- NULL
+cropt <- NULL
+longt <- NULL
+latt  <- NULL
+
+for (parc in unique(data2007.dat$carre.parc)) {
+
+  # parc <- "A00-2007-In"
+  dat_sub <- data2007.dat[data2006.dat$carre.parc == parc, ]
+
+  # calcule la vraissemblance des données des quadras
+  # v = observations
+  # ltheta = log du paramètre de poisson (intensité)
+  ab <- NULL
+  for (i in (1:nrow(dat_sub))) {
+    # print(c(parc, i))
+    # i <- 1
+    # param de Poisson par kspèce
+    v1 <- as.numeric(dat_sub[i, 4:ncol(dat_sub)])
+
+    # ce morceau n'est utile que si il y a des sous quadras
+    #Zu <- nlm(h.fct,c(0,0),v=v1,iterlim=10000,stepmax=2)
+    #ab <- c(ab,exp(Zu$est[1]))
+
+    Zu <- nlminb(c(0, 0), h.fct,v = v1, lower = c(-50, -50),upper = c(50, 50))
+    mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
+    ab <- c(ab,mm)
+
+  } ### fin boucle i (especes)
+
+  Abondtquad <- rbind(Abondtquad,ab)
+  print(parc)
+  print(ab)
+
+  Abondtotaleemp  <- c(Abondtotaleemp,sum(ab))
+
+} ## fin boucle parc
+
+write.csv(Abondtquad, "data/generated/abondt_per_quadra_2007.csv",
+          row.names = FALSE)
