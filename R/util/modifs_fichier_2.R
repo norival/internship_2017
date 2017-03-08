@@ -11,7 +11,8 @@
 
 modifs_fichier = function(tab=data2012)
 {
-  afaire.dat <- read.csv("util/modifs_liste.csv",header=T,sep=";")
+  afaire.dat <- read.csv("util/modifs_liste.csv",header=T,sep=";",
+                         encoding = "latin1")
   depart.dat <- tab
 
   ## suppression d'espece [col 4]
@@ -52,8 +53,8 @@ modifs_fichier = function(tab=data2012)
   }
   
   ### a faire à la main
-  print(c("lignes susceptibles d'etre des doublons"))
-  print(numlig)
+  # print(c("lignes susceptibles d'etre des doublons"))
+  # print(numlig)
   
   ## existe deja (sous deux noms !) [2]
   
@@ -74,7 +75,7 @@ modifs_fichier = function(tab=data2012)
     if(icas !=30){
       for (iparc in unique(interm2.dat$No_parcelle))
       {
-        print(c(iparc,icas))
+        # print(c(iparc,icas))
         du.dat <- interm2.dat[interm2.dat$No_parcelle==iparc,]
         k <- k+1
         namedouble <- afaire.dat[icas,2]
