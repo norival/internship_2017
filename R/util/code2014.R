@@ -4,13 +4,10 @@
 # crée le 6 juillet 2016
 # modifié le 
 ###########################################################
-rm(list=ls())
-
-setwd("//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/prog_floreZA") 
 
 #####Charge le fichier des relevés de flore 2014
-data2014=read.csv("monitoring2014.csv", sep=";", dec= "," , 
-                  stringsAsFactors=FALSE,h=T)
+data2014=read.csv("data/raw/monitoring2014.csv", sep=";", dec= "," , 
+                  stringsAsFactors=FALSE,h=T,encoding="latin1")
 #data2014=read.csv("monitoring2014_corrigéparMarylin_29082016.csv", sep=";", dec= "," ,
                   #stringsAsFactors=FALSE,h=T)
 #vérification des données
@@ -34,7 +31,7 @@ data2014b=data2014
 
 ###Correction des noms d'espèces adventices
 ##code Joël
-source("modifs_fichier.r")
+source("util/modifs_fichier.R", encoding = "latin1")
 data2014=modifs_fichier(tab=data2014)
 
 
@@ -119,7 +116,7 @@ head(weeds2)
 weeds <- rbind(weeds1, weeds2)
 head(weeds, 15)
 
-write.table(weeds, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/weeds2014.csv", sep = ";")
+write.table(weeds, "data/generated/weeds2014.csv", sep = ";")
 
 
 ###########################################
@@ -133,7 +130,7 @@ test <- aggregate(data.frame(abondance = weeds$abondance),
 ##Il y a des doublons dans le jeu de donnees 
 ##(somme des abondances par sous-quadrat ne peut pas être supérieure à 1)
 nrow(test[test$abondance > 1, ])
-# 50
+# 33
 
 ## Juste set those lines with 1 value (the original data must be fixed after). 
 test[test$abondance > 1, ]$abondance <- 1
@@ -197,9 +194,12 @@ A$done <- rep(0, nrowA )
 #}
 
 ## Remplis les quadrats vides (>10 min)
-summary(test$quadrat) # problème de majuscules
-summary(test$plot) # problème avec " 1"
-test[test$plot == " 1", ]$plot <- "1"
+summary(as.factor(test$quadrat)) # problème de majuscules -> fixed
+test$quadrat <- tolower(test$quadrat)
+summary(as.factor(test$plot)) # problème avec " 1" -> fixed
+levels(test$plot)
+test$plot <- as.character(test$plot)
+test$plot[test$plot == " 1"] <- "1"
 summary(as.factor(test$position)) #ok
 
 for (i in 1:length(test$position)) {
@@ -216,9 +216,8 @@ for (i in 1:length(test$position)) {
 
 #(A[which(A$carre.parc == "10042-10663" & A$sp == "Geranium-dissectum"), ]) 
  
-
 head(A, 25)
-write.table(A, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/transpose_abondance_per_sousquadrat2014.csv", sep = ";")
+write.table(A, "data/generated/transpose_abondance_per_sousquadrat2014.csv", sep = ";")
 
 
 #######################################################
@@ -242,35 +241,42 @@ for (i in 1:nrow(A)) {
   for (j in 4:(ncol(A)-1)) {
     
     if (A[i, j] > 0) {
-     
-    spX <- A[i, "sp"]
-    fieldX <- A[i, "carre.parc"]
-    positionX <- A[i, "position"]
-    plotX <- substr(colnames(A)[j], 2, 2)
-    quadratX <- substr(colnames(A)[j], 3, 3)
-    abondance = A[i, j] 
+      spX <- A[i, "sp"]
+      fieldX <- A[i, "carre.parc"]
+      positionX <- A[i, "position"]
+      plotX <- substr(colnames(A)[j], 2, 2)
+      quadratX <- substr(colnames(A)[j], 3, 3)
+      abondance = A[i, j] 
 
-  B[B$field == fieldX & B$position == positionX & B$plot == plotX & B$quadrat == quadratX, colnames(B)==spX]<- abondance  }}}
+      B[B$field == fieldX & B$position == positionX & B$plot == plotX &
+        B$quadrat == quadratX, colnames(B)==spX] <- abondance
+    }
+  }
+}
 
 head(B)
-write.table(B, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/transpose_species_abondance_per_sousquadrat2014.csv", sep = ";")
+write.table(B, "data/generated/transpose_species_abondance_per_sousquadrat2014.csv", sep = ";")
 
-#############################################################################################
+###############################################################################
 ##### Table avec les abondances par quadrats (ici plot)
-##################################################################################################
+###############################################################################
 basics <- test
 colnames(basics)
 # "sp" "quadrat"  "plot" "position"  "culture"  "carre.parc" "crop" "abondance"
 test <- aggregate(data.frame(abondance = basics$abondance), 
-                  by = list(sp = basics$sp, plot=basics$plot,
-                            position = basics$position, carre.parc = basics$carre.parc),sum)
+                  by = list(sp = basics$sp, plot=basics$plot, position =
+                            basics$position, carre.parc =
+                            basics$carre.parc),
+                  sum)
 colnames(test)
 test$frequency <- test$abondance/4 ##freq de l'esp sur le 4 ss-quadrats
 
 
 ##Enregistrement du tableau par sous quadrat
 head(test)
-write.table(test, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/abondance_per_quadrat2014.csv", sep = ";")
+write.table(test, "data/generated/abondance_per_quadrat2014.csv", sep = ";")
+test <- read.csv("data/generated/abondance_per_quadrat2014.csv", sep = ";",
+                 stringsAsFactors = FALSE)
 
 #############################################################################
 ## Matrice site x especes avec ligne pour les quadrats vides
@@ -314,9 +320,8 @@ for (i in 1:length(test$position)) {
   A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, colnames(A)==code]<- abondance  
 }
 
-
 head(A, 25)
-write.table(A, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/transpose_abondance_per_quadrat2014.csv", sep = ";")
+write.table(A, "data/generated/transpose_abondance_per_quadrat2014.csv", sep = ";")
 
 #########################################################################
 # Matrice site x especes par parcelle (plein champ/pas interface)
@@ -327,7 +332,7 @@ test <- aggregate(data.frame(abondance = basics1$abondance),
                             crop=basics1$crop),sum)
 colnames(test)
 
-write.table(test, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/transpose_abondance_per_fieldcore2014.csv", sep = ";")
+write.table(test, "data/generated/transpose_abondance_per_fieldcore2014.csv", sep = ";")
 
 #########################################################################
 # Matrice site x especes par parcelle (plein champ/interface)
@@ -340,7 +345,7 @@ test <- aggregate(data.frame(abondance = basics2$abondance),
 
 colnames(test)
 
-write.table(test, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/transpose_abondance_per_position2014.csv", sep = ";")
+write.table(test, "data/generated/transpose_abondance_per_position2014.csv", sep = ";")
 
 #########################################################################
 # Matrice site x especes par parcelle 
@@ -350,8 +355,6 @@ test <- aggregate(data.frame(abondance = basics$abondance),
                             crop=basics$crop),sum)
 colnames(test)
 
-write.table(test, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/transpose_abondance_per_field2014.csv", sep = ";")
+write.table(test, "data/generated/transpose_abondance_per_field2014.csv", sep = ";")
 
 #################################################################
-
-
