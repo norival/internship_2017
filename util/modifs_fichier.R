@@ -6,9 +6,8 @@
 
 modifs_fichier = function(tab=data2015)
 {
-   afaire.dat <- read.csv("modifs_liste.csv",header=T,sep=";")
-  depart.dat <- tab
-
+   afaire.dat <- read.csv("util/modifs_liste.csv",header=T,sep=";", encoding = "latin1")
+  depart.dat <- tab 
 ## suppression d'espece [col 4]
   casconcernes <- (1:nrow(afaire.dat))[!is.na(afaire.dat[,4])]
   numlig <- NULL
