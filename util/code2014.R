@@ -360,6 +360,49 @@ write.table(test, "data/generated/transpose_abondance_per_field2014.csv", sep = 
 # Problème: les abondances sont notées 0/1 (absence/présence).
 
 # ------------------------------------------------------------------------------
+# Estimation des abondances par une loi de Poisson
+
+weeds <- read.csv( "data/generated/transpose_abondance_per_sousquadrat2014.csv",
+                  sep = ";", stringsAsFactors = FALSE)
+
+# Création d'un tableau vide pour récupérer les estmations d'abondances
+mat_vide <- matrix(Inf,
+                   ncol = length(unique(weeds$sp)),
+                   nrow = length(unique(weeds$carre.parc)))
+abond_per_plot_glm <- as.data.frame(mat_vide)
+
+colnames(abond_per_plot) <- unique(weeds$sp)
+rownames(abond_per_plot) <- unique(weeds$carre.parc)
+
+# récpérer uniquement les parcelles et supprimer la variable 'done'
+weeds <- weeds[weeds$position != "in", 1:ncol(weeds) - 1]
+
+for (parc in unique(weeds$carre.parc)) {
+  # pour chaque parcelle
+  parc <- unique(weeds$carre.parc)[1]
+
+  for (sp in unique(dat_parc$sp)) {
+    sp <- unique(dat_parc$sp)[1]
+    dat_sp <- dat_parc[weeds$carre.parc == parc & weeds$sp == sp, ]
+
+    ab <- NULL
+    for (i in 1:nrow(dat_sp)) {
+      # combiner les pa1 et pa2
+      ab <- c(ab, as.numeric(dat_sp[i, 4:ncol(dat_sp)]))
+    }
+    n1 <- length(ab[ab == 0])
+    n2 <- length(ab[ab == 1])
+    lambda <- log((n1 + n2) / n1)
+
+    # On rajoute cette moyenne dans le tableau vide initial
+    abond_per_plot[parc, sp] <- lambda
+  }
+}
+
+write.csv(abond_per_plot, "data/generated/abondt_per_plot_2014_binomiale.csv",
+          row.names = FALSE)
+
+# ------------------------------------------------------------------------------
 # Passage des notes en log2
 # On considère ici qu'il ne peut y avoir plus d'une plante par sous-quadra. On
 # regroupe donc les sous-quadras en faisant la somme des indices d'abondances et
