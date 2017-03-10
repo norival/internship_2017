@@ -216,9 +216,7 @@ for (i in 1:length(test$position)) {
 
 #(A[which(A$carre.parc == "10042-10663" & A$sp == "Geranium-dissectum"), ]) 
  
-head(A, 25)
 write.table(A, "data/generated/transpose_abondance_per_sousquadrat2014.csv", sep = ";")
-
 
 #######################################################
 ## Matrice quadrat (en lignes) x (especes en colonnes)
@@ -357,4 +355,81 @@ colnames(test)
 
 write.table(test, "data/generated/transpose_abondance_per_field2014.csv", sep = ";")
 
-#################################################################
+# ------------------------------------------------------------------------------
+# Estimation des abondances
+# Problème: les abondances sont notées 0/1 (absence/présence).
+
+# ------------------------------------------------------------------------------
+# Passage des notes en log2
+# On considère ici qu'il ne peut y avoir plus d'une plante par sous-quadra. On
+# regroupe donc les sous-quadras en faisant la somme des indices d'abondances et
+# si une note est > 2, on la remplace par 2.
+
+weeds <- read.csv( "data/generated/transpose_abondance_per_sousquadrat2014.csv",
+                  sep = ";", stringsAsFactors = FALSE)
+
+# récpérer uniquement les parcelles et supprimer la variable 'done'
+weeds <- weeds[weeds$position != "in", 1:ncol(weeds) - 1]
+
+h.fct <- function(ltheta,v=v) {
+  library(compoisson)
+  # print(c(ltheta, v))
+  theta <- exp(ltheta)
+
+  # si param est énorme, pas possible
+  if(max(theta)>30){return(100000)}
+
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 0
+  lp0 <- com.log.density(0,theta[1],theta[2])
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 1
+  lp1 <- com.log.density(1,theta[1],theta[2])
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 2
+  lp2 <- log(1-exp(lp0)-exp(lp1))
+  lp <- c(lp0,lp1,lp2)
+  ll <- (-1)*sum(lp[v+1])
+  return(ll)
+}
+
+# Création d'un tableau vide pour récupérer les estmations d'abondances
+mat_vide <- matrix(Inf,
+                   ncol = length(unique(weeds$sp)),
+                   nrow = length(unique(weeds$carre.parc)))
+abond_per_plot <- as.data.frame(mat_vide)
+
+colnames(abond_per_plot) <- unique(weeds$sp)
+rownames(abond_per_plot) <- unique(weeds$carre.parc)
+
+for (parc in unique(weeds$carre.parc)) {
+  dat_parc <- weeds[weeds$carre.parc == parc, ]
+
+  for (sp in unique(dat_parc$sp)) {
+    dat_sp <- dat_parc[dat_parc$sp == sp, ]
+
+    # regroupe pa1 et pa2
+    tab <- dat_sp[, 4:length(dat_sp)]
+    tab <- as.numeric(apply(tab, 2, sum))
+
+    ab <- NULL
+    for(i in 1:10) {
+      # compte tous les sous quadras
+      ii <- 4*(i-1) + (1:4)
+      v1 <- sum(tab[ii])
+      # si > 2, plusieurs plantes dans le quadra -> 2
+      v1[v1 > 2] <- 2
+      ab <- c(ab, v1)
+    }
+
+    # on estime l'abondance de la parcelle par la loi de poisson
+    Zu <- nlminb(c(0, 0), h.fct, v = ab, lower = c(-50, -50),upper = c(50, 50))
+
+    # on fait la moyenne de poisson sur le paramètre de Zu, qui correspond aux
+    # moyennes. On repasse en exponentielle car on avait fait un log
+    mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
+
+    # On rajoute cette moyenne dans le tableau vide initial
+    abond_per_plot[parc, sp] <- mm
+  }
+}
+
+write.csv(abond_per_plot, "data/generated/abondt_per_plot_2014_base2.csv",
+          row.names = FALSE)
