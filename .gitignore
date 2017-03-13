@@ -25,6 +25,7 @@
 # specific files
 R/reporting.pdf
 R/junk.R
+latex/method.pdf
 
 # directories
 notes/
