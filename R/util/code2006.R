@@ -300,7 +300,7 @@ source("functions/abundance.R", encoding = "utf8")
 data2006 <- read.csv("data/generated/transpose_abondance_per_quadrat2006.csv",
                      sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
 
-abond_per_plot <- abundance(data2006, surf = 4)
+abond_per_plot <- estim_abundance(data2006, surf = 4, n_cores = 3)
 
 write.csv(abond_per_plot, "data/generated/abondt_per_plot_2006.csv",
           row.names = FALSE)
