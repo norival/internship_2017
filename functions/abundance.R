@@ -20,8 +20,18 @@ h.fct <- function(ltheta,v=v) {
   return(ll)
 }
 
-estim_abundance <- function(x, surf, n_cores = 2) {
-  library(doParallel)
+estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE) {
+  library(doSNOW)
+
+  cat("Estimation of abundances\n")
+
+  if (progress) {
+    pb  <- txtProgressBar(min = 0, max = nrow(x), style = 3, width = 80)
+    progressbar <- function(n) setTxtProgressBar(pb, n)
+    opts <- list(progress = progressbar)
+  } else {
+    opts <- list()
+  }
 
   mat_vide <- matrix(Inf,
                      ncol = length(unique(x$sp)),
@@ -32,9 +42,13 @@ estim_abundance <- function(x, surf, n_cores = 2) {
   rownames(abond_per_plot) <- unique(x$carre.parc)
 
   cl <- makeCluster(n_cores)
-  registerDoParallel(cl)
+  registerDoSNOW(cl)
+  
 
-  a <- foreach(i = 1:nrow(x), .combine = rbind, .export = "h.fct") %dopar% {
+  a <- foreach(i = 1:nrow(x), .combine = rbind, .export = "h.fct", .options.snow = opts) %dopar% {
+
+    if (progress) setTxtProgressBar(pb, i)
+
     # param de Poisson par espèce
     # ici on récupère la ligne i, qui correspond à une espèce pour une parcelle
     v1 <- as.numeric(x[i, 4:ncol(x)])
@@ -49,13 +63,20 @@ estim_abundance <- function(x, surf, n_cores = 2) {
                      stringsAsFactors = F)
   }
 
+  cat("\nFormating results\n")
   # On remplit la matrice vide avec les valeurs de a
+  if (progress)
+    pb  <- txtProgressBar(min = 0, max = nrow(a), style = 3, width = 80)
+
   for (i in 1:nrow(a)) {
+    if (progress) setTxtProgressBar(pb, i)
     abond_per_plot[a[i, 1], a[i, 2]] <- a[i, 3]
   }
 
   # rapporter à 1 m^2
   abond_per_plot <- abond_per_plot / surf
+
+  cat("\n")
 
   return(abond_per_plot)
 
