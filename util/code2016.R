@@ -5,11 +5,10 @@
 # modifié le 
 ###########################################################
 
-setwd("//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/prog_floreZA") 
-
 #####Charge le fichier des relevés de flore 2016
-data2016=read.csv("monitoring2016.csv", sep=";", dec= "," , 
-                  stringsAsFactors=FALSE,h=T)
+data2016=read.csv("data/raw/monitoring2016.csv", sep=";", dec= "," , 
+                  stringsAsFactors=FALSE,h=T,
+                  encoding = "latin1")
 #vérification des données
 dim(data2016) #dimension du fichier de donnees
 head(data2016) #premieres lignes
@@ -38,7 +37,7 @@ unique(data2016$Crop.Analyses)
 
 ###Correction des noms d'espèces adventices
 ##code Joël
-source("modifs_fichier.r")
+source("util/modifs_fichier.R", encoding = "latin1")
 data2016=modifs_fichier(tab=data2016)
 
 #############################################################
@@ -132,7 +131,7 @@ head(weeds2)
 weeds <- rbind(weeds1, weeds2)
 head(weeds, 15)
 
-write.table(weeds, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/weeds2016.csv", sep = ";")
+write.table(weeds, "data/generated/weeds2016.csv", sep = ";")
 
 ###########################################
 ## Aggregation des especes
@@ -220,7 +219,7 @@ for (i in 1:length(test$position)) {
 }
 
 head(A, 25)
-write.table(A, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/transpose_abondance_per_sousquadrat2016.csv", sep = ";")
+write.table(A, "data/generated/transpose_abondance_per_sousquadrat2016.csv", sep = ";")
 
 
 #######################################################
@@ -255,7 +254,7 @@ for (i in 1:nrow(A)) {
       B[B$field == fieldX & B$position == positionX & B$plot == plotX & B$quadrat == quadratX, colnames(B)==spX]<- abondance  }}}
 
 head(B)
-write.table(B, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/transpose_species_abondance_per_sousquadrat2016.csv", sep = ";")
+write.table(B, "data/generated/transpose_species_abondance_per_sousquadrat2016.csv", sep = ";")
 
 
 #############################################################################################
@@ -275,7 +274,7 @@ test$frequency <- test$abondance/4 ##freq de l'esp sur le 4 ss-quadrats
 
 ##Enregistrement du tableau par sous quadrat
 head(test)
-write.table(test, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/abondance_per_quadrat2016.csv", sep = ";")
+write.table(test, "data/generated/abondance_per_quadrat2016.csv", sep = ";")
 
 #############################################################################
 ## Matrice site x especes avec ligne pour les quadrats vides
@@ -320,7 +319,7 @@ for (i in 1:length(test$position)) {
 }
 
 head(A, 25)
-write.table(A, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/transpose_abondance_per_quadrat2016.csv", sep = ";")
+write.table(A, "data/generated/transpose_abondance_per_quadrat2016.csv", sep = ";")
 
 
 
@@ -333,7 +332,7 @@ test <- aggregate(data.frame(abondance = basics1$abondance),
                             crop=basics1$crop),sum)
 colnames(test)
 
-write.table(test, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/transpose_abondance_per_fieldcore2016.csv", sep = ";")
+write.table(test, "data/generated/transpose_abondance_per_fieldcore2016.csv", sep = ";")
 
 #########################################################################
 # Matrice site x especes par parcelle (plein champ/interface)
@@ -346,7 +345,7 @@ test <- aggregate(data.frame(abondance = basics2$abondance),
 
 colnames(test)
 
-write.table(test, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/transpose_abondance_per_position2016.csv", sep = ";")
+write.table(test, "data/generated/transpose_abondance_per_position2016.csv", sep = ";")
 
 #########################################################################
 # Matrice site x especes par parcelle 
@@ -357,6 +356,128 @@ test <- aggregate(data.frame(abondance = basics$abondance),
                             crop=basics$crop),sum)
 colnames(test)
 
-write.table(test, "//pommard/bga-users$/bbourgeois/Bureau/Div_Partitionning/data/transpose_abondance_per_field2016.csv", sep = ";")
+write.table(test, "data/generated/transpose_abondance_per_field2016.csv", sep = ";")
 
 #################################################################
+
+# ------------------------------------------------------------------------------
+# Estimation des abondances
+# Problème: les abondances sont notées 0/1 (absence/présence).
+
+# ------------------------------------------------------------------------------
+# Estimation des abondances par une loi de Poisson
+
+weeds <- read.csv( "data/generated/transpose_abondance_per_sousquadrat2016.csv",
+                  sep = ";", stringsAsFactors = FALSE)
+
+# Création d'un tableau vide pour récupérer les estmations d'abondances
+mat_vide <- matrix(Inf,
+                   ncol = length(unique(weeds$sp)),
+                   nrow = length(unique(weeds$carre.parc)))
+abond_per_plot <- as.data.frame(mat_vide)
+
+colnames(abond_per_plot) <- unique(weeds$sp)
+rownames(abond_per_plot) <- unique(weeds$carre.parc)
+
+# récpérer uniquement les parcelles et supprimer la variable 'done'
+weeds <- weeds[weeds$position != "in", 1:ncol(weeds) - 1]
+
+for (parc in unique(weeds$carre.parc)) {
+  # pour chaque parcelle
+  dat_parc <- weeds[weeds$carre.parc == parc, ]
+
+  for (sp in unique(dat_parc$sp)) {
+    sp <- unique(dat_parc$sp)[1]
+    dat_sp <- dat_parc[weeds$carre.parc == parc & weeds$sp == sp, ]
+
+    ab <- NULL
+    for (i in 1:nrow(dat_sp)) {
+      # combiner les pa1 et pa2
+      ab <- c(ab, as.numeric(dat_sp[i, 4:ncol(dat_sp)]))
+    }
+    n1 <- length(ab[ab == 0])
+    n2 <- length(ab[ab == 1])
+    lambda <- log((n1 + n2) / n1)
+
+    # On rajoute cette moyenne dans le tableau vide initial
+    abond_per_plot[parc, sp] <- lambda
+  }
+}
+
+write.csv(abond_per_plot, "data/generated/abondt_per_plot_2016_binomiale.csv",
+          row.names = FALSE)
+
+# ------------------------------------------------------------------------------
+# Passage des notes en log2
+# On considère ici qu'il ne peut y avoir plus d'une plante par sous-quadra. On
+# regroupe donc les sous-quadras en faisant la somme des indices d'abondances et
+# si une note est > 2, on la remplace par 2.
+
+weeds <- read.csv( "data/generated/transpose_abondance_per_sousquadrat2016.csv",
+                  sep = ";", stringsAsFactors = FALSE)
+
+# récpérer uniquement les parcelles et supprimer la variable 'done'
+weeds <- weeds[weeds$position != "in", 1:ncol(weeds) - 1]
+
+h.fct <- function(ltheta,v=v) {
+  library(compoisson)
+  # print(c(ltheta, v))
+  theta <- exp(ltheta)
+
+  # si param est énorme, pas possible
+  if(max(theta)>30){return(100000)}
+
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 0
+  lp0 <- com.log.density(0,theta[1],theta[2])
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 1
+  lp1 <- com.log.density(1,theta[1],theta[2])
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 2
+  lp2 <- log(1-exp(lp0)-exp(lp1))
+  lp <- c(lp0,lp1,lp2)
+  ll <- (-1)*sum(lp[v+1])
+  return(ll)
+}
+
+# Création d'un tableau vide pour récupérer les estmations d'abondances
+mat_vide <- matrix(Inf,
+                   ncol = length(unique(weeds$sp)),
+                   nrow = length(unique(weeds$carre.parc)))
+abond_per_plot <- as.data.frame(mat_vide)
+
+colnames(abond_per_plot) <- unique(weeds$sp)
+rownames(abond_per_plot) <- unique(weeds$carre.parc)
+
+for (parc in unique(weeds$carre.parc)) {
+  dat_parc <- weeds[weeds$carre.parc == parc, ]
+
+  for (sp in unique(dat_parc$sp)) {
+    dat_sp <- dat_parc[dat_parc$sp == sp, ]
+
+    # regroupe pa1 et pa2
+    tab <- dat_sp[, 4:length(dat_sp)]
+    tab <- as.numeric(apply(tab, 2, sum))
+
+    ab <- NULL
+    for(i in 1:10) {
+      # compte tous les sous quadras
+      ii <- 4*(i-1) + (1:4)
+      v1 <- sum(tab[ii])
+      # si > 2, plusieurs plantes dans le quadra -> 2
+      v1[v1 > 2] <- 2
+      ab <- c(ab, v1)
+    }
+
+    # on estime l'abondance de la parcelle par la loi de poisson
+    Zu <- nlminb(c(0, 0), h.fct, v = ab, lower = c(-50, -50),upper = c(50, 50))
+
+    # on fait la moyenne de poisson sur le paramètre de Zu, qui correspond aux
+    # moyennes. On repasse en exponentielle car on avait fait un log
+    mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
+
+    # On rajoute cette moyenne dans le tableau vide initial
+    abond_per_plot[parc, sp] <- mm
+  }
+}
+
+write.csv(abond_per_plot, "data/generated/abondt_per_plot_2016_base2.csv",
+          row.names = FALSE)
