@@ -1,0 +1,86 @@
+\documentclass[a4paper, 12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[francais]{babel}
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor} %Couleurs
+\usepackage{icomma}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=black]{hyperref}
+\usepackage{tikz}
+\usepackage{tabularx}
+\usepackage{parskip}
+
+\begin{document}
+
+\section{Estimation des abondances}
+
+Les abondances des espèces sont données de différentes façons.
+
+\begin{description}
+  \item[2006] relevé en log base 2
+  \item[2007] relevé en log base 2
+  \item[2008] relevé en log base 2
+  \item[2009] relevé en log base 2
+  \item[2010] relevé en log base 2
+  \item[2011] relevé en log base 10
+  \item[2012] MISSING
+  \item[2013] relevé en log base 2
+  \item[2014] relevé qualitatif présence/absence
+  \item[2015] relevé qualitatif présence/absence
+  \item[2016] relevé qualitatif présence/absence
+\end{description}
+
+\subsection{Relevés log base 2}
+
+On estime l'abondance moyenne par une loi de Poisson composée.
+On cherche le maximum de vraissemblance pour la probabilité log de lambda,
+lambda étant le paramètre de la loi de Poisson.
+Il estime donc l'abondance 
+
+L'individu statistique est le quadra ou le sous-quadra, suivant les données.
+Le paramètre lambda de la loi est donc le nombre moyen de plantes par individu
+statistique.
+La probabilité qu'il y ait 0 plantes est le nombre de 0, la probabilité qu'il y
+ait 1 plante est le nombre de 1 et la probabilité qu'il y en ait plus est 1 - la
+somme des 2 autres.
+
+
+\section{Classification des communautés adventices}
+
+On définit :
+
+\begin{itemize}
+  \item $ i : 1 \to I $ parcelles
+  \item $ p : 1 \to P $ plantes
+  \item $ a_{ip} $ est l'abondance de la plante $p$ dans la parcelle $i$
+  \item $f_{ip} = \frac{a_{ip}}{\sum_{1}^{P} a_{ip}}$ est la fréquence relative
+    de la plante $p$ dans la parcelle $i$
+\end{itemize}
+
+Je cherche $ k: 1 \to K $ groupes définis par les $ f^{k}_{p} $ tels que chaque
+parcelle (définie par ses fréquences relatives) soit la combinaison de ces
+groupes :
+
+\[
+  f_{ip} = \sum_{k=1}^{K} \alpha _{ik}f_{p}^{k}
+\]
+
+On définit donc chaque parcelle $i$ comme un mélange des différentes populations
+<<~typiques~>>.
+
+On prend le pari que les $K$ groupes sont des groupes écologiques stables
+(\textit{i.e.} les proportions ne changent pas) et que donc l'effet de la flore
+d'une parcelle sur le rendement est une combinaison des effets des différents
+groupes.
+On s'attend aussi que cet effet soit d'autant plus grand que l'abondance totale
+est forte.
+On s'attend donc que l'effet de la flore de la parcelle soit lié aux $K$
+variables correspondant aux <<~projections des $a_{ik}$~>> sur les groupes, soit
+à :
+\[
+  \sum_{p=1}^{P} a_{ip} \alpha _{ik}
+\]
+
+\end{document}
