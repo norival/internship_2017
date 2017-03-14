@@ -290,66 +290,13 @@ write.table(A_Diversity, "data/generated/Diversity_fieldcore2007.csv", sep = ";"
 # -- estimation des abondances -------------------------------------------------
 
 # package
-library(compoisson)
+source("functions/abundance.R", encoding = "utf8")
 
 # on choppe les donnees
-data2007.dat <- read.csv("data/generated/transpose_abondance_per_quadrat2007.csv",
-                         sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
+data2007 <- read.csv("data/generated/transpose_abondance_per_quadrat2007.csv",
+                     sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
 
-# calcule la vraissemblance des données des quadras
-# v = observations
-# ltheta = log du paramètre de poisson (intensité)
-h.fct <- function(ltheta,v=v) {
-  # print(c(ltheta, v))
-  theta <- exp(ltheta)
-
-  # si param est énorme, pas possible
-  if(max(theta)>30){return(100000)}
-
-  # proba d'abondance pour les espèces ayant un indice d'abondance de 0
-  lp0 <- com.log.density(0,theta[1],theta[2])
-  # proba d'abondance pour les espèces ayant un indice d'abondance de 1
-  lp1 <- com.log.density(1,theta[1],theta[2])
-  # proba d'abondance pour les espèces ayant un indice d'abondance de 2
-  lp2 <- log(1-exp(lp0)-exp(lp1))
-  lp <- c(lp0,lp1,lp2)
-  ll <- (-1)*sum(lp[v+1])
-  return(ll)
-}
-
-# Création d'un tableau vide pour récupérer les estmations d'abondances
-mat_vide <- matrix(Inf,
-                   ncol = length(unique(data2007.dat$sp)),
-                   nrow = length(unique(data2007.dat$carre.parc)))
-abond_per_plot <- as.data.frame(mat_vide)
-
-colnames(abond_per_plot) <- unique(data2007.dat$sp)
-rownames(abond_per_plot) <- unique(data2007.dat$carre.parc)
-
-for (parc in unique(data2007.dat$carre.parc)) {
-
-  # On récupère les lignes pour la parcelle parc
-  dat_sub <- data2007.dat[data2007.dat$carre.parc == parc, ]
-
-  # ab <- NULL
-  for (i in (1:nrow(dat_sub))) {
-    # param de Poisson par espèce
-    # ici on récupère la ligne i, qui correspond à un espèce pour la parelle
-    # parc
-    v1 <- as.numeric(dat_sub[i, 4:ncol(dat_sub)])
-
-    # on estime l'abondance de la parcelle par la loi de poisson
-    Zu <- nlminb(c(0, 0), h.fct, v = v1, lower = c(-50, -50),upper = c(50, 50))
-
-    # on fait la moyenne de poisson sur le paramètre de Zu, qui correspond aux
-    # moyennes. On repasse en exponentielle car on avait fait un log
-    mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
-
-    # On rajoute cette moyenne dans le tableau vide initial
-    abond_per_plot[parc, dat_sub$sp[i]] <- mm
-
-  }
-}
+abond_per_plot <- estim_abundance(data2007, surf = 4, n_cores = 4)
 
 write.csv(abond_per_plot, "data/generated/abondt_per_plot_2007.csv",
           row.names = FALSE)
