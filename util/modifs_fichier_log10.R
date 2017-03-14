@@ -15,9 +15,11 @@ modifs_fichier = function(tab=data2013)
                          encoding = "latin1")
   depart.dat <- tab
 
-  # compatibilité accents...
-  colnames(afaire.dat)[1] <- "Espece_origin"
-  colnames(depart.dat)[12] <- "Espece_origin"
+  # compatibilite accents...
+  colnames(afaire.dat) <-
+    gsub("[éè]{1}", "e", colnames(afaire.dat))
+  colnames(depart.dat) <-
+    gsub("[éè]{1}", "e", colnames(depart.dat))
 
 ## suppression d'espece [col 4]
 casconcernes <- (1:nrow(afaire.dat))[!is.na(afaire.dat[,4])]
