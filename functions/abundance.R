@@ -82,3 +82,52 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE) {
 
   stopCluster(cl)
 }
+
+estim_abundance01 <- function(x, surf, progress = TRUE) {
+  # estimates abundance when data is 0/1
+
+  if (progress) {
+    pb  <- txtProgressBar(min = 0, max = length(unique(x$carre.parc)),
+                          style = 3, width = 80)
+  }
+
+  # Création d'un tableau vide pour récupérer les estmations d'abondances
+  mat_vide <- matrix(Inf,
+                     ncol = length(unique(x$sp)),
+                     nrow = length(unique(x$carre.parc)))
+  abond_per_plot <- as.data.frame(mat_vide)
+
+  colnames(abond_per_plot) <- unique(x$sp)
+  rownames(abond_per_plot) <- unique(x$carre.parc)
+
+  i <- 0
+  for (parc in unique(weeds$carre.parc)) {
+    if (progress) {
+      i <- i+1
+      setTxtProgressBar(pb, i)
+    }
+
+    # pour chaque parcelle
+    parc <- unique(weeds$carre.parc)[1]
+
+    for (sp in unique(dat_parc$sp)) {
+      sp <- unique(dat_parc$sp)[1]
+      dat_sp <- dat_parc[weeds$carre.parc == parc & weeds$sp == sp, ]
+
+      ab <- NULL
+      for (i in 1:nrow(dat_sp)) {
+        # combiner les pa1 et pa2
+        ab <- c(ab, as.numeric(dat_sp[i, 4:ncol(dat_sp)]))
+      }
+      n1 <- length(ab[ab == 0])
+      n2 <- length(ab[ab == 1])
+      lambda <- log((n1 + n2) / n1)
+
+      # On rajoute cette moyenne dans le tableau vide initial
+      abond_per_plot[parc, sp] <- lambda / surf
+    }
+  }
+
+  return(abond_per_plot)
+
+}
