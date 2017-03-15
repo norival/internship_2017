@@ -369,7 +369,7 @@ weeds <- weeds[weeds$position != "in", 1:ncol(weeds) - 1]
 abond_per_plot <- estim_abundance01(weeds, surf = 0.25)
 
 write.csv(abond_per_plot, "data/generated/abondt_per_subquadra_2015_binomiale.csv",
-          row.names = FALSE)
+          row.names = TRUE)
 
 # ------------------------------------------------------------------------------
 # En regroupant les sous-quadras
@@ -377,7 +377,7 @@ write.csv(abond_per_plot, "data/generated/abondt_per_subquadra_2015_binomiale.cs
 abond_per_plot <- estim_abundance01(weeds, surf = 1, gp.subquadra = TRUE)
 
 write.csv(abond_per_plot, "data/generated/abondt_per_quadra_2015_binomiale.csv",
-          row.names = FALSE)
+          row.names = TRUE)
 
 # ------------------------------------------------------------------------------
 # Passage des notes en log2
@@ -388,4 +388,4 @@ write.csv(abond_per_plot, "data/generated/abondt_per_quadra_2015_binomiale.csv",
 abond_per_plot <- estim_abundance01(weeds, surf = 1, gp.subquadra = T, base2 = T)
 
 write.csv(abond_per_plot, "data/generated/abondt_per_quadra_2015_base2.csv",
-          row.names = FALSE)
+          row.names = TRUE)
