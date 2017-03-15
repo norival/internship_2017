@@ -83,8 +83,11 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE) {
   stopCluster(cl)
 }
 
-estim_abundance01 <- function(x, surf, gp.subquadra = FALSE, progress = TRUE) {
+estim_abundance01 <- function(x, surf, gp.subquadra = FALSE, base2 = FALSE, progress = TRUE) {
   # estimates abundance when data is 0/1
+
+  # if we decide to pass the results to log base2, we must group the subquadras
+  if (base2) gp.subquadra <- TRUE
 
   # Création d'un tableau vide pour récupérer les estmations d'abondances
   mat_vide <- matrix(Inf,
@@ -99,6 +102,7 @@ estim_abundance01 <- function(x, surf, gp.subquadra = FALSE, progress = TRUE) {
   for (parc in unique(x$carre.parc)) {
     # pour chaque parcelle
     dat_parc <- x[x$carre.parc == parc, ]
+    # print(head(dat_parc[dat_parc$position == "pa2",]))
 
     if (progress) {
       iparc <- iparc+1
@@ -116,7 +120,7 @@ estim_abundance01 <- function(x, surf, gp.subquadra = FALSE, progress = TRUE) {
         setTxtProgressBar(pb, ipb)
       }
 
-      dat_sp <- dat_parc[weeds$carre.parc == parc & weeds$sp == sp, ]
+      dat_sp <- dat_parc[dat_parc$sp == sp, ]
 
       ab_subq <- NULL
       for (i in 1:nrow(dat_sp)) {
@@ -131,17 +135,31 @@ estim_abundance01 <- function(x, surf, gp.subquadra = FALSE, progress = TRUE) {
           # compte tous les sous quadras
           ii <- 4*(i-1) + (1:4)
           v1 <- sum(ab_subq[ii])
-          # si > 1, plusieurs plantes dans le quadra -> 1
-          v1[v1 > 1] <- 1
-          ab_q <- c(ab_subq, v1)
+          if (base2) {
+            # si > 2, plusieurs plantes dans le quadra -> 2
+            v1[v1 > 2] <- 2
+          } else {
+            # si > 1, plusieurs plantes dans le quadra -> 1
+            v1[v1 > 1] <- 1
+          }
+          ab_q <- c(ab_q, v1)
         }
       } else {
         ab_q <- ab_subq
       }
 
-      n1 <- length(ab_q[ab_q == 0])
-      n2 <- length(ab_q[ab_q == 1])
-      lambda <- log((n1 + n2) / n1)
+      if (base2) {
+        # on estime l'abondance de la parcelle par la loi de poisson
+        Zu <- nlminb(c(0, 0), h.fct, v = ab_q, lower = c(-50, -50),upper = c(50, 50))
+
+        # on fait la moyenne de poisson sur le paramètre de Zu, qui correspond aux
+        # moyennes. On repasse en exponentielle car on avait fait un log
+        lambda <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
+      } else {
+        n1 <- length(ab_q[ab_q == 0])
+        n2 <- length(ab_q[ab_q == 1])
+        lambda <- log((n1 + n2) / n1)
+      }
 
       # On rajoute cette moyenne dans le tableau vide initial
       abond_per_plot[parc, sp] <- lambda / surf
