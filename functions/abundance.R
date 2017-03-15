@@ -83,13 +83,8 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE) {
   stopCluster(cl)
 }
 
-estim_abundance01 <- function(x, surf, progress = TRUE) {
+estim_abundance01 <- function(x, surf, gp.subquadra = FALSE, progress = TRUE) {
   # estimates abundance when data is 0/1
-
-  if (progress) {
-    pb  <- txtProgressBar(min = 0, max = length(unique(x$carre.parc)),
-                          style = 3, width = 80)
-  }
 
   # Création d'un tableau vide pour récupérer les estmations d'abondances
   mat_vide <- matrix(Inf,
@@ -100,32 +95,58 @@ estim_abundance01 <- function(x, surf, progress = TRUE) {
   colnames(abond_per_plot) <- unique(x$sp)
   rownames(abond_per_plot) <- unique(x$carre.parc)
 
-  i <- 0
-  for (parc in unique(weeds$carre.parc)) {
+  iparc <- 0
+  for (parc in unique(x$carre.parc)) {
+    # pour chaque parcelle
+    dat_parc <- x[x$carre.parc == parc, ]
+
     if (progress) {
-      i <- i+1
-      setTxtProgressBar(pb, i)
+      iparc <- iparc+1
+      ipb <- 0
+      cat("Computing parc ", parc, " (", iparc, "/",
+          length(unique(x$carre.parc)), ")...\n", sep = "")
+      pb <- txtProgressBar(min = 0, max = length(unique(dat_parc$sp)),
+                            style = 3, width = 80)
     }
 
-    # pour chaque parcelle
-    parc <- unique(weeds$carre.parc)[1]
-
     for (sp in unique(dat_parc$sp)) {
-      sp <- unique(dat_parc$sp)[1]
+      # pour chaque espèce
+      if (progress) {
+        ipb <- ipb+1
+        setTxtProgressBar(pb, ipb)
+      }
+
       dat_sp <- dat_parc[weeds$carre.parc == parc & weeds$sp == sp, ]
 
-      ab <- NULL
+      ab_subq <- NULL
       for (i in 1:nrow(dat_sp)) {
-        # combiner les pa1 et pa2
-        ab <- c(ab, as.numeric(dat_sp[i, 4:ncol(dat_sp)]))
+        # combiner les pa1 et pa2, donne 80 sous quadra
+        ab_subq <- c(ab_subq, as.numeric(dat_sp[i, 4:ncol(dat_sp)]))
       }
-      n1 <- length(ab[ab == 0])
-      n2 <- length(ab[ab == 1])
+
+      if (gp.subquadra) {
+        # group subquadra into on quadra
+        ab_q <- NULL
+        for(i in 1:10) {
+          # compte tous les sous quadras
+          ii <- 4*(i-1) + (1:4)
+          v1 <- sum(ab_subq[ii])
+          # si > 1, plusieurs plantes dans le quadra -> 1
+          v1[v1 > 1] <- 1
+          ab_q <- c(ab_subq, v1)
+        }
+      } else {
+        ab_q <- ab_subq
+      }
+
+      n1 <- length(ab_q[ab_q == 0])
+      n2 <- length(ab_q[ab_q == 1])
       lambda <- log((n1 + n2) / n1)
 
       # On rajoute cette moyenne dans le tableau vide initial
       abond_per_plot[parc, sp] <- lambda / surf
     }
+    if (progress) close(pb)
   }
 
   return(abond_per_plot)
