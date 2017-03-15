@@ -122,6 +122,7 @@ write.table(weeds, "data/generated/weeds2014.csv", sep = ";")
 ###########################################
 ## Aggregation des especes
 ###########################################
+weeds <- read.table("data/generated/weeds2014.csv", sep = ";")
 test <- aggregate(data.frame(abondance = weeds$abondance), 
                   by = list(sp = weeds$sp, quadrat = weeds$quadrat, 
                             plot=weeds$plot, position = weeds$Par.interf, 
@@ -203,13 +204,13 @@ test$plot[test$plot == " 1"] <- "1"
 summary(as.factor(test$position)) #ok
 
 for (i in 1:length(test$position)) {
-  spX <- test[i, "sp"]
-  fieldX <- test[i, "carre.parc"]
+  spX       <- test[i, "sp"]
+  fieldX    <- test[i, "carre.parc"]
   positionX <- test[i, "position"]
-  quadrat <- tolower(test[i, "quadrat"])
-  plot <- test[i, "plot"] 
+  quadrat   <- tolower(test[i, "quadrat"])
+  plot      <- test[i, "plot"] 
   abondance <- test[i, "abondance"]
-  code=paste("q",plot, quadrat, sep="")
+  code      <- paste("q",plot, quadrat, sep="")
   
   A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, colnames(A)==code]<- abondance  
 }
@@ -218,142 +219,142 @@ for (i in 1:length(test$position)) {
  
 write.table(A, "data/generated/transpose_abondance_per_sousquadrat2014.csv", sep = ";")
 
-#######################################################
-## Matrice quadrat (en lignes) x (especes en colonnes)
-#######################################################
-
-B <- matrix(ncol=4 + length(unique(A$sp)), nrow=100*length(unique(A$carre.parc)), data = 0)
-B<-data.frame(B)
-colnames(B) <- c("field", "position", "plot", "quadrat", unique(as.character(A$sp))) 
-B$quadrat = rep(c("a", "b", "c", "d"), 25*length(unique(A$carre.parc)))
-B$plot = rep(c(rep(c(rep(1, 4), rep(2, 4), rep(3, 4), rep(4, 4), rep(5, 4), rep(6, 4), rep(7, 4), rep(8, 4), rep(9, 4), rep(10, 4)), 2), 
-               rep(1, 4), rep(2, 4), rep(3, 4), rep(4, 4), rep(5, 4)), length(unique(A$carre.parc)))
-B$position = rep(c(rep("pa1", 40), rep("pa2", 40), rep("in", 20)), length(unique(A$carre.parc)))
-
-fieldB = c()
-for ( i in 1: length(unique(A$carre.parc))) {
-  fieldB = c(fieldB, rep(unique(A$carre.parc)[i], 100))}
-B$field = fieldB
-
-for (i in 1:nrow(A)) {
-  for (j in 4:(ncol(A)-1)) {
-    
-    if (A[i, j] > 0) {
-      spX <- A[i, "sp"]
-      fieldX <- A[i, "carre.parc"]
-      positionX <- A[i, "position"]
-      plotX <- substr(colnames(A)[j], 2, 2)
-      quadratX <- substr(colnames(A)[j], 3, 3)
-      abondance = A[i, j] 
-
-      B[B$field == fieldX & B$position == positionX & B$plot == plotX &
-        B$quadrat == quadratX, colnames(B)==spX] <- abondance
-    }
-  }
-}
-
-head(B)
-write.table(B, "data/generated/transpose_species_abondance_per_sousquadrat2014.csv", sep = ";")
-
-###############################################################################
-##### Table avec les abondances par quadrats (ici plot)
-###############################################################################
-basics <- test
-colnames(basics)
-# "sp" "quadrat"  "plot" "position"  "culture"  "carre.parc" "crop" "abondance"
-test <- aggregate(data.frame(abondance = basics$abondance), 
-                  by = list(sp = basics$sp, plot=basics$plot, position =
-                            basics$position, carre.parc =
-                            basics$carre.parc),
-                  sum)
-colnames(test)
-test$frequency <- test$abondance/4 ##freq de l'esp sur le 4 ss-quadrats
-
-
-##Enregistrement du tableau par sous quadrat
-head(test)
-write.table(test, "data/generated/abondance_per_quadrat2014.csv", sep = ";")
-test <- read.csv("data/generated/abondance_per_quadrat2014.csv", sep = ";",
-                 stringsAsFactors = FALSE)
-
-#############################################################################
-## Matrice site x especes avec ligne pour les quadrats vides
-#############################################################################
-#length(unique(test$sp))
-#183 species
-
-#length(unique(test$carre.parc))
-#156 different sampling of fields
-
-### Prepare an empty matrix filled with 0 (for 0 abundance observed)
-nrowA <- length(unique(test$carre.parc)) * length(unique(test$sp)) * 3
-#183sp*156parc * 3 = 85644 lignes
-
-A <- matrix(ncol=13, nrow=nrowA , data = rep(0, 13*nrowA ))
-A<-data.frame(A)
-colnames(A) <- c("sp", "carre.parc", "position", "q1","q2","q3","q4","q5","q6","q7","q8","q9","q10")
-#dim(A)
-#head(A)
-
-## Init the species, field number, and then position in A
-##To understand, just try that : rep (c(1,2,3), 3)
-
-A$sp <- rep(unique(test$sp), length(unique(test$carre.parc)) *3)
-carre.parc <- c()
-for (i in 1:length(unique(test$carre.parc))) {
-  carre.parc = c(carre.parc, rep(unique(test$carre.parc)[i], length(unique(test$sp))*3)) }
-A$carre.parc = carre.parc
-A$position <- rep(c(rep("pa1", length(unique(test$sp))), rep("pa2", length(unique(test$sp))), rep("in", length(unique(test$sp)))), length(unique(test$carre.parc)))
-A$done <- rep(0, nrowA )
-
-## Remplis les quadrats vides (~7 min)
-for (i in 1:length(test$position)) {
-  spX <- test[i, "sp"]
-  fieldX <- test[i, "carre.parc"]
-  positionX <- test[i, "position"]
-  plot <- test[i, "plot"] 
-  abondance <- test[i, "abondance"]
-  code=paste("q",plot, sep="")
-  
-  A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, colnames(A)==code]<- abondance  
-}
-
-head(A, 25)
-write.table(A, "data/generated/transpose_abondance_per_quadrat2014.csv", sep = ";")
-
-#########################################################################
-# Matrice site x especes par parcelle (plein champ/pas interface)
-#########################################################################
-basics1=subset(basics,basics$position!="in")
-test <- aggregate(data.frame(abondance = basics1$abondance), 
-                  by = list(sp = basics1$sp,carre.parc = basics1$carre.parc,
-                            crop=basics1$crop),sum)
-colnames(test)
-
-write.table(test, "data/generated/transpose_abondance_per_fieldcore2014.csv", sep = ";")
-
-#########################################################################
-# Matrice site x especes par parcelle (plein champ/interface)
-#########################################################################
-basics2=basics
-basics2$position = substr(basics2$position, 1, 2)
-test <- aggregate(data.frame(abondance = basics2$abondance), 
-                  by = list(sp = basics2$sp,carre.parc = basics2$carre.parc,
-                            position = basics2$position),sum)
-
-colnames(test)
-
-write.table(test, "data/generated/transpose_abondance_per_position2014.csv", sep = ";")
-
-#########################################################################
-# Matrice site x especes par parcelle 
-#########################################################################
-test <- aggregate(data.frame(abondance = basics$abondance), 
-                  by = list(sp = basics$sp, carre.parc = basics$carre.parc,
-                            crop=basics$crop),sum)
-colnames(test)
-
-write.table(test, "data/generated/transpose_abondance_per_field2014.csv", sep = ";")
+# #######################################################
+# ## Matrice quadrat (en lignes) x (especes en colonnes)
+# #######################################################
+# 
+# B <- matrix(ncol=4 + length(unique(A$sp)), nrow=100*length(unique(A$carre.parc)), data = 0)
+# B<-data.frame(B)
+# colnames(B) <- c("field", "position", "plot", "quadrat", unique(as.character(A$sp))) 
+# B$quadrat = rep(c("a", "b", "c", "d"), 25*length(unique(A$carre.parc)))
+# B$plot = rep(c(rep(c(rep(1, 4), rep(2, 4), rep(3, 4), rep(4, 4), rep(5, 4), rep(6, 4), rep(7, 4), rep(8, 4), rep(9, 4), rep(10, 4)), 2), 
+#                rep(1, 4), rep(2, 4), rep(3, 4), rep(4, 4), rep(5, 4)), length(unique(A$carre.parc)))
+# B$position = rep(c(rep("pa1", 40), rep("pa2", 40), rep("in", 20)), length(unique(A$carre.parc)))
+# 
+# fieldB = c()
+# for ( i in 1: length(unique(A$carre.parc))) {
+#   fieldB = c(fieldB, rep(unique(A$carre.parc)[i], 100))}
+# B$field = fieldB
+# 
+# for (i in 1:nrow(A)) {
+#   for (j in 4:(ncol(A)-1)) {
+#     
+#     if (A[i, j] > 0) {
+#       spX <- A[i, "sp"]
+#       fieldX <- A[i, "carre.parc"]
+#       positionX <- A[i, "position"]
+#       plotX <- substr(colnames(A)[j], 2, 2)
+#       quadratX <- substr(colnames(A)[j], 3, 3)
+#       abondance = A[i, j] 
+# 
+#       B[B$field == fieldX & B$position == positionX & B$plot == plotX &
+#         B$quadrat == quadratX, colnames(B)==spX] <- abondance
+#     }
+#   }
+# }
+# 
+# head(B)
+# write.table(B, "data/generated/transpose_species_abondance_per_sousquadrat2014.csv", sep = ";")
+# 
+# ###############################################################################
+# ##### Table avec les abondances par quadrats (ici plot)
+# ###############################################################################
+# basics <- test
+# colnames(basics)
+# # "sp" "quadrat"  "plot" "position"  "culture"  "carre.parc" "crop" "abondance"
+# test <- aggregate(data.frame(abondance = basics$abondance), 
+#                   by = list(sp = basics$sp, plot=basics$plot, position =
+#                             basics$position, carre.parc =
+#                             basics$carre.parc),
+#                   sum)
+# colnames(test)
+# test$frequency <- test$abondance/4 ##freq de l'esp sur le 4 ss-quadrats
+# 
+# 
+# ##Enregistrement du tableau par sous quadrat
+# head(test)
+# write.table(test, "data/generated/abondance_per_quadrat2014.csv", sep = ";")
+# test <- read.csv("data/generated/abondance_per_quadrat2014.csv", sep = ";",
+#                  stringsAsFactors = FALSE)
+# 
+# #############################################################################
+# ## Matrice site x especes avec ligne pour les quadrats vides
+# #############################################################################
+# #length(unique(test$sp))
+# #183 species
+# 
+# #length(unique(test$carre.parc))
+# #156 different sampling of fields
+# 
+# ### Prepare an empty matrix filled with 0 (for 0 abundance observed)
+# nrowA <- length(unique(test$carre.parc)) * length(unique(test$sp)) * 3
+# #183sp*156parc * 3 = 85644 lignes
+# 
+# A <- matrix(ncol=13, nrow=nrowA , data = rep(0, 13*nrowA ))
+# A<-data.frame(A)
+# colnames(A) <- c("sp", "carre.parc", "position", "q1","q2","q3","q4","q5","q6","q7","q8","q9","q10")
+# #dim(A)
+# #head(A)
+# 
+# ## Init the species, field number, and then position in A
+# ##To understand, just try that : rep (c(1,2,3), 3)
+# 
+# A$sp <- rep(unique(test$sp), length(unique(test$carre.parc)) *3)
+# carre.parc <- c()
+# for (i in 1:length(unique(test$carre.parc))) {
+#   carre.parc = c(carre.parc, rep(unique(test$carre.parc)[i], length(unique(test$sp))*3)) }
+# A$carre.parc = carre.parc
+# A$position <- rep(c(rep("pa1", length(unique(test$sp))), rep("pa2", length(unique(test$sp))), rep("in", length(unique(test$sp)))), length(unique(test$carre.parc)))
+# A$done <- rep(0, nrowA )
+# 
+# ## Remplis les quadrats vides (~7 min)
+# for (i in 1:length(test$position)) {
+#   spX <- test[i, "sp"]
+#   fieldX <- test[i, "carre.parc"]
+#   positionX <- test[i, "position"]
+#   plot <- test[i, "plot"] 
+#   abondance <- test[i, "abondance"]
+#   code=paste("q",plot, sep="")
+#   
+#   A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, colnames(A)==code]<- abondance  
+# }
+# 
+# head(A, 25)
+# write.table(A, "data/generated/transpose_abondance_per_quadrat2014.csv", sep = ";")
+# 
+# #########################################################################
+# # Matrice site x especes par parcelle (plein champ/pas interface)
+# #########################################################################
+# basics1=subset(basics,basics$position!="in")
+# test <- aggregate(data.frame(abondance = basics1$abondance), 
+#                   by = list(sp = basics1$sp,carre.parc = basics1$carre.parc,
+#                             crop=basics1$crop),sum)
+# colnames(test)
+# 
+# write.table(test, "data/generated/transpose_abondance_per_fieldcore2014.csv", sep = ";")
+# 
+# #########################################################################
+# # Matrice site x especes par parcelle (plein champ/interface)
+# #########################################################################
+# basics2=basics
+# basics2$position = substr(basics2$position, 1, 2)
+# test <- aggregate(data.frame(abondance = basics2$abondance), 
+#                   by = list(sp = basics2$sp,carre.parc = basics2$carre.parc,
+#                             position = basics2$position),sum)
+# 
+# colnames(test)
+# 
+# write.table(test, "data/generated/transpose_abondance_per_position2014.csv", sep = ";")
+# 
+# #########################################################################
+# # Matrice site x especes par parcelle 
+# #########################################################################
+# test <- aggregate(data.frame(abondance = basics$abondance), 
+#                   by = list(sp = basics$sp, carre.parc = basics$carre.parc,
+#                             crop=basics$crop),sum)
+# colnames(test)
+# 
+# write.table(test, "data/generated/transpose_abondance_per_field2014.csv", sep = ";")
 
 # ------------------------------------------------------------------------------
 # Estimation des abondances
@@ -362,7 +363,9 @@ write.table(test, "data/generated/transpose_abondance_per_field2014.csv", sep = 
 # ------------------------------------------------------------------------------
 # Estimation des abondances par une loi de Poisson par sous-quadrat
 
-weeds <- read.csv( "data/generated/transpose_abondance_per_sousquadrat2014.csv",
+source("functions/abundance.R", encoding = "utf8")
+
+weeds <- read.csv("data/generated/transpose_abondance_per_sousquadrat2014.csv",
                   sep = ";", stringsAsFactors = FALSE)
 
 # récpérer uniquement les parcelles et supprimer la variable 'done'
@@ -370,7 +373,15 @@ weeds <- weeds[weeds$position != "in", 1:ncol(weeds) - 1]
 
 abond_per_plot <- estim_abundance01(weeds, surf = 0.25)
 
-write.csv(abond_per_plot, "data/generated/abondt_per_plot_2014_binomiale.csv",
+write.csv(abond_per_plot, "data/generated/abondt_per_subquadra_2014_binomiale.csv",
+          row.names = FALSE)
+
+# ------------------------------------------------------------------------------
+# En regroupant les sous-quadras
+
+abond_per_plot <- estim_abundance01(weeds, surf = 1, gp.subquadra = TRUE)
+
+write.csv(abond_per_plot, "data/generated/abondt_per_quadra_2014_binomiale.csv",
           row.names = FALSE)
 
 # ------------------------------------------------------------------------------
