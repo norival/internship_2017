@@ -285,7 +285,7 @@ data2011 <- read.csv("data/generated/transpose_abondance_per_quadrat2011.csv",
 
 abond_per_plot <- estim_abundance(data2011, surf = 4, n_cores = 4)
 
-write.csv(abond_per_plot, "data/generated/abondt_per_plot_2011.csv",
+write.csv(abond_per_plot, "data/generated/abondt_per_quadra_2011.csv",
           row.names = TRUE)
 
 rm(list = ls())
