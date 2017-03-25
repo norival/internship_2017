@@ -7,13 +7,13 @@
 
 # setwd("~/Donnees/Chize-Enquetes/Referentiel")
 ##setwd("~/BaseDonnees/Herbicides")
-dose_recommandee <- read.table("data/dose-reference-ift-grande-culture.csv",
+dose_recommandee <- read.table("data/raw/dose-reference-ift-grande-culture.csv",
                                h = T,
                                sep = ";",
                                na.strings = "",
                                encoding = "latin1")
-ephy <- read.csv("~/downloads/usages_des_produits_autorises_v2_utf8-26012017.csv",
-                sep = ";", encoding = "utf8")
+ephy <- read.csv("data/raw/usages_des_produits_autorises_v2_utf8-26012017.csv",
+                 sep = ";", encoding = "utf8")
 # setwd("~/Donnees/Chize-Enquetes/Prog")
 
 Intensite_Traitement <- function(tab          = fich_Herbi,
