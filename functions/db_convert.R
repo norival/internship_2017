@@ -22,7 +22,6 @@ convert_db <- function(R, B, verbose = FALSE, progress = TRUE) {
   B2 <-
     data.frame(matrix(NA, nrow = 1, ncol = length(B)))
   colnames(B2) <- colnames(B)
-  B2$dose_n <- NA
 
   cat("Converting data.frame. This might take a while...\n")
 
@@ -61,9 +60,6 @@ convert_db <- function(R, B, verbose = FALSE, progress = TRUE) {
       # empty data.frame to store the conversion from this plot
       b <- data.frame(matrix(NA, nrow = 30, ncol = length(B)))
       colnames(b) <- colnames(B)
-
-      # adds a column to get the nitrogen dose
-      b$dose_n <- NA
 
       # -- general informations ------------------------------------------------
       # fill the data.frame b with unique values from r, ie values that are
@@ -160,9 +156,6 @@ convert_db <- function(R, B, verbose = FALSE, progress = TRUE) {
 
           b$Produit_Ferti[j]  <- rtmp$produit[j]
           b$Date_Ferti[j]     <- rtmp$dateV05[j]
-
-          # nitrate dose
-          b$dose_n[j] <- rtmp$Kg.ha.N[j]
 
           # convert the unit
           if (!is.na(b$Unité_dose[j])) {
