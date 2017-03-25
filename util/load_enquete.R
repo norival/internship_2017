@@ -12,7 +12,7 @@
 source("util/functions.R", encoding = "latin1")
 
 ##Charger le fichier de données enquêtes
-fich <- read.csv("data/BDD_full.csv", na.strings = c("NA", ""))
+fich <- read.csv("data/generated/BDD_full.csv", na.strings = c("NA", ""))
 
 # summary(fich) # synthèse des données du fichier
 # names(fich) #nom des colonnes
