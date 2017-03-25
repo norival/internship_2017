@@ -4,47 +4,35 @@
 # object      : This file loads, merge and subset the datasets
 # ------------------------------------------------------------------------------
 
-# -- packages ------------------------------------------------------------------
+# -- packages and functions ----------------------------------------------------
 library(tidyverse)
+source("functions/db_convert.R")
+source("functions/clean_df.R")
+
 
 # -- data management -----------------------------------------------------------
-# loads and converts the data
-# This has to be run only once and, when databases will be clean, it should not
-# be run again.
+# loads and converts the data: there are two databases that must be converted
+# into the same format
 
-# loading
 cat("Chargement des données...\n")
-if (!(file.exists("data/generated/converted_data.csv"))) {
-  # if not done already
-  source("db_convert.R")
-}
 
-converted_data <- read.csv("data/generated/converted_data.csv",
-                           stringsAsFactors = FALSE,
-                           encoding = "utf8")
-other_data <- read.csv("data/raw/BDD_dec2016_culture.csv",
-                       stringsAsFactors = FALSE,
-                       dec = ",",
-                       encoding = "utf8")
+# read the tables
+R <- read.csv("data/raw/BDD_robin_full.csv",
+              stringsAsFactors = FALSE)
+B <- read.csv("data/raw/BDD_dec2016_culture.csv",
+              stringsAsFactors = FALSE)
 
-# récupération de la dose d'azote depuis la base de Robin
-other_data$dose_n <- NA
+# convert the data
+converted_data <- convert_db(R, B, verbose = F)
 
 # merge the 2 databases into one data.frame
-data_full_tmp <- rbind.data.frame(other_data, converted_data)
-
-# remove trailing and leading whitespace from dataframe
-data_full_tmp <-
-  data_full_tmp %>%
-  mutate_all(.funs = trimws)
-
-# write it to a file
-write.csv(data_full_tmp, "data/generated/BDD_full_dirty.csv", row.names = FALSE)
+data_full_dirty <- rbind.data.frame(B, R)
 
 cat("Nettoyage des valeurs...\n")
-source("clean_values.R")
+data_full <- clean_df(data_full_dirty)
 
-data_full <- read.csv("data/generated/BDD_full.csv", stringsAsFactors = FALSE)
+write.csv("data/generated/BDD_full.csv", stringsAsFactors = FALSE, row.names = FALSE)
+
 
 # -- subsetting du jeu de données ----------------------------------------------
 cat("Subsetting...\n")
@@ -113,10 +101,7 @@ write.csv(data_sub, "data/generated/BDD_sub.csv", row.names = FALSE)
 # -- flora ---------------------------------------------------------------------
 # adds scripts to compute estimates of abundance
 
-library(doParallel)
-registerDoParallel(cores=4)
-foreach (i = 2006:2010) %dopar% {
-  print(i)
+for (i in c(2006:2011, 2013:2016)) {
   filename <- paste("util/code", i, ".R", sep = "")
   source(filename, encoding = "latin1")
 }

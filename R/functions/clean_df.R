@@ -8,6 +8,10 @@
 clean_df <- function(x) {
   library(stringi)
 
+  # trim leading and trailing whitespaces from character vectors
+  x <- data.frame(lapply(x, function(.x) if (class(.x) == "character") trimws(.x) else(.x)),
+                  stringsAsFactors = FALSE)
+
   x$Protection_visée[x$Produit_phyto == "KARATE K"] <- "insecticide"
   x$Produit_phyto[x$Produit_phyto == "U46D"] <- "U 46 D"
 
@@ -154,9 +158,7 @@ clean_df <- function(x) {
     stri_trans_totitle()
 
   # removes plot 2768 for 2011 because ambiguous units in 'Dose_Ferti'
-  x <-
-    x[-which(x$ID_Parcelle == "2768" &
-             x$Année_SuiviParcelle == "2011"),]
+  x <- x[-which(x$ID_Parcelle == "2768" & x$Année_SuiviParcelle == "2011"),]
 
   # clean units
   x$Unité_dose <-
@@ -189,12 +191,12 @@ clean_df <- function(x) {
                      repl = c("L/HA", "Kg/HA", "Kg/HA"),
                      vectorize_all = FALSE)
 
-    # unités doses ferti
-    x$Unité_dose <-
-      x$Unité_dose %>%
-      stri_replace_all(regex = c("[uU]{1}.*/", "[Kk][Gg].*/", "[Ll].*/")%s+%"[Hh][aA]",
-                       repl = c("Unité/HA", "Kg/HA", "L/HA"),
-                       vectorize_all = FALSE)
+  # unités doses ferti
+  x$Unité_dose <-
+    x$Unité_dose %>%
+    stri_replace_all(regex = c("[uU]{1}.*/", "[Kk][Gg].*/", "[Ll].*/")%s+%"[Hh][aA]",
+                     repl = c("Unité/HA", "Kg/HA", "L/HA"),
+                     vectorize_all = FALSE)
 
-      write.csv(x, "data/generated/BDD_full.csv", row.names = FALSE)
+  return(x)
 }

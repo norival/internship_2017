@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# file        : db_convert.R
+# file        : R/functions/db_convert.R
 # author      : Xavier Laviron
 # object      : convert the databases in the good format
 # description : the databases must be in the format of
@@ -12,7 +12,7 @@
 
 # the functions who do the job, used only once but put into a function for
 # practical reasons
-complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
+convert_db <- function(R, B, verbose = FALSE, progress = TRUE) {
 
   # packages
   library(tidyverse)
@@ -258,17 +258,3 @@ complete_db1 <- function(R, B, verbose = FALSE, progress = TRUE) {
   close(pb)
   return(B2[2:nrow(B2),])
 }
-
-# read the tables
-R <- read.csv("data/raw/BDD_robin_full.csv",
-              stringsAsFactors = FALSE)
-B <- read.csv("data/raw/BDD_dec2016_culture.csv",
-              stringsAsFactors = FALSE)
-
-# convert the data
-converted <- complete_db1(R, B, verbose = F)
-
-# write the converted data to a file
-write.csv(converted, "data/generated/converted_data.csv", row.names = FALSE)
-
-rm(R, B, converted)
