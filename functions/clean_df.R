@@ -7,6 +7,7 @@
 
 clean_df <- function(x) {
   library(stringi)
+  x <- data_full_dirty
 
   # trim leading and trailing whitespaces from character vectors
   x <- data.frame(lapply(x, function(.x) if (class(.x) == "character") trimws(.x) else(.x)),
@@ -167,12 +168,13 @@ clean_df <- function(x) {
     stri_replace_all(regex = "[Kk][Gg].*/[Hh][aA]", repl = "Kg/HA")
 
   # -- fertilisation -------------------------------------------------------------
-  x[x$Fertilisation %in% c("", " "),] <- NA
+  x$Fertilisation[x$Fertilisation %in% c("", " ")] <- NA
 
   x$Dose_Ferti <-
     x$Dose_Ferti %>%
     stri_replace_all(regex = c(" ", ","), repl = c("", "."),
                      vectorize_all = FALSE) %>%
+    stri_replace_all(regex = "[^\\.[:digit:]]", repl = "") %>%
     as.numeric()
 
   # conversion des m^3 en litres
