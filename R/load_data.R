@@ -8,6 +8,7 @@
 library(tidyverse)
 source("functions/db_convert.R")
 source("functions/clean_df.R")
+source("functions/n_dose.R")
 
 
 # -- data management -----------------------------------------------------------
@@ -47,12 +48,14 @@ ift_herbi <- Intensite_Traitement()
 
 # -- nitrogen dose computation -------------------------------------------------
 # Compute nitrogen dose from values in reference table
+
+# reads the reference table for fertilizers
 fert <- read.csv("data/raw/BD_Fertilizers_dec2016.csv", stringsAsFactors = FALSE)
 fert$Fertilisant  <- toupper(trimws(fert$Fertilisant))
 colnames(fert)[2] <- "kg_n_100kg"
 
 data_full$id_parc_tri <- paste(data_full$ID_Parcelle, data_full$ID_Exploitation,
-                               data_full$Année_SuiviParcelle, sep = "-")
+                               data_full$Année_SuiviParcelle, sep = "_")
 kept  <- c("id_parc_tri", "Produit_Ferti", "Dose_Ferti", "Unité_dose")
 tab   <- data_full[, kept]
 n_doses <- n_dose(tab, fert)
