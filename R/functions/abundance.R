@@ -23,9 +23,9 @@ h.fct <- function(ltheta,v=v) {
 estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE) {
   library(doSNOW)
 
-  cat("Estimation of abundances\n")
-
   if (progress) {
+    cat("Estimation of abundances\n")
+
     pb  <- txtProgressBar(min = 0, max = nrow(x), style = 3, width = 80)
     progressbar <- function(n) setTxtProgressBar(pb, n)
     opts <- list(progress = progressbar)
@@ -63,20 +63,22 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE) {
                      stringsAsFactors = F)
   }
 
-  cat("\nFormating results\n")
   # On remplit la matrice vide avec les valeurs de a
-  if (progress)
+  if (progress) {
+    cat("\nFormating results\n")
     pb  <- txtProgressBar(min = 0, max = nrow(a), style = 3, width = 80)
+  }
 
   for (i in 1:nrow(a)) {
-    if (progress) setTxtProgressBar(pb, i)
+    if (progress) {
+      setTxtProgressBar(pb, i)
+      cat("\n")
+    }
     abond_per_plot[a[i, 1], a[i, 2]] <- a[i, 3]
   }
 
   # rapporter à 1 m^2
   abond_per_plot <- abond_per_plot / surf
-
-  cat("\n")
 
   return(abond_per_plot)
 
