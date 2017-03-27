@@ -53,9 +53,20 @@ transpose_flora <- function(tab, base = 0) {
 
 estim_summary <- function(tab, tab_estim, surf) {
 
+  func <- function(x) {
+    # convert abundance indices by taking the geometric mean for each class
+    x[x == 2] <- (2+9)/2
+    x[x == 3] <- (10+99)/2
+    x[x == 4] <- (100+999)/2
+    x[x == 5] <- (1000+9999)/2
+
+    return(x)
+  }
+
   tab <-
     tab %>%
     dplyr::select(-carre.parc) %>%
+    mutate_if(is.numeric, funs(func)) %>%
     mutate_if(is.numeric, funs(. / surf)) %>%
     group_by(sp) %>%
     summarise_all(mean) %>%

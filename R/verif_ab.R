@@ -36,7 +36,7 @@ ggplot(dat0, aes(x = real, y = esti)) +
 ggsave("~/desktop/graphbase0.pdf")
 
 
-# en base 2
+# Check with base2 estimates
 tab2        <- transpose_flora(tab, base = 2)
 tab2_estim  <- estim_abundance(tab2, surf = 0.25, n_cores = 4, progress = FALSE)
 dat2        <- estim_summary(tab2, tab2_estim, surf)
