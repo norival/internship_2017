@@ -48,3 +48,25 @@ transpose_flora <- function(tab, base = 0) {
   return(A)
 
 }
+
+# ------------------------------------------------------------------------------
+
+estim_summary <- function(tab, tab_estim, surf) {
+
+  tab <-
+    tab %>%
+    dplyr::select(-carre.parc) %>%
+    mutate_if(is.numeric, funs(. / surf)) %>%
+    group_by(sp) %>%
+    summarise_all(mean) %>%
+    as.data.frame()
+  rownames(tab) <- tab$sp
+
+  real <- apply(tab[, 2:length(tab)], 1, mean)
+  esti <- apply(tab_estim, 2, mean)
+  esti <- esti[order(names(esti))]
+  dat  <- cbind.data.frame(real, esti)
+
+  return(dat)
+
+}
