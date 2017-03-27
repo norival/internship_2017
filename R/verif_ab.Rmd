@@ -1,3 +1,17 @@
+---
+title: "Vérification des abondances"
+date: Mis à jour le \today
+lang: fr
+fontsize: 12pt
+output:
+  pdf_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=4, fig.height=4, fig.path='Figs/',
+                      echo=TRUE, warning=FALSE, message=FALSE)
+```
+```{r, loading_data, echo=FALSE}
 # -- packages and functions ----------------------------------------------------
 library(tidyverse)
 source("functions/transpose_flora.R", encoding = "utf8")
@@ -22,7 +36,35 @@ flore <- rbind(flore1, flore2, flore3)
 
 tab <- flore[flore$Periode == 2,]
 surf = 0.25
+```
 
+## Description
+
+Sur le jeu de données `manip_ble_2014`, les relevés floristiques sont donnés en
+base 10 :
+
+- 0 : 0 plante
+- 1 : 1 plante
+- 2 : entre 2 et 9 plantes
+- 3 : entre 10 et 99 plantes
+- 4 : entre 100 et 999 plantes
+- 3 : entre 1000 et 9999 plantes
+Ce jeu de données peut être utilisé pour vérifier si les estimations d'abondances faites pour les autres manips sont valables.  ## Pour les relevés en présence/absence (0/1) 
+Pour tester cette estimation, toutes les notes supérieures à 1 sont ramenées à
+1 puis l'estimation est faite de la même façon que les autres relevés :
+
+\[
+  abondance = \log\frac{n_0+n_1}{n_0}
+\]
+
+Avec:
+
+- $n_0$ le nombre de quadras où l'espèce est à 0
+- $n_1$ le nombre de quadras où l'espèce est à 1
+
+Quand le nombre de parcelles à 0 est nul, la valeur retournée est `Inf`.
+
+```{r base0, eval=TRUE}
 # Check when 0/1 notes
 tab0        <- transpose_flora(tab, base = 0)
 tab0_estim  <- estim_abundance01(tab0, surf = 0.25, progress = FALSE)
@@ -33,10 +75,17 @@ ggplot(dat0, aes(x = real, y = esti)) +
   xlim(0, 2) +
   ylim(0, 2) +
   ggtitle("Estimations Vs. Réelles pour relevés 0/1") +
-  geom_abline(slope = 1, intercept = 0)
-ggsave("~/desktop/graphbase0.pdf")
+  geom_abline(slope = 1, intercept = 0, colour = "red")
+```
+
+## Pour les relevés en log base 2
+
+Pour tester cette estimation, toutes les notes supérieures à 2 sont ramenées à
+2 puis l'estimation est faite comme pour les autres relevés, en utilisant une
+loi de poisson "compound".
 
 
+```{r base2, eval=TRUE}
 # Check with base2 estimates
 tab2        <- transpose_flora(tab, base = 2)
 tab2_estim  <- estim_abundance(tab2, surf = 0.25, n_cores = 4, progress = FALSE)
@@ -47,12 +96,20 @@ ggplot(dat2, aes(x = real, y = esti)) +
   xlim(0, 2) +
   ylim(0, 2) +
   ggtitle("Estimations Vs. Réelles pour relevés en base 2") +
-  geom_abline(slope = 1, intercept = 0)
-ggsave("~/desktop/graphbase2.pdf")
+  geom_abline(slope = 1, intercept = 0, colour = "red")
+```
 
+## Test des corrélations entre valeurs estimées et réelles
 
+```{r correlation, eval=TRUE}
 dat02 <- dat0[!(is.infinite(dat0$esti)),]
 dat22 <- dat2[!(is.infinite(dat0$esti)),]
 
 cor.test(dat22$esti, dat22$real)
 cor.test(dat02$esti, dat02$real)
+```
+
+## Fonctions utilisées
+
+```{r functions, eval=FALSE, code=readLines("functions/transpose_flora.R")}
+```
