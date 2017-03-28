@@ -1,11 +1,5 @@
 transpose_flora <- function(tab, base = 0) {
 
-  # convert the abundance according to base
-  if (base == 0)
-    tab$Note[tab$Note > 1] <- 1
-  if (base == 2)
-    tab$Note[tab$Note > 2] <- 2
-
   # Prepare an empty matrix filled with 0 (for 0 abundance observed)
   names <- unique(paste(tab$Zone, tab$Quadra, tab$Placette, sep = ""))
   nrowA <- length(unique(tab$Parcelle)) * length(unique(tab$Taxon))
@@ -37,7 +31,16 @@ transpose_flora <- function(tab, base = 0) {
     A[A$sp == sp & A$carre.parc == field, colnames(A) == code] <- abondance
   }
 
-  return(A)
+  x <- A[, 3:length(A)]
+
+  if (base == 0)
+    x[x > 1] <- 1
+  if (base == 2)
+    x[x > 2] <- 2
+
+  conv <- cbind.data.frame(A[, 1:2], x)
+
+  return(list(origin = A, converted = conv))
 
 }
 
