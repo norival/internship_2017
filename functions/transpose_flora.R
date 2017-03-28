@@ -48,6 +48,9 @@ transpose_flora <- function(tab, base = 0) {
 
 estim_summary <- function(tab, tab_estim, surf) {
 
+  # replace very small estimate values with 0
+  tab_estim[tab_estim <= 1e-05] <- 0
+
   func <- function(x) {
     # convert abundance indices by taking the geometric mean for each class
     x[x == 2] <- (2+9)/2

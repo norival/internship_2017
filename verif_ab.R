@@ -19,6 +19,7 @@ flore <- rbind(flore1, flore2, flore3)
 # Check the estimates against the real values
 # The values are converted whether in base 0 (0/1) or base2 and then the
 # abundance is estimated like for the other samples.
+surf <- 0.25
 
 dat <- as.data.frame(matrix(nrow = 0, ncol = 6, 0))
 for (per in 1:3) {
