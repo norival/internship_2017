@@ -68,20 +68,45 @@ estim_summary <- function(tab, tab_estim, surf) {
   # results by the surface of one subquadra (0.25^2)
   tab <-
     tab %>%
-    dplyr::select(-carre.parc) %>%
-    mutate_if(is.numeric, funs(func)) %>%
-    mutate_if(is.numeric, funs(. / surf)) %>%
-    group_by(sp) %>%
-    summarise_all(mean) %>%
-    as.data.frame()
-  rownames(tab) <- tab$sp
+    mutate_if(is.numeric, funs(func))
 
-  # compute the mean by species for both estimates and real values
-  real <- apply(tab[, 2:length(tab)], 1, mean)
-  esti <- apply(tab_estim, 2, mean)
-  esti <- esti[order(names(esti))]
-  dat  <- cbind.data.frame(real, esti)
+  # create empty matrix to store results: one line per plot and one column per
+  # species
+  mat_vide <- matrix(Inf,
+                     ncol = length(unique(tab$sp)),
+                     nrow = length(unique(tab$carre.parc)))
+  abond_per_plot <- as.data.frame(mat_vide)
+
+  colnames(abond_per_plot) <- unique(tab$sp)
+  rownames(abond_per_plot) <- unique(tab$carre.parc)
+
+  for (parc in unique(tab$carre.parc)) {
+    # do it for each plot
+    tab_parc <- tab[tab$carre.parc == parc,]
+
+    for (sp in unique(tab_parc$sp)) {
+      # compute the sum for each species and report to the sampled surface,
+      # which is surf * number of points
+      tab_sp <- tab_parc[tab_parc$sp == sp,]
+      ab <- sum(tab_sp[3:length(tab_sp)]) / (surf * (length(tab_sp) - 2))
+      abond_per_plot[parc, sp] <- ab
+    }
+  }
+
+  mat_vide <- matrix(0, ncol = 2, nrow = nrow(abond_per_plot) * ncol(abond_per_plot))
+  dat <- data.frame(mat_vide)
+  colnames(dat) <- c("real", "estimate")
+
+  # create table with 2 column: one for the real value and one for the estimate
+  # value
+  i <- 0
+  for (parc in rownames(abond_per_plot)) {
+    for (sp in colnames(abond_per_plot)) {
+      i <- i+1
+      dat$real[i]     <- abond_per_plot[parc, sp]
+      dat$estimate[i] <- tab_estim[parc, sp]
+    }
+  }
 
   return(dat)
-
 }

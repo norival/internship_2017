@@ -21,7 +21,7 @@ flore <- rbind(flore1, flore2, flore3)
 # abundance is estimated like for the other samples.
 surf <- 0.25
 
-dat <- as.data.frame(matrix(nrow = 0, ncol = 6, 0))
+dat <- as.data.frame(matrix(nrow = 0, ncol = 8, 0))
 for (per in 1:3) {
   cat("Computing period ", per, "...\n", sep = "")
   tab <- flore[flore$Periode == per,]
@@ -51,9 +51,7 @@ for (per in 1:3) {
 
     # fit a linear model on the data, and get the R^2 and the equation of the
     # model to print those on the graphics
-    mod <- lm(esti ~ real,
-              data = estim_noinf[estim_noinf$periode == paste("period", per, sep = "") &
-                                 estim_noinf$base == paste("base", base, sep = ""),])
+    mod <- lm(estimate ~ real, data = estim_noinf)
     estim$r2 <- summary(mod)$adj.r.squared
     mod$coef <- round(mod$coef, 3)
     estim$eqn <- paste("Y = ", mod$coef[2], "X + ", mod$coef[1], sep = "")
@@ -70,8 +68,8 @@ f_labels <- aggregate(data.frame(r2 = dat$r2, eqn = dat$eqn),
 f_labels$r2 <- paste("R2=", round(f_labels$r2, 3), sep = "")
 
 # plot dat!
-p <- ggplot(dat_noinf, aes(x = real, y = esti)) +
-  geom_point(size = 2) +
+p <- ggplot(dat, aes(x = real, y = estimate)) +
+  geom_point(size = 1) +
   geom_abline(slope = 1, intercept = 0) +
   xlim(0, 40) +
   ylim(0, 40) +
