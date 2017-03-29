@@ -4,17 +4,20 @@ transpose_flora <- function(tab, base = 0) {
   #               functions to compute abundance can be used
   #   converted : data transposed to the same format but with the values
   #               converted into whether base 0 or base2 format
+  # The 'position' column is used to set compatibility with the estimations
+  # functions.
 
   # Prepare an empty matrix filled with 0 (for 0 abundance observed)
   names <- unique(paste(tab$Zone, tab$Quadra, tab$Placette, sep = ""))
   nrowA <- length(unique(tab$Parcelle)) * length(unique(tab$Taxon))
-  ncolA <- length(names) + 2
+  ncolA <- length(names) + 3
   A <- matrix(ncol = ncolA, nrow = nrowA , data = rep(0, ncolA*nrowA))
   A <- data.frame(A)
 
-  colnames(A) <- c("sp", "carre.parc", names)
+  colnames(A) <- c("sp", "carre.parc", "position", names)
 
   A$sp <- rep(unique(tab$Taxon), length(unique(tab$Parcelle)))
+  A$position <- "phantom"
 
   # create a carre.parc variable
   A$carre.parc <-
@@ -35,13 +38,13 @@ transpose_flora <- function(tab, base = 0) {
   }
 
   # create a dataframe converted according to the 'base' argument
-  x <- A[, 3:length(A)]
+  x <- A[, 4:length(A)]
   if (base == 0)
     x[x > 1] <- 1
   if (base == 2)
     x[x > 2] <- 2
 
-  conv <- cbind.data.frame(A[, 1:2], x)
+  conv <- cbind.data.frame(A[, 1:3], x)
 
   return(list(origin = A, converted = conv))
 
@@ -88,7 +91,7 @@ estim_summary <- function(tab, tab_estim, surf) {
       # compute the sum for each species and report to the sampled surface,
       # which is surf * number of points
       tab_sp <- tab_parc[tab_parc$sp == sp,]
-      ab <- sum(tab_sp[3:length(tab_sp)]) / (surf * (length(tab_sp) - 2))
+      ab <- sum(tab_sp[4:length(tab_sp)]) / (surf * (length(tab_sp) - 3))
       abond_per_plot[parc, sp] <- ab
     }
   }
