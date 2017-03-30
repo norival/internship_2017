@@ -140,77 +140,67 @@ test[test$abondance > 1, ]$abondance <- 1
 # 29554
 
 ## Création de la matrice par parcelles
-tab <- xtabs(abondance~ sp + quadrat + plot + position + carre.parc + crop, test)
+# tab <- xtabs(abondance~ sp + quadrat + plot + position + carre.parc + crop, test)
+
 
 #############################################################################
 ## Matrice site x especes avec ligne pour les sous-quadrats vides
 #############################################################################
-#length(unique(test$sp))
-#183 species
+# I made some optimisation: manipulating a matrix is considerably faster than
+# manipulating a dataframe so I seperate the ids in a character vector in order
+# to keep a numeric matrix. Ids and data are bound next.
 
-#length(unique(test$carre.parc))
-#156 different sampling of fields
-
-### Prepare an empty matrix filled with 0 (for 0 abundance observed)
-nrowA <- length(unique(test$carre.parc)) * length(unique(test$sp)) * 3
-#183sp*156parc * 3 = 85644 lignes
-
-A <- matrix(ncol=3+10*4, nrow=nrowA , data = rep(0, 43*nrowA ))
-A<-data.frame(A)
-colnames(A) <- c("sp", "carre.parc", "position",
-                 paste("q1",c("a","b","c","d"),sep=""),
-                 paste("q2",c("a","b","c","d"),sep=""),
-                 paste("q3",c("a","b","c","d"),sep=""),
-                 paste("q4",c("a","b","c","d"),sep=""),
-                 paste("q5",c("a","b","c","d"),sep=""),
-                 paste("q6",c("a","b","c","d"),sep=""),
-                 paste("q7",c("a","b","c","d"),sep=""),
-                 paste("q8",c("a","b","c","d"),sep=""),
-                 paste("q9",c("a","b","c","d"),sep=""),
-                 paste("q10",c("a","b","c","d"),sep=""))
-dim(A)
-head(A)
-
-## Init the species, field number, and then position in A
-##To understand, just try that : rep (c(1,2,3), 3)
-
-A$sp <- rep(unique(test$sp), length(unique(test$carre.parc)) *3)
-carre.parc <- c()
-for (i in 1:length(unique(test$carre.parc))) {
-    carre.parc = c(carre.parc, rep(unique(test$carre.parc)[i], length(unique(test$sp))*3)) }
-A$carre.parc = carre.parc
-A$position <- rep(c(rep("pa1", length(unique(test$sp))), rep("pa2", length(unique(test$sp))), rep("in", length(unique(test$sp)))), length(unique(test$carre.parc)))
-A$done <- rep(0, nrowA )
-
-## Remplis les quadrats vides (>10 min)
-summary(as.factor(test$quadrat)) # problème de majuscules -> fixed
-test$quadrat <- tolower(test$quadrat)
-summary(as.factor(test$plot)) # problème avec " 1" -> fixed
-levels(test$plot)
-test$plot <- as.character(test$plot)
-test$plot[test$plot == " 1"] <- "1"
-summary(as.factor(test$position)) #ok
-
+# get rid of factors in 'test'
 library(magrittr)
 test <-
   test %>%
   dplyr::mutate_if(is.factor, as.character)
 
-for (i in 1:length(test$position)) {
-  spX       <- test[i, "sp"]
-  fieldX    <- test[i, "carre.parc"]
-  positionX <- test[i, "position"]
-  quadrat   <- tolower(test[i, "quadrat"])
-  plot      <- test[i, "plot"] 
-  abondance <- test[i, "abondance"]
-  code      <- paste("q",plot, quadrat, sep="")
-  
-  A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, colnames(A)==code]<- abondance  
+# fix dirty data
+test$quadrat <- tolower(test$quadrat)
+test$plot[test$plot == " 1"] <- "1"
+
+# create empty matrix to store abundance data
+nquadras <- 10
+nrowA <- length(unique(test$carre.parc)) * length(unique(test$sp)) * 3
+ncolA <- nquadras * 4
+A <- matrix(0, nrowA, ncolA)
+
+# generate quadras names
+qd <- rep(paste("q", 1:nquadras, sep = ""), rep(4, 10))
+colnames(A) <- paste(qd, letters[1:4], sep = "")
+
+# create ids to get the line number
+sp <- rep(unique(test$sp), length(unique(test$carre.parc)) * 3)
+
+# create a 'carre.parc' variable
+parc <- unique(test$carre.parc)
+carre.parc <- rep(parc, rep(length(unique(sp)), length(parc)))
+
+# create a 'position' variable
+position <- rep(c("pa1", "pa2", "in"), rep(length(unique(test$sp)), 3))
+position <- rep(position, length(parc))
+
+# create single 'ids' variable to get row numbers
+ids <- paste(sp, carre.parc, position)
+
+for (i in 1:nrow(test)) {
+  iid <- which(ids == paste(test$sp[i], test$carre.parc[i], test$position[i]))
+  iqd <- paste("q", test$plot[i], test$quadra[i], sep = "")
+  A[iid, iqd] <- test$abondance[i]
 }
+
+# bind ids + data
+A <- cbind.data.frame(sp, carre.parc, position, A, stringsAsFactors = FALSE)
 
 #(A[which(A$carre.parc == "10042-10663" & A$sp == "Geranium-dissectum"), ]) 
  
 write.table(A, "data/generated/transpose_abondance_per_sousquadrat2014.csv", sep = ";")
+
+
+# ------------------------------------------------------------------------------
+# I commented the stuff below because I don't use it and it is quite slow to run
+# ------------------------------------------------------------------------------
 
 # #######################################################
 # ## Matrice quadrat (en lignes) x (especes en colonnes)
@@ -348,6 +338,10 @@ write.table(A, "data/generated/transpose_abondance_per_sousquadrat2014.csv", sep
 # colnames(test)
 # 
 # write.table(test, "data/generated/transpose_abondance_per_field2014.csv", sep = ";")
+
+# ------------------------------------------------------------------------------
+# End of commented stuff
+# ------------------------------------------------------------------------------
 
 
 # ------------------------------------------------------------------------------
