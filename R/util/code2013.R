@@ -109,52 +109,12 @@ test[test$abondance > 2, ]$abondance <- 2
 #############################################################################
 ## Matrice site x especes avec ligne pour les quadrats vides
 #############################################################################
-#length(unique(test$sp))
-#240 species
+source("functions/format_flora.R")
 
-#length(unique(test$carre.parc))
-#183 different sampling of fields
+A <- transpose_df(tab = test, n_quadras = 10, pos = c("pa", "in"))
 
-### Prepare an empty matrix filled with 0 (for 0 abundance observed)
-nrowA <- length(unique(test$carre.parc)) * length(unique(test$sp)) * 2
-
-A <- matrix(ncol=3+10, nrow=nrowA , data = rep(0, 13*nrowA ))
-A<-data.frame(A)
-colnames(A) <- c("sp", "carre.parc", "position", "q1","q2","q3","q4","q5","q6","q7","q8","q9","q10")
-#dim(A)
-#head(A)
-
-## Init the species, field number, and then position in A
-#species names
-A$sp <- rep(rep(levels(test$sp), length(unique(test$carre.parc))),2)
-
-#carre.parc names
-carre.parc<-list(NA)
-length(carre.parc)<-length(levels(test$carre.parc))
-for (i in 1:length(carre.parc))
-{
-carre.parc[[i]]<-rep(levels(test$carre.parc)[i],length(levels(test$sp)))
-}
-carre.parc<-unlist(carre.parc)
-A$carre.parc <- rep(carre.parc,2)
-
-#positions (in,pa)
-A$position<-c(rep("pa",length(carre.parc)),rep("in",length(carre.parc)))
-
-## Remplis les quadrats vides (>15 min)
-for (i in 1:length(test$position)) {
-  #  for(i in (1:length(test[,1]))[test$carre.parc=="10986-11533"]){
- spX <- test[i, 1]
- fieldX <- test[i, 4]
- positionX <- test[i, 3]
- quadrat <- as.numeric(test[i, 2])
- abondance <- test[i, 6]
-  
-  A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, quadrat+3]<- abondance  
-}
-
-#head(A, 25)
 write.table(A, "data/generated/transpose_abondance_per_quadrat2013.csv", sep = ";")
+
 
 #########################################################################
 # Matrice site x especes par parcelle (plein champ/pas interface)
