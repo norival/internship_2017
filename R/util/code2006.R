@@ -118,63 +118,12 @@ test <- aggregate(data.frame(abondance = weeds$abondance),
 #############################################################################
 ## Matrice site x especes avec ligne pour les quadrats vides
 #############################################################################
-#length(unique(test$sp))
-#240 species
-
-#length(unique(test$carre.parc))
-#183 different sampling of fields
-
-### Prepare an empty matrix filled with 0 (for 0 abundance observed)
-nrowA <- length(unique(test$carre.parc)) * length(unique(test$sp)) * 2
-
-A <- matrix(ncol=3+32, nrow=nrowA , data = rep(0, 35*nrowA))
-A <- data.frame(A)
-colnames(A) <- c("sp", "carre.parc", "position",
-                 paste("q", 1:32, sep = ""))
-# dim(A)
-# head(A)
-
-## Init the species, field number, and then position in A
-#species names
-A$sp <- rep(rep(levels(test$sp), length(unique(test$carre.parc))),2)
-
-#carre.parc names
-carre.parc<-list(NA)
-length(carre.parc)<-length(levels(test$carre.parc))
-for (i in 1:length(carre.parc))
-{
-  carre.parc[[i]]<-rep(levels(test$carre.parc)[i],length(levels(test$sp)))
-}
-carre.parc<-unlist(carre.parc)
-A$carre.parc <- rep(carre.parc,2)
-
-#positions (in,pa)
-A$position<-c(rep("pa",length(carre.parc)),rep("in",length(carre.parc)))
 
 # supprimer les quadrats en interface
 test_noin <- test[-which(test$position == "in"),]
 
-## Remplis les quadrats vides (>15 min)
-for (i in 1:length(test_noin$position)) {
-  spX       <- test_noin[i, 1]
-  fieldX    <- test_noin[i, 4]
-  positionX <- test_noin[i, 3]
-  quadrat   <- as.numeric(test_noin[i, 2])
-  abondance <- test_noin[i, 6]
+A <- transpose_df(tab = test_noin, n_quadras = 32, pos = "pa")
 
-  A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, quadrat+3] <-
-    abondance
-}
-A <- A[A$position != "in",]
-
-# vérifier la présence des espèces
-# suppression des lignes où les espèces ne sont présentes dans aucun quadra
-# A <- A[!rowSums(A[, 4:ncol(A)]) == ncol(A) - 3,]
-
-# remplacement des '-1' par des 0
-# A[A == -1] <- 0
-
-#head(A, 25)
 write.table(A, "data/generated/transpose_abondance_per_quadrat2006.csv", sep = ";")
 
 #########################################################################
