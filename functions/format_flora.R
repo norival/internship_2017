@@ -12,9 +12,11 @@ transpose_df <- function(tab, n_quadras, n_subqd = 1, pos = "") {
   A <- matrix(0, nrowA, ncolA)
 
   # generate quadras names
-  qd <- rep(paste("q", 1:nquadras, sep = ""), rep(n_subqd, 10))
+  qd <- rep(paste("q", 1:n_quadras, sep = ""), rep(n_subqd, n_subqd))
   if (n_subqd > 1) {
     colnames(A) <- paste(qd, letters[1:n_subqd], sep = "")
+  } else {
+    colnames(A) <- qd
   }
 
   # create ids to get the line number
@@ -31,10 +33,18 @@ transpose_df <- function(tab, n_quadras, n_subqd = 1, pos = "") {
   # create single 'ids' variable to get row numbers
   ids <- paste(sp, carre.parc, position)
 
-  for (i in 1:nrow(tab)) {
-    iid <- which(ids == paste(tab$sp[i], tab$carre.parc[i], tab$position[i]))
-    iqd <- paste("q", tab$plot[i], tab$quadra[i], sep = "")
-    A[iid, iqd] <- tab$abondance[i]
+  if (n_subqd > 1) {
+    for (i in 1:nrow(tab)) {
+      iid <- which(ids == paste(tab$sp[i], tab$carre.parc[i], tab$position[i]))
+      iqd <- paste("q", tab$plot[i], tab$quadra[i], sep = "")
+      A[iid, iqd] <- tab$abondance[i]
+    }
+  } else {
+    for (i in 1:nrow(tab)) {
+      iid <- which(ids == paste(tab$sp[i], tab$carre.parc[i], tab$position[i]))
+      iqd <- paste("q", tab$quadra[i], sep = "")
+      A[iid, iqd] <- tab$abondance[i]
+    }
   }
 
   # bind ids + data
