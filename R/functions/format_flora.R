@@ -12,7 +12,7 @@ transpose_df <- function(tab, n_quadras, n_subqd = 1, pos = "") {
   A <- matrix(0, nrowA, ncolA)
 
   # generate quadras names
-  qd <- rep(paste("q", 1:n_quadras, sep = ""), rep(n_subqd, n_subqd))
+  qd <- rep(paste("q", 1:n_quadras, sep = ""), rep(n_subqd, n_quadras))
   if (n_subqd > 1) {
     colnames(A) <- paste(qd, letters[1:n_subqd], sep = "")
   } else {
@@ -24,10 +24,10 @@ transpose_df <- function(tab, n_quadras, n_subqd = 1, pos = "") {
 
   # create a 'carre.parc' variable
   parc <- unique(tab$carre.parc)
-  carre.parc <- rep(parc, rep(n_sp, length(parc)))
+  carre.parc <- rep(parc, rep(n_sp * length(pos), n_pl))
 
   # create a 'position' variable
-  position <- rep(pos, rep(length(unique(tab$sp)), length(pos)))
+  position <- rep(pos, rep(n_sp, length(pos)))
   position <- rep(position, length(parc))
 
   # create single 'ids' variable to get row numbers
@@ -36,13 +36,15 @@ transpose_df <- function(tab, n_quadras, n_subqd = 1, pos = "") {
   if (n_subqd > 1) {
     for (i in 1:nrow(tab)) {
       iid <- which(ids == paste(tab$sp[i], tab$carre.parc[i], tab$position[i]))
-      iqd <- paste("q", tab$plot[i], tab$quadra[i], sep = "")
+      iqd <- paste("q", tab$plot[i], tab$quadrat[i], sep = "")
       A[iid, iqd] <- tab$abondance[i]
     }
   } else {
     for (i in 1:nrow(tab)) {
+    # for (i in 1:50) {
       iid <- which(ids == paste(tab$sp[i], tab$carre.parc[i], tab$position[i]))
-      iqd <- paste("q", tab$quadra[i], sep = "")
+      iqd <- paste("q", tab$quadrat[i], sep = "")
+      # print(iid)
       A[iid, iqd] <- tab$abondance[i]
     }
   }
