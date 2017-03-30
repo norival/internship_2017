@@ -183,18 +183,6 @@ A$position <- rep(c(rep("pa1", length(unique(test$sp))), rep("pa2", length(uniqu
 A$done <- rep(0, nrowA )
 
 ## Remplis les quadrats vides (>10 min)
-#for (i in 1:length(test$position)) {
-#  spX <- test[i, 1]
-#  fieldX <- test[i, 5]
-#  positionX <- test[i, 4]
-#  quadrat <- test[i, 2]
-#  plot <- as.numeric(test[i, 3]) 
-#  abondance <- test[i, 7]
-
-#  A[A$sp == spX & A$carre.parc == fieldX & A$position == positionX, plot+3]<- abondance  
-#}
-
-## Remplis les quadrats vides (>10 min)
 summary(as.factor(test$quadrat)) # problème de majuscules -> fixed
 test$quadrat <- tolower(test$quadrat)
 summary(as.factor(test$plot)) # problème avec " 1" -> fixed
@@ -202,6 +190,11 @@ levels(test$plot)
 test$plot <- as.character(test$plot)
 test$plot[test$plot == " 1"] <- "1"
 summary(as.factor(test$position)) #ok
+
+library(magrittr)
+test <-
+  test %>%
+  dplyr::mutate_if(is.factor, as.character)
 
 for (i in 1:length(test$position)) {
   spX       <- test[i, "sp"]
