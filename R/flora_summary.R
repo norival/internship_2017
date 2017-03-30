@@ -86,26 +86,21 @@ for (year in (2006:2016)[-which(2006:2016 == 2012)]) {
  parc <- c(parc, rownames(a))
 }
 
-mat <-
-  as.data.frame(matrix(0, nrow = length(unique(parc)), ncol = length(unique(species))),
-                stringsAsFactor = FALSE)
+mat <- matrix(0, nrow = length(unique(parc)), ncol = length(unique(species)))
 rownames(mat) <- unique(parc)
 colnames(mat) <- unique(species)
 
 for (year in (2006:2016)[-which(2006:2016 == 2012)]) {
-  a <- get(paste("weeds", year, sep = ""))
+  a <- as.matrix(get(paste("weeds", year, sep = "")))
 
-  if (year <= 2011) {
-    # removes interface for which abundance have not been estimated
-    a <- a[!grepl("-In", rownames(a)),]
-  }
-
-  for (i in 1:nrow(a)) {
-    for (ii in 1:ncol(a)) {
-      parc <- rownames(a)[i]
-      sp <- colnames(a)[ii]
-      mat[parc, sp] <- a[i, ii]
-    }
+  k <- nrow(a)
+  for (z in 1:length(a)) {
+    # get row and column indices from the cell's index
+    j <- ifelse(z %% k == 0, z/k, floor(z/k) + 1)
+    i <- z - ((j - 1) * k)
+    parc <- dimnames(a)[[1]][i]
+    sp   <- dimnames(a)[[2]][j]
+    mat[parc, sp] <- sum(mat[parc, sp], a[z])
   }
 }
 
