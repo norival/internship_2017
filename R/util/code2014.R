@@ -149,54 +149,16 @@ test[test$abondance > 1, ]$abondance <- 1
 # I made some optimisation: manipulating a matrix is considerably faster than
 # manipulating a dataframe so I seperate the ids in a character vector in order
 # to keep a numeric matrix. Ids and data are bound next.
-
-# get rid of factors in 'test'
-library(magrittr)
-test <-
-  test %>%
-  dplyr::mutate_if(is.factor, as.character)
+source("functions/format_flora.R", encoding = "utf8")
 
 # fix dirty data
 test$quadrat <- tolower(test$quadrat)
 test$plot[test$plot == " 1"] <- "1"
 
-# create empty matrix to store abundance data
-nquadras <- 10
-nrowA <- length(unique(test$carre.parc)) * length(unique(test$sp)) * 3
-ncolA <- nquadras * 4
-A <- matrix(0, nrowA, ncolA)
-
-# generate quadras names
-qd <- rep(paste("q", 1:nquadras, sep = ""), rep(4, 10))
-colnames(A) <- paste(qd, letters[1:4], sep = "")
-
-# create ids to get the line number
-sp <- rep(unique(test$sp), length(unique(test$carre.parc)) * 3)
-
-# create a 'carre.parc' variable
-parc <- unique(test$carre.parc)
-carre.parc <- rep(parc, rep(length(unique(sp)), length(parc)))
-
-# create a 'position' variable
-position <- rep(c("pa1", "pa2", "in"), rep(length(unique(test$sp)), 3))
-position <- rep(position, length(parc))
-
-# create single 'ids' variable to get row numbers
-ids <- paste(sp, carre.parc, position)
-
-for (i in 1:nrow(test)) {
-  iid <- which(ids == paste(test$sp[i], test$carre.parc[i], test$position[i]))
-  iqd <- paste("q", test$plot[i], test$quadra[i], sep = "")
-  A[iid, iqd] <- test$abondance[i]
-}
-
-# bind ids + data
-A <- cbind.data.frame(sp, carre.parc, position, A, stringsAsFactors = FALSE)
-
+A <- transpose_df(tab=test, n_quadras = 10, n_subqd = 4, pos = c("pa1", "pa2", "in"))
 #(A[which(A$carre.parc == "10042-10663" & A$sp == "Geranium-dissectum"), ]) 
  
 write.table(A, "data/generated/transpose_abondance_per_sousquadrat2014.csv", sep = ";")
-
 
 # ------------------------------------------------------------------------------
 # I commented the stuff below because I don't use it and it is quite slow to run
