@@ -23,6 +23,11 @@ h.fct <- function(ltheta,v=v) {
 estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE) {
   library(doSNOW)
 
+  if (sum(grepl("Pa|In", x$carre.parc)) != length(x$carre.parc)) {
+    # adds the position to the name of the plot, like in the old days
+    x$carre.parc <- paste(x$carre.parc, stringr::str_to_title(x$pos), sep = "-")
+  }
+
   if (progress) {
     cat("Estimation of abundances\n")
 
@@ -33,10 +38,9 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE) {
     opts <- list()
   }
 
-  mat_vide <- matrix(Inf,
-                     ncol = length(unique(x$sp)),
-                     nrow = length(unique(x$carre.parc)))
-  abond_per_plot <- as.data.frame(mat_vide)
+  abond_per_plot <- matrix(Inf,
+                           ncol = length(unique(x$sp)),
+                           nrow = length(unique(x$carre.parc)))
 
   colnames(abond_per_plot) <- unique(x$sp)
   rownames(abond_per_plot) <- unique(x$carre.parc)
@@ -72,10 +76,11 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE) {
   for (i in 1:nrow(a)) {
     if (progress) {
       setTxtProgressBar(pb, i)
-      cat("\n")
     }
     abond_per_plot[a[i, 1], a[i, 2]] <- a[i, 3]
   }
+
+  if (progress) close(pb)
 
   # rapporter à 1 m^2
   abond_per_plot <- abond_per_plot / surf
@@ -88,14 +93,19 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE) {
 estim_abundance01 <- function(x, surf, gp.subquadra = FALSE, base2 = FALSE, progress = TRUE) {
   # estimates abundance when data is 0/1
 
+  if (sum(grepl("Pa|In", x$carre.parc)) == 0) {
+    # adds the position to the name of the plot, like in the old days
+    pos <- gsub("[[:digit:]]+", "", x$position)
+    x$carre.parc <- paste(x$carre.parc, stringr::str_to_title(pos), sep = "-")
+  }
+
   # if we decide to pass the results to log base2, we must group the subquadras
   if (base2) gp.subquadra <- TRUE
 
   # Création d'un tableau vide pour récupérer les estmations d'abondances
-  mat_vide <- matrix(Inf,
-                     ncol = length(unique(x$sp)),
-                     nrow = length(unique(x$carre.parc)))
-  abond_per_plot <- as.data.frame(mat_vide)
+  abond_per_plot <- matrix(Inf,
+                           ncol = length(unique(x$sp)),
+                           nrow = length(unique(x$carre.parc)))
 
   colnames(abond_per_plot) <- unique(x$sp)
   rownames(abond_per_plot) <- unique(x$carre.parc)
