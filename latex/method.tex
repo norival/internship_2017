@@ -11,40 +11,50 @@
 \usepackage{tikz}
 \usepackage{tabularx}
 \usepackage{parskip}
+\usepackage{amsfonts}
 
 \begin{document}
 
 \section{Estimation des abondances}
 
-Les abondances des espèces sont données de différentes façons.
+On suppose que la distribution des espèces dans la parcelle suit une loi de
+Poisson de paramètre $\lambda$.
+On a donc :
 
-\begin{description}
-  \item[2006] relevé en log base 2
-  \item[2007] relevé en log base 2
-  \item[2008] relevé en log base 2
-  \item[2009] relevé en log base 2
-  \item[2010] relevé en log base 2
-  \item[2011] relevé en log base 10
-  \item[2012] MISSING
-  \item[2013] relevé en log base 2
-  \item[2014] relevé qualitatif présence/absence
-  \item[2015] relevé qualitatif présence/absence
-  \item[2016] relevé qualitatif présence/absence
-\end{description}
+\[
+  P(X = k) = \frac{\lambda^k}{k!} e^{-\lambda}
+\]
 
-\subsection{Relevés log base 2}
+Avec :
+\begin{itemize}
+  \item $P(X = k)$: la probabilité d'observer les données $k$, ou la
+    vraissemblance des données observées
+  \item $\lambda$ le paramètre de la loi de Poisson, qui correpsond au nombre
+    d'événements apparaissant dans l'intervalle considéré. Dans notre cas, c'est
+    le nombre de fois où la plante apparaît dans un quadra (ou sous-quadra)
+\end{itemize}
 
-On estime l'abondance moyenne par une loi de Poisson composée.
-On cherche le maximum de vraissemblance pour la probabilité log de lambda,
-lambda étant le paramètre de la loi de Poisson.
-Il estime donc l'abondance 
+Sachant $k$ (le vecteur d'abondance de l'espèce $i$ dans la parcelle $j$), on
+cherche $\lambda$ tel que $P(X=k)$ soit maximum.
+Pour cela, on cherche à maximiser la fonction de log-vraissemblance $\mathrm{U}
+= \ln(P)$ avec $ P = f(\lambda)$, définie sur $\mathbb{N}^*$ par :
 
-L'individu statistique est le quadra ou le sous-quadra, suivant les données.
-Le paramètre lambda de la loi est donc le nombre moyen de plantes par individu
-statistique.
-La probabilité qu'il y ait 0 plantes est le nombre de 0, la probabilité qu'il y
-ait 1 plante est le nombre de 1 et la probabilité qu'il y en ait plus est 1 - la
-somme des 2 autres.
+\[
+  \mathrm{U} = \ln f(\lambda) = k\ln \lambda - \ln k! - \lambda
+\]
+
+Le maximum d'une fonction étant atteint lorsque sa dérivée est minimale, on
+minimise la fonction :
+
+\[
+  \mathrm{U}' = (\ln f(\lambda))' = \frac{f'(\lambda)}{f(\lambda)}
+\]
+
+On cherche donc $\lambda$ tel que $\mathrm{U}' \to 0$.
+
+Une fois $\lambda$ obtenu, on calcule $\lambda / s$, $s$ étant la surface d'un
+individu statistique (quadra ou sous-quadra), afin d'obtenir la densité de
+plantes en $\mathrm{m}^{-2}$.
 
 
 \section{Classification des communautés adventices}
