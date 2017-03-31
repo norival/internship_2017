@@ -318,9 +318,6 @@ source("functions/abundance.R", encoding = "utf8")
 weeds <- read.csv("data/generated/transpose_abondance_per_sousquadrat2014.csv",
                   sep = ";", stringsAsFactors = FALSE)
 
-# récpérer uniquement les parcelles et supprimer la variable 'done'
-weeds <- weeds[weeds$position != "in", 1:ncol(weeds) - 1]
-
 abond_per_plot <- estim_abundance01(weeds, surf = 0.25)
 
 write.csv(abond_per_plot, "data/generated/abondt_per_subquadra_2014_binomiale.csv",
