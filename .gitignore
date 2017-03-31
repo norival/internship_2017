@@ -24,6 +24,7 @@
 
 # specific files
 R/reporting.pdf
+R/lab_meeting.html
 R/*.pdf
 R/junk.R
 latex/method.pdf

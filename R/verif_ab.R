@@ -80,3 +80,5 @@ p <- ggplot(dat, aes(x = real, y = estimate)) +
             colour = "red", fontface = "bold") +
   geom_text(x = 32, y = 15, aes(label = r2), data = f_labels,
             colour = "red", fontface = "bold")
+
+save.image('/tmp/data_verif.RData')
