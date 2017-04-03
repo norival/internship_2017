@@ -104,6 +104,7 @@ test[test$abondance > 2, ]$abondance <- 2
 #############################################################################
 ## Matrice site x especes avec ligne pour les quadrats vides
 #############################################################################
+source("functions/format_flora.R")
 
 A <- transpose_df(tab = test, n_quadras = 10, pos = c("pa", "in"))
 
