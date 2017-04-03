@@ -37,9 +37,9 @@ for (per in 1:3) {
     # use the appropriate function to estimate the abundance of converted
     # dataframes, according to 'base'
     if (base == 0) {
-      ab <- estim_abundance01(conv, surf, progress = FALSE)
+      ab <- estim_abundance01(conv, surf, progress = FALSE, addpos = FALSE)
     } else {
-      ab <- estim_abundance(conv, surf, n_cores = 4, progress = FALSE)
+      ab <- estim_abundance(conv, surf, n_cores = 4, progress = FALSE, addpos = FALSE)
     }
 
     estim <- estim_summary(origin, ab, surf)

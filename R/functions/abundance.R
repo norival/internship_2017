@@ -20,10 +20,10 @@ h.fct <- function(ltheta,v=v) {
   return(ll)
 }
 
-estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE) {
+estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE) {
   library(doSNOW)
 
-  if (sum(grepl("Pa|In", x$carre.parc)) != length(x$carre.parc)) {
+  if (addpos & sum(grepl("Pa|In", x$carre.parc)) != length(x$carre.parc)) {
     # adds the position to the name of the plot, like in the old days
     x$carre.parc <- paste(x$carre.parc, stringr::str_to_title(x$pos), sep = "-")
   }
@@ -90,10 +90,10 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE) {
   stopCluster(cl)
 }
 
-estim_abundance01 <- function(x, surf, gp.subquadra = FALSE, base2 = FALSE, progress = TRUE) {
+estim_abundance01 <- function(x, surf, gp.subquadra = FALSE, base2 = FALSE, progress = TRUE, addpos = TRUE) {
   # estimates abundance when data is 0/1
 
-  if (sum(grepl("Pa|In", x$carre.parc)) == 0) {
+  if (addpos & sum(grepl("Pa|In", x$carre.parc)) == 0) {
     # adds the position to the name of the plot, like in the old days
     pos <- gsub("[[:digit:]]+", "", x$position)
     x$carre.parc <- paste(x$carre.parc, stringr::str_to_title(pos), sep = "-")
