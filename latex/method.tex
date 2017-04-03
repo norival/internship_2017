@@ -43,19 +43,56 @@ Pour cela, on cherche à maximiser la fonction de log-vraissemblance $\mathrm{U}
   \mathrm{U} = \ln f(\lambda) = k\ln \lambda - \ln k! - \lambda
 \]
 
-Le maximum d'une fonction étant atteint lorsque sa dérivée est minimale, on
-minimise la fonction :
+Maximiser la fonction U revient à minimiser la fonction $-\mathrm{U}$.
+On cherche donc $\lambda$ tel que la fonction $-\mathrm{U}$ soit minimale.
 
-\[
-  \mathrm{U}' = (\ln f(\lambda))' = \frac{f'(\lambda)}{f(\lambda)}
-\]
+Une fois $\lambda$ obtenu, on calcule $-1 \times\lambda / s$, $s$ étant la
+surface d'un individu statistique (quadra ou sous-quadra), afin d'obtenir la
+densité de plantes en $\mathrm{m}^{-2}$.
 
-On cherche donc $\lambda$ tel que $\mathrm{U}' \to 0$.
+\subsection{Code R}
 
-Une fois $\lambda$ obtenu, on calcule $\lambda / s$, $s$ étant la surface d'un
-individu statistique (quadra ou sous-quadra), afin d'obtenir la densité de
-plantes en $\mathrm{m}^{-2}$.
+\begin{small}
+\begin{verbatim}
+# On minimise la focntion -U entre -50 et +50, 'h.fct' est la fonction qui doit
+# être minimisée et v1 le vecteur d'abondance considéré.
+Zu <- nlminb(c(0, 0), h.fct, v = v1, lower = c(-50, -50), upper = c(50, 50))
 
+# Zu contient les 2 bornes encadrant le paramètre lambda pour lequel la fonction
+# est minimale.
+# On calcule la moyenne géométrique de ces bornes afin d'obtenir le paramètre
+# optimal. On passe en exponentielle car la fonction minimisée correspond à la
+# log-vraissemblance
+mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
+\end{verbatim}
+
+\begin{verbatim}
+h.fct <- function(ltheta, v = v) {
+  # v = observations
+  # ltheta = log du paramètre de poisson
+
+  library(compoisson)
+  theta <- exp(ltheta)
+
+  # si le paramètre est énorme, pas possible
+  if(max(theta)>30){return(100000)}
+
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 0
+  lp0 <- com.log.density(0, theta[1], theta[2])
+
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 1
+  lp1 <- com.log.density(1, theta[1], theta[2])
+
+  # proba d'abondance pour les espèces ayant un indice d'abondance de 2: 1 - la
+  # somme des 2 autres
+  lp2 <- log(1 - exp(lp0) - exp(lp1))
+  lp <- c(lp0, lp1, lp2)
+  ll <- (-1)*sum(lp[v+1])
+
+  return(ll)
+}
+\end{verbatim}
+\end{small}
 
 \section{Classification des communautés adventices}
 
