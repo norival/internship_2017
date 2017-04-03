@@ -33,6 +33,9 @@ for (year in all_years) {
   # replace very small values by 0
   a[a == min(a)] <- 0
 
+  # always remove interface
+  a <- a[!(grepl("In", rownames(a))),]
+
   # remove species that are not present
   a <- a[, apply(a, 2, sum) != 0]
 
@@ -77,10 +80,8 @@ parc    <- character(0)
 for (year in all_years) {
   a <- get(paste("weeds", year, sep = ""))
 
-  if (year <= 2011) {
-    # removes interface for which abundance have not been estimated
-    a <- a[!grepl("-In", rownames(a)),]
-  }
+  # always remove interface
+  a <- a[!grepl("-In", rownames(a)),]
 
  species <- c(species, colnames(a))
  parc <- c(parc, rownames(a))
@@ -92,10 +93,10 @@ colnames(mat) <- unique(species)
 
 for (year in all_years) {
   a <- as.matrix(get(paste("weeds", year, sep = "")))
-  if (year <= 2011) {
-    # removes interface for which abundance have not been estimated
-    a <- a[!grepl("-In", rownames(a)),]
-  }
+
+  # always remove interface
+  a <- a[!grepl("-In", rownames(a)),]
+
   a[a == min(a)] <- 0
 
   k <- nrow(a)
