@@ -6,6 +6,9 @@ output: ioslides_presentation
 ---
 
 ```{r, loading_data, echo=FALSE}
+library(ggplot2)
+library(magrittr)
+library(dplyr)
 load('/tmp/data_flore.RData')
 ```
 

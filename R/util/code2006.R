@@ -118,6 +118,7 @@ test <- aggregate(data.frame(abondance = weeds$abondance),
 #############################################################################
 ## Matrice site x especes avec ligne pour les quadrats vides
 #############################################################################
+source("functions/format_flora.R", encoding = "utf8")
 
 # supprimer les quadrats en interface
 test_noin <- test[-which(test$position == "in"),]
