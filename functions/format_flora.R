@@ -52,5 +52,9 @@ transpose_df <- function(tab, n_quadras, n_subqd = 1, pos = "") {
   # bind ids + data
   A <- cbind.data.frame(sp, carre.parc, position, A, stringsAsFactors = FALSE)
 
+  c1 <- (grepl("In", A$carre.parc) & A$position == "in")
+  c2 <- (grepl("Pa", A$carre.parc) & A$position == "pa")
+  A <- A[(c1 | c2),]
+
   return(A)
 }
