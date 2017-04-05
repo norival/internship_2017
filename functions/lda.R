@@ -21,7 +21,7 @@ tidy_lda_post <- function(.post) {
     data.frame(sp = character(), x = numeric(), val = numeric(), id = character())
   for (i in 1:nrow(.spp)) {
     .tmp <-
-      cbind.data.frame(rownames(.spp), 1:ncol(.spp), .spp[i, ], paste("gp", i, sep = ""))
+      cbind.data.frame(colnames(.spp), 1:ncol(.spp), .spp[i, ], paste("gp", i, sep = ""))
     .all_spp <- rbind.data.frame(.all_spp, .tmp)
   }
   colnames(.all_spp) <- c("sp", "x", "rel_ab", "gp")
