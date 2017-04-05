@@ -81,4 +81,8 @@ p <- ggplot(dat, aes(x = real, y = estimate)) +
   geom_text(x = 32, y = 15, aes(label = r2), data = f_labels,
             colour = "red", fontface = "bold")
 
+# plots that are not good
+notgood <- dat[dat$estimate > 300 & dat$base == "base2" & dat$periode == "period2",
+               -seq(from = length(dat), to = length(dat) - 4, by = -1)]
+
 save.image('/tmp/data_verif.RData')
