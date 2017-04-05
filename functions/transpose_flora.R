@@ -67,6 +67,9 @@ estim_summary <- function(tab, tab_estim, surf) {
     return(x)
   }
 
+  # keep the original tab before converting it
+  taborig <- tab
+
   # replace log10 values with the geometric mean of the class and divide the
   # results by the surface of one subquadra (0.25^2)
   tab <-
@@ -96,9 +99,9 @@ estim_summary <- function(tab, tab_estim, surf) {
     }
   }
 
-  mat_vide <- matrix(0, ncol = 2, nrow = nrow(abond_per_plot) * ncol(abond_per_plot))
+  mat_vide <- matrix(0, ncol = 9, nrow = nrow(abond_per_plot) * ncol(abond_per_plot))
   dat <- data.frame(mat_vide)
-  colnames(dat) <- c("real", "estimate")
+  colnames(dat) <- c("parc", "sp", "real", "estimate", paste("n", 0:4, sep = ""))
 
   # create table with 2 column: one for the real value and one for the estimate
   # value
@@ -106,6 +109,14 @@ estim_summary <- function(tab, tab_estim, surf) {
   for (parc in rownames(abond_per_plot)) {
     for (sp in colnames(abond_per_plot)) {
       i <- i+1
+      orig <- as.numeric(taborig[taborig$carre.parc == parc & taborig$sp == sp, 4:length(taborig)])
+      dat$n0[i]       <- length(orig[orig == 0])
+      dat$n1[i]       <- length(orig[orig == 1])
+      dat$n2[i]       <- length(orig[orig == 2])
+      dat$n3[i]       <- length(orig[orig == 3])
+      dat$n4[i]       <- length(orig[orig == 4])
+      dat$sp[i]       <- sp
+      dat$parc[i]     <- parc
       dat$real[i]     <- abond_per_plot[parc, sp]
       dat$estimate[i] <- tab_estim[parc, sp]
     }
