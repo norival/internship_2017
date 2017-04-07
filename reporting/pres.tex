@@ -1,0 +1,203 @@
+\documentclass[]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{natbib}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{xcolor} %Couleurs
+\usepackage{tikz}
+%\usepackage[left=0.2cm]{geometry}
+% \usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=black]{hyperref}
+\usetikzlibrary{arrows}
+\usepackage{fancybox}
+\usepackage{setspace}
+\usepackage{datetime}
+
+\DeclareUnicodeCharacter{00A0}{~} % Bug caractère \u8
+
+\usecolortheme{bop}
+\useoutertheme{bop}
+\useinnertheme{bop}
+
+% \AtBeginSection[]
+% {
+%   \addtocounter{framenumber}{-1}
+%   \begin{frame}
+%     \frametitle{Plan}
+%     \tableofcontents[currentsection]
+%   \end{frame}
+% }
+
+\newlength{\bopwidth}
+
+\newdateformat{specialdate}{\twodigit{\THEDAY}/\twodigit{\THEMONTH}/\THEYEAR}
+
+\author{Xavier Laviron}
+\title[Lab Meeting]{
+  Evaluation of a new method to describe weed communities
+}
+\date{\today}
+\institution{Master BOP, Dijon}
+
+\newcommand\bopbox[1]{%
+  \settowidth{\bopwidth}{\Large\bfseries#1}
+  \colorbox{bop}{\parbox[c][][c]{\bopwidth}{\textcolor{white}{\Large\bfseries#1}}}
+}
+
+\begin{document}
+
+\frame[plain]{\titlepage}
+
+%-------------------------------------------------------------------------------
+
+% \begin{frame}
+%   \frametitle{Plan}
+%   \tableofcontents
+% \end{frame}
+
+%-------------------------------------------------------------------------------
+
+\section{Contexte}
+
+\begin{frame}
+  \frametitle{Context}
+
+  \begin{block}{General context}
+    Estimate the impact of weeds on crop yield
+  \end{block}
+
+  \begin{block}{Problems}
+    \begin{itemize}
+      \item > 200 weed species in our datasets
+      \item Lots of variables for each plot
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Solution: reduce the number of variable}
+    \begin{itemize}
+      \item Consider only a few species: which ones?
+      \item Use biodiversity indices (richness, Simpson's): we loose
+        informations about species
+      \item \textbf<1->{\textcolor<1->{greenbop}{Create groups of species to
+        describe the community}}
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{How to create groups?}
+
+  \begin{block}{Biological groups}
+    \begin{itemize}
+      \item Functional traits: How to choose adequate traits ?
+      \item Phylogeny: can summarise informations given by all traits
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Statistical groups}
+    \begin{itemize}
+      \item 'Classic' clustering
+      \item 'Soft' clustering
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Categorisation of nature is a tough job}
+
+  \centering\includegraphics<1>[scale=0.3]{img/groups1.pdf}
+  \centering\includegraphics<2>[scale=0.3]{img/groups2.pdf}
+  \centering\includegraphics<3>[scale=0.3]{img/groups3.pdf}
+  \centering\includegraphics<4>[scale=0.3]{img/groups4.pdf}
+
+\end{frame}
+
+% ------------------------------------------------------------------------------
+
+\section{Method}
+
+\begin{frame}
+  \frametitle{What do we propose?}
+
+  \begin{block}{Latent Dirichlet Allocation (LDA)}
+    \begin{itemize}
+      \item Initially described by \citet{blei2003latent} for text mining
+        analyses
+      \item \citet{valle2014decomposing} propose an analogy with biodiversity
+        data
+      \item Create groups based on relative abundance of each species
+      \item Can describe each community as a combination of component
+        communities
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{La méthode LDA}
+
+  \centering\includegraphics<1>[scale=0.4]{img/lda1.pdf}
+  \centering\includegraphics<2>[scale=0.4]{img/lda2.pdf}
+  \centering\includegraphics<3>[scale=0.4]{img/lda3.pdf}
+
+\end{frame}
+
+% ------------------------------------------------------------------------------
+
+\section{Conclusion}
+
+\begin{frame}
+  \frametitle{Summary}
+
+  \begin{block}{Advantages}
+    \begin{itemize}
+      \item Describe continuous changes between communities
+      \item More parcimonious than other clustering methods (less groups might
+        be needed to fit the data, according to \citet{valle2014decomposing})
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Drawbacks}
+    \begin{itemize}
+      \item Need abundance data
+      \item The number of groups have to be decided \textit{a priori}
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+% ------------------------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Next steps}
+
+  \begin{itemize}
+    \item Run the model on data from Chiz\'e
+    \item Determine the adequate number of groups
+    \item Check if the groups are meaningfull
+  \end{itemize}
+
+\end{frame}
+
+% -----------------------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{References}
+
+  \begin{small}
+    \bibliographystyle{apalike}
+    \bibliography{biblio}
+  \end{small}
+
+\end{frame}
+
+\end{document}

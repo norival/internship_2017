@@ -1,0 +1,46 @@
+%% Inner Theme Test %%
+\newcommand*{\institution}[1]{\gdef\@institution{#1}}
+
+\mode<presentation>
+
+%\setbeamertemplate{items}[circle]
+
+\setbeamertemplate{title page}
+{
+  \raggedleft\usebeamerfont{title}\inserttitle
+
+  \textcolor{gray}{\usebeamerfont{author}\insertauthor{} -- \@institution{}}
+
+  \raggedleft\textcolor{bop}{\hspace*{-1cm}\hrule height 8pt width \paperwidth}
+
+  \begin{flushright}
+    \textcolor{greenbop}{\usebeamerfont{date}\insertshorttitle{} -- \insertdate}
+  \end{flushright}
+
+  \vfill
+  \raggedright\includegraphics[scale=0.8]{img/logo_ubfc.png}
+  \vspace{3mm}
+
+  \includegraphics[scale=0.2]{img/masterbopcol.jpg}\hspace{-0.5cm}
+  \hfill
+  \includegraphics[scale=0.15]{img/logo_inra.jpg}
+  \hfill
+  \includegraphics[scale=0.2]{img/logo_agroecologie.png}
+  % \vspace*{-1cm}
+  \setcounter{framenumber}{0}
+}
+
+\setbeamertemplate{frametitle}
+{
+  \parbox[c][15pt][t]{\textwidth}{\insertframetitle}
+
+  \hrule height 1pt width \paperwidth
+}
+
+\setbeamertemplate{section in toc}
+{
+  \usebeamerfont{section in toc}\inserttocsection
+}
+
+\mode
+<all>

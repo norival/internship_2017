@@ -1,0 +1,26 @@
+\mode<presentation>
+
+%% Colors
+\definecolor{bop}{RGB}{184, 65, 31}
+\definecolor{greenbop}{RGB}{120, 147, 80}
+
+\makeatletter
+\definecolor{beamer@blendedblue}{rgb}{0.2,0.2,0.7} % use structure theme to change
+
+\setbeamercolor{structure}{fg=bop}
+
+\setbeamercolor{palette primary}{use=structure,fg=structure.fg}
+\setbeamercolor{palette secondary}{use=structure,fg=structure.fg!75!black}
+\setbeamercolor{palette tertiary}{use=structure,fg=structure.fg!50!bop}
+\setbeamercolor{palette quaternary}{fg=black}
+
+\setbeamercolor{title in head/foot}{fg=bop}
+\setbeamercolor{date}{fg=greenbop}
+
+\setbeamerfont{title}{family=\sffamily,size=\LARGE,shape=\bfseries}
+\setbeamerfont{title in head/foot}{family=\sffamily,size=\tiny,shape=\bfseries}
+\setbeamerfont{frametitle}{family=\sffamily,size=\Large,shape=\bfseries}
+\setbeamerfont{author}{family=\sffamily,size=\normalsize}
+\setbeamerfont{date}{family=\sffamily,size=\normalsize,shape=\bfseries}
+\setbeamerfont{section in toc}{family=\sffamily,size=\large,shape=\bfseries}
+\setbeamerfont{block title}{family=\sffamily,size=\large,shape=\bfseries}
