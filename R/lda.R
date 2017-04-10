@@ -19,14 +19,38 @@ for (file in files) {
 
 
 # -- clean values --------------------------------------------------------------
-# currently, for 2016 only
-dat <- as.matrix(weeds2016)
+# group 2014:2016
+allsp <- character()
+allpc <- character()
+for (i in 2014:2016) {
+  tmp <- get(paste("weeds", i, sep = ""))
+  allsp <- c(allsp, colnames(tmp))
+  allpc <- c(allpc, paste(i, rownames(tmp), sep = "_"))
+}
+allsp <- unique(allsp)
+allpc <- unique(allpc)
+
+mat <- matrix(0, nrow = length(allpc), ncol = length(allsp))
+colnames(mat) <- allsp
+rownames(mat) <- allpc
+
+for (pc in rownames(mat)) {
+  year <- substr(pc, 1, 4)
+  pcorig <- substr(pc, 6, nchar(pc))
+  tmp <- get(paste("weeds", year, sep = ""))
+  # set minimum values to 0
+  tmp[tmp == min(tmp)] <- 0
+
+  for (sp in colnames(mat)) {
+    if (!(sp %in% colnames(tmp))) next
+    mat[pc, sp] <- tmp[pcorig, sp]
+  }
+}
+
+dat <- mat
 
 # remove interface
 dat <- dat[!(grepl("In", rownames(dat))),]
-
-# set minimum values to 0
-dat[dat == min(dat)] <- 0
 
 # truncate the values to the smaller greater integer
 dat <- ceiling(dat)
@@ -36,21 +60,14 @@ dat <- dat[rowSums(dat) != 0,]
 
 
 # -- compute the lda models ----------------------------------------------------
-# currently, for 2016 only
+aic <- numeric()
 
-# set the seed beacause method rely on random estmations, then compute the model
-seed  <- "42"
-mod   <- LDA(x = dat, k = 4, control = list(seed = seed))
+control <- list(seed = 42, burnin = 10000, thin = 500, iter = 50000)
+for (k in 2:3) {
+  Gibbs <- LDA(dat, k = k, method = "Gibbs", control = control)
 
-# get the posterior probabilities from the model
-post <- posterior(mod)
+  ll <- logLik(Gibbs)
+  dfree <- Gibbs@k * length(Gibbs@terms)
 
-# tidy the post datasets into a form easily 'plotable'
-tidy_post <- tidy_lda_post(post)
-
-ggplot(tidy_post$plots, aes(x = x, y = val, colour = gp)) +
-  geom_line()
-
-ggplot(tidy_post$spp, aes(x = x, y = rel_ab, colour = gp)) +
-  geom_line() +
-  facet_grid(gp ~ .)
+  aic <- c(aic, (-2 * ll + 2 * dfree)[][1])
+}
