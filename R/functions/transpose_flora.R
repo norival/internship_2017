@@ -124,3 +124,54 @@ estim_summary <- function(tab, tab_estim, surf) {
 
   return(dat)
 }
+
+transpose_flora_tot <- function(tab) {
+  # this function returns 4 tables transposed in the right way for abundance
+  # estimation
+
+  # Prepare an empty matrix filled with 0 (for 0 abundance observed)
+  sp    <- unique(colnames(tab[, 16:length(tab)]))
+  pc    <- unique(tab$Parcelle)
+  n_pc  <- length(pc)
+  n_sp  <- length(sp)
+  sp    <- rep(sp, n_pc)
+  carre.parc <- rep(pc, rep(n_sp, length(pc)))
+  qd <- unique(paste0(tab$Zone, tab$Quadrat))
+
+  A <- matrix(0, ncol = length(qd), nrow = length(carre.parc))
+
+  colnames(A) <- qd
+
+  ids <- paste0(carre.parc, sp)
+
+  for (i in 1:nrow(tab)) {
+    # i <- 1
+    for (j in 16:ncol(tab)) {
+      # for (i in 1:50) {
+      iid <- which(ids == paste0(tab$Parcelle[i], colnames(tab)[j]))
+      iqd <- paste0(tab$Zone[i], tab$Quadrat[i])
+      A[iid, iqd] <- tab[i, j]
+    }
+  }
+
+  # convert tables according to different degradations of data
+  A0  <- A
+  A0[A0 > 1] <- 1
+  A2  <- A
+  A2[A2 > 2] <- 2
+  A10 <- A
+  A10[A10 <= 2 &    A10 < 10]     <- 2
+  A10[A10 <= 10 &   A10 < 100]    <- 3
+  A10[A10 <= 100 &  A10 < 1000]   <- 4
+  A10[A10 <= 1000 & A10 < 10000]  <- 5
+
+  # we need a ghost column so the dataframe can be inputed to the function
+  position <- rep("phantom", length(carre.parc))
+
+  A   <- cbind.data.frame(sp, carre.parc, position, A, stringsAsFactors = FALSE)
+  A0  <- cbind.data.frame(sp, carre.parc, position, A0, stringsAsFactors = FALSE)
+  A2  <- cbind.data.frame(sp, carre.parc, position, A2, stringsAsFactors = FALSE)
+  A10 <- cbind.data.frame(sp, carre.parc, position, A10, stringsAsFactors = FALSE)
+
+  return(list(orig = A, base0 = A0, base2 = A2, base10 = A10))
+}
