@@ -125,6 +125,8 @@ estim_summary <- function(tab, tab_estim, surf) {
   return(dat)
 }
 
+# ------------------------------------------------------------------------------
+
 transpose_flora_tot <- function(tab) {
   # this function returns 4 tables transposed in the right way for abundance
   # estimation
@@ -160,10 +162,10 @@ transpose_flora_tot <- function(tab) {
   A2  <- A
   A2[A2 > 2] <- 2
   A10 <- A
-  A10[A10 <= 2 &    A10 < 10]     <- 2
-  A10[A10 <= 10 &   A10 < 100]    <- 3
-  A10[A10 <= 100 &  A10 < 1000]   <- 4
-  A10[A10 <= 1000 & A10 < 10000]  <- 5
+  A10[A10 >= 2 &    A10 < 10]     <- 2
+  A10[A10 >= 10 &   A10 < 100]    <- 3
+  A10[A10 >= 100 &  A10 < 1000]   <- 4
+  A10[A10 >= 1000 & A10 < 10000]  <- 5
 
   # we need a ghost column so the dataframe can be inputed to the function
   position <- rep("phantom", length(carre.parc))
@@ -174,4 +176,81 @@ transpose_flora_tot <- function(tab) {
   A10 <- cbind.data.frame(sp, carre.parc, position, A10, stringsAsFactors = FALSE)
 
   return(list(orig = A, base0 = A0, base2 = A2, base10 = A10))
+}
+
+# ------------------------------------------------------------------------------
+
+estim_summary_tot <- function(tab, tab_estim, surf) {
+
+  # replace very small estimate values with 0
+  tab_estim[tab_estim <= min(tab_estim)] <- 0
+
+  # create empty matrix to store results: one line per plot and one column per
+  # species
+  mat_vide <- matrix(Inf,
+                     ncol = length(unique(tab$sp)),
+                     nrow = length(unique(tab$carre.parc)))
+  abond_per_plot <- as.data.frame(mat_vide)
+
+  colnames(abond_per_plot) <- unique(tab$sp)
+  rownames(abond_per_plot) <- unique(tab$carre.parc)
+
+  for (parc in unique(tab$carre.parc)) {
+    # do it for each plot
+    tab_parc <- tab[tab$carre.parc == parc,]
+
+    for (sp in unique(tab_parc$sp)) {
+      # compute the sum for each species and report to the sampled surface,
+      # which is surf * number of points
+      tab_sp <- tab_parc[tab_parc$sp == sp,]
+      ab <- sum(tab_sp[4:length(tab_sp)]) / (surf * (length(tab_sp) - 3))
+      abond_per_plot[parc, sp] <- ab
+    }
+  }
+
+  mat_vide <- matrix(0, ncol = 9, nrow = nrow(abond_per_plot) * ncol(abond_per_plot))
+  dat <- data.frame(mat_vide)
+  colnames(dat) <- c("parc", "sp", "real", "estimate", paste("n", 0:4, sep = ""))
+
+  # create table with 2 column: one for the real value and one for the estimate
+  # value
+  i <- 0
+  for (parc in rownames(abond_per_plot)) {
+    for (sp in colnames(abond_per_plot)) {
+      i <- i+1
+      orig <- as.numeric(tab[tab$carre.parc == parc & tab$sp == sp, 4:length(tab)])
+      dat$n0[i]       <- length(orig[orig == 0])
+      dat$n1[i]       <- length(orig[orig == 1])
+      dat$n2[i]       <- length(orig[orig == 2])
+      dat$n3[i]       <- length(orig[orig == 3])
+      dat$n4[i]       <- length(orig[orig == 4])
+      dat$sp[i]       <- sp
+      dat$parc[i]     <- parc
+      dat$real[i]     <- abond_per_plot[parc, sp]
+      dat$estimate[i] <- tab_estim[parc, sp]
+    }
+  }
+
+  return(dat)
+}
+
+# ------------------------------------------------------------------------------
+
+estim_summary_tot_gm <- function(tab, tabgm, surf) {
+
+  mat_vide <- matrix(0, ncol = 4, nrow = nrow(tab))
+  dat <- data.frame(mat_vide)
+  colnames(dat) <- c("parc", "sp", "real", "estimate")
+
+  dat$parc <- tab$carre.parc
+  dat$sp   <- tab$sp
+
+  surfech <- surf * (length(tab) - 3)
+
+  for (i in 1:nrow(tab)) {
+    dat$real[i]     <- mean(as.numeric(tab[i, 4:length(tab)])) / surfech
+    dat$estimate[i] <- mean(as.numeric(tabgm[i, 4:length(tabgm)])) / surfech
+  }
+
+  return(dat)
 }
