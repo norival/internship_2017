@@ -113,3 +113,11 @@ gmean[gmean == 4] <- exp(mean(log(c(100, 999))))
 gmean[gmean == 5] <- exp(mean(log(c(1000, 9999))))
 
 cor_gmean <- estim_summary_tot_gm(tab = transposed[["orig"]], gmean, surf = 1)
+
+## test on base2
+# compute estimtions
+estim2 <- estim_abundance(x = transposed[["base2"]], surf = 1, n_cores = 4, addpos = FALSE)
+
+cor_base2 <- estim_summary_tot(transposed[["orig"]], estim2, surf = 1)
+
+save.image('/tmp/data_verif.RData')
