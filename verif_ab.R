@@ -86,3 +86,20 @@ notgood <- dat[dat$estimate > 300 & dat$base == "base2" & dat$periode == "period
                -seq(from = length(dat), to = length(dat) - 4, by = -1)]
 
 save.image('/tmp/data_verif.RData')
+
+
+# ------------------------------------------------------------------------------
+# with complete abundance
+
+flore <- read.csv("data/raw/flore_tot_per1.csv", encoding = "latin1", sep = ";",
+                  stringsAsFactors = FALSE)
+
+# remove the "Transect" quadrat
+flore2013 <- flore[flore$Annee == 2013 & flore$Quadrat != "Transect", ]
+
+# remove all NAs lines
+flore2013 <-
+  flore2013[which(apply(flore2013[, 16:ncol(flore2013)], 1, function(x) sum(is.na(x)))
+                  != ncol(flore2013) - 15),]
+
+transposed <- transpose_flora_tot(flore2013)
