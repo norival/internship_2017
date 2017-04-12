@@ -185,48 +185,27 @@ estim_summary_tot <- function(tab, tab_estim, surf) {
   # replace very small estimate values with 0
   tab_estim[tab_estim <= min(tab_estim)] <- 0
 
-  # create empty matrix to store results: one line per plot and one column per
-  # species
-  mat_vide <- matrix(Inf,
-                     ncol = length(unique(tab$sp)),
-                     nrow = length(unique(tab$carre.parc)))
-  abond_per_plot <- as.data.frame(mat_vide)
-
-  colnames(abond_per_plot) <- unique(tab$sp)
-  rownames(abond_per_plot) <- unique(tab$carre.parc)
-
-  for (parc in unique(tab$carre.parc)) {
-    # do it for each plot
-    tab_parc <- tab[tab$carre.parc == parc,]
-
-    for (sp in unique(tab_parc$sp)) {
-      # compute the sum for each species and report to the sampled surface,
-      # which is surf * number of points
-      tab_sp <- tab_parc[tab_parc$sp == sp,]
-      ab <- sum(tab_sp[4:length(tab_sp)]) / (surf * (length(tab_sp) - 3))
-      abond_per_plot[parc, sp] <- ab
-    }
-  }
-
-  mat_vide <- matrix(0, ncol = 9, nrow = nrow(abond_per_plot) * ncol(abond_per_plot))
+  # mat_vide <- matrix(0, ncol = 9, nrow = nrow(abond_per_plot) * ncol(abond_per_plot))
+  mat_vide <- matrix(0, ncol = 9, nrow = nrow(tab))
   dat <- data.frame(mat_vide)
   colnames(dat) <- c("parc", "sp", "real", "estimate", paste("n", 0:4, sep = ""))
 
   # create table with 2 column: one for the real value and one for the estimate
   # value
+  surfech <- surf * (length(tab) - 3)
   i <- 0
-  for (parc in rownames(abond_per_plot)) {
-    for (sp in colnames(abond_per_plot)) {
+  for (parc in rownames(tab_estim)) {
+    for (sp in colnames(tab_estim)) {
       i <- i+1
-      orig <- as.numeric(tab[tab$carre.parc == parc & tab$sp == sp, 4:length(tab)])
-      dat$n0[i]       <- length(orig[orig == 0])
-      dat$n1[i]       <- length(orig[orig == 1])
-      dat$n2[i]       <- length(orig[orig == 2])
-      dat$n3[i]       <- length(orig[orig == 3])
-      dat$n4[i]       <- length(orig[orig == 4])
+      abreal <- as.numeric(tab[tab$carre.parc == parc & tab$sp == sp, 4:length(tab)])
+      dat$real[i]     <- sum(abreal) / surfech
+      dat$n0[i]       <- length(abreal[abreal == 0])
+      dat$n1[i]       <- length(abreal[abreal == 1])
+      dat$n2[i]       <- length(abreal[abreal == 2])
+      dat$n3[i]       <- length(abreal[abreal == 3])
+      dat$n4[i]       <- length(abreal[abreal == 4])
       dat$sp[i]       <- sp
       dat$parc[i]     <- parc
-      dat$real[i]     <- abond_per_plot[parc, sp]
       dat$estimate[i] <- tab_estim[parc, sp]
     }
   }
@@ -248,8 +227,8 @@ estim_summary_tot_gm <- function(tab, tabgm, surf) {
   surfech <- surf * (length(tab) - 3)
 
   for (i in 1:nrow(tab)) {
-    dat$real[i]     <- mean(as.numeric(tab[i, 4:length(tab)])) / surfech
-    dat$estimate[i] <- mean(as.numeric(tabgm[i, 4:length(tabgm)])) / surfech
+    dat$real[i]     <- sum(as.numeric(tab[i, 4:length(tab)])) / surfech
+    dat$estimate[i] <- sum(as.numeric(tabgm[i, 4:length(tabgm)])) / surfech
   }
 
   return(dat)
