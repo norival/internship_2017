@@ -102,4 +102,14 @@ flore2013 <-
   flore2013[which(apply(flore2013[, 16:ncol(flore2013)], 1, function(x) sum(is.na(x)))
                   != ncol(flore2013) - 15),]
 
+# transpose and convert the dataframe
 transposed <- transpose_flora_tot(flore2013)
+
+## test correlation with geometric mean
+gmean <- transposed[["base10"]][, -(1:4)]
+gmean[gmean == 2] <- exp(mean(log(c(2, 9))))
+gmean[gmean == 3] <- exp(mean(log(c(10, 99))))
+gmean[gmean == 4] <- exp(mean(log(c(100, 999))))
+gmean[gmean == 5] <- exp(mean(log(c(1000, 9999))))
+
+cor_gmean <- estim_summary_tot_gm(tab = transposed[["orig"]], gmean, surf = 1)
