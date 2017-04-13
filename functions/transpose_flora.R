@@ -1,4 +1,5 @@
 transpose_flora_tot <- function(tab) {
+  tab <- flore2013
   # this function returns 4 dataframes:
   #   orig      : data transposed to the same format as monitoring data so the
   #               functions to compute abundance can be used
@@ -7,6 +8,14 @@ transpose_flora_tot <- function(tab) {
   # The 'position' column is used to set compatibility with the estimations
   # functions.
 
+  # normalize the 'Design', 'Zone', 'Quadra' columns to have unique identifiers
+  for (parc in unique(tab$Parcelle)) {
+    n <- nrow(tab[tab$Parcelle == parc,])
+    tab[tab$Parcelle == parc, "Design"] <- paste0("D", 1:n)
+    tab[tab$Parcelle == parc, "Zone"]   <- paste0("Z", 1:n)
+    tab[tab$Parcelle == parc, "Quadrat"] <- paste0("Q", 1:n)
+  }
+
   # Prepare an empty matrix filled with 0 (for 0 abundance observed)
   sp    <- unique(colnames(tab[, 16:length(tab)]))
   pc    <- unique(tab$Parcelle)
@@ -14,7 +23,7 @@ transpose_flora_tot <- function(tab) {
   n_sp  <- length(sp)
   sp    <- rep(sp, n_pc)
   carre.parc <- rep(pc, rep(n_sp, length(pc)))
-  qd <- unique(paste0(tab$Zone, tab$Quadrat))
+  qd <- unique(paste0(tab$Design, tab$Zone, tab$Quadrat))
 
   A <- matrix(0, ncol = length(qd), nrow = length(carre.parc))
 
@@ -27,7 +36,8 @@ transpose_flora_tot <- function(tab) {
     for (j in 16:ncol(tab)) {
       # for (i in 1:50) {
       iid <- which(ids == paste0(tab$Parcelle[i], colnames(tab)[j]))
-      iqd <- paste0(tab$Zone[i], tab$Quadrat[i])
+      iqd <- paste0(tab$Design[i], tab$Zone[i], tab$Quadrat[i])
+      if (is.na(tab[i, j])) tab[i, j] <- 0
       A[iid, iqd] <- tab[i, j]
     }
   }
@@ -103,8 +113,8 @@ estim_summary_gm <- function(tab, tabgm, surf) {
   surfech <- surf * (length(tab) - 3)
 
   for (i in 1:nrow(tab)) {
-    dat$real[i]     <- sum(as.numeric(tab[i, 4:length(tab)])) / surfech
-    dat$estimate[i] <- sum(as.numeric(tabgm[i, 4:length(tabgm)])) / surfech
+    dat$real[i]     <- sum(as.numeric(tab[i, 4:length(tab)])) #/ surfech
+    dat$estimate[i] <- sum(as.numeric(tabgm[i, 4:length(tabgm)])) #/ surfech
   }
 
   return(dat)

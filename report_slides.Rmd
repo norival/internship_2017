@@ -30,36 +30,49 @@ estimation des abondances réelles ?
 
 ```{r, graphgeom, echo=FALSE}
 cor_gmean %>%
-  ggplot(aes(x = real, y = estimate)) +
+  ggplot(aes(y = real, x = estimate)) +
   geom_point(size = 2, shape = 1) +
   theme_bw() +
-  xlab("Densité réelle") +
-  ylab("Moyenne géométrique") +
+  ylab("Densité réelle") +
+  xlab("Moyenne géométrique") +
+  geom_abline(slope = 1, intercept = 0)
+```
+
+## Moyenne géométrique Vs. abondance (log)
+
+```{r, graphgeomlog, echo=FALSE}
+cor_gmean %>%
+  ggplot(aes(y = log(real), x = log(estimate))) +
+  geom_point(size = 2, shape = 1) +
+  theme_bw() +
+  ylab("log(Densité réelle)") +
+  xlab("log(Moyenne géométrique)") +
   geom_abline(slope = 1, intercept = 0)
 ```
 
 ## Estimations $log_2$
 
-```{r, graphbase2, echo=FALSE}
+```{r, graphbase22log, echo=FALSE}
 cor_base2[, 1:4] %>%
-  ggplot(aes(x = real, y = estimate)) +
+  filter(estimate < 80) %>%
+  ggplot(aes(y = real, x = estimate)) +
   geom_point(size = 2, shape = 1) +
   theme_bw() +
-  xlab("Densité réelle") +
-  ylab("Estimation sur base2") +
+  ylab("Densité réelle") +
+  xlab("Estimation sur base2") +
   geom_abline(slope = 1, intercept = 0)
 ```
 
-## Estimations $log_2$
+## Estimations $log_2$ (log)
 
 ```{r, graphbase22, echo=FALSE}
 cor_base2[, 1:4] %>%
   filter(estimate < 80) %>%
-  ggplot(aes(x = real, y = estimate)) +
+  ggplot(aes(y = log(real), x = log(estimate))) +
   geom_point(size = 2, shape = 1) +
   theme_bw() +
-  xlab("Densité réelle") +
-  ylab("Estimation sur base2") +
+  ylab("log(Densité réelle)") +
+  xlab("log(Estimation sur base2)") +
   geom_abline(slope = 1, intercept = 0)
 ```
 
@@ -68,23 +81,55 @@ cor_base2[, 1:4] %>%
 ```{r, densities, echo=FALSE, fig.height=6.2}
 bb %>%
   ggplot(aes(ab)) +
-  geom_density() +
+  geom_histogram(bins = 30) +
   facet_wrap(~ parc) +
   theme_bw()
 ```
 
-## Estimation $log_{10}$
+## Estimation 0/1
 
 ```{r, graphbase10, echo=FALSE}
 suppressWarnings({
-cor_base10 %>%
-  ggplot(aes(x = real, y = estimate)) +
+cor_base0 %>%
+  ggplot(aes(y = real, x = estimate)) +
   geom_point(size = 2, shape = 1) +
   theme_bw() +
-  scale_x_continuous(limits = c(0, 30)) +
-  scale_y_continuous(limits = c(0, 30)) +
-  xlab("Densité réelle") +
-  ylab("Estimation sur base10") +
+  ylab("Densité réelle") +
+  xlab("Estimation sur 0/1") +
   geom_abline(slope = 1, intercept = 0)
 })
+```
+
+## Estimation 0/1 (log)
+
+```{r, graphbase10log, echo=FALSE}
+suppressWarnings({
+cor_base0 %>%
+  ggplot(aes(y = log(real), x = log(estimate))) +
+  geom_point(size = 2, shape = 1) +
+  theme_bw() +
+  # scale_x_continuous(limits = c(0, 30)) +
+  # scale_y_continuous(limits = c(0, 30)) +
+  ylab("log(Densité réelle)") +
+  xlab("log(Estimation sur 0/1)") +
+  geom_abline(slope = 1, intercept = 0)
+})
+```
+
+## Relation directe base 2
+
+```{r, emp2, echo=FALSE}
+plot(b2, a)
+```
+
+## Relation directe base 10
+
+```{r, emp10, echo=FALSE}
+plot(b10, a)
+```
+
+## Relation directe 0/1
+
+```{r, emp0, echo=FALSE}
+plot(b0, a)
 ```
