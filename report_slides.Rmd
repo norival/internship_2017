@@ -1,6 +1,6 @@
 ---
-title: "Lab meeting"
-date: 12 avril 2017
+title: Estimation abondances
+date:
 author:
 output: ioslides_presentation
 ---
@@ -12,56 +12,79 @@ library(dplyr)
 load('/tmp/data_verif.RData')
 ```
 
-## Diferent types of sampling
+## Problématique
 
-- Sampling present/absent (0/1)
-- Sampling $log_2$:
-    - 0 = 0 plant
-    - 1 = 1 plant
-    - 2 = > 1 plant
-- Sampling $log_{10}$:
-    - 0 = 0 plant
-    - 1 = 1 plant
-    - 2 = [2; 9] plants
-    - 3 = [10; 99] plants
-    - 4 = [100; 999] plants
-    - 5 = [1000; 9999] plants
+Jusqu'où peut-on dégrader la précision des relevés tout en gardant une bonne
+estimation des abondances réelles ?
 
-## Méthode d'estimation
+### Méthode
 
-- Estimation de l'abondance réelle en supposant que la distribution des
-  abondances suit une loi de Poisson :
+- Les données 2013 possèdent des relevés d'abondances complètes
+- Dégradation des abondances en relevés 0/1, $log_2$ ou $log_{10}$
+- Estimation par la moyenne géométrique pour les relevés $log_{10}$
+- Estimation par une loi de Poisson composée pour les relevés $log_2$
+- Estimation par une loi de Poisson simple pour les relevés 0/1
 
-\[
-P(X=k) = \frac{\lambda^{k}}{k!}\times e^{-\lambda}
-\]
 
-- On cherche donc le paramètre $\lambda$ de la loi tel que $P$ est maximum, $P$
-  étant la probabilité d'observer les données $k$
-- Répété sur chaque espèce et pour chaque parcelle
-
-## Vérifications
-
-- Vérification sur les données 2013
+## Moyenne géométrique Vs. abondance
 
 ```{r, graphgeom, echo=FALSE}
 cor_gmean %>%
   ggplot(aes(x = real, y = estimate)) +
-  geom_point(size = 2) +
+  geom_point(size = 2, shape = 1) +
   theme_bw() +
-  xlab("Abondance réelle") +
+  xlab("Densité réelle") +
   ylab("Moyenne géométrique") +
-  geom_abline(slope = 1, intercept = 0, color = "red")
+  geom_abline(slope = 1, intercept = 0)
+```
+
+## Estimations $log_2$
+
+```{r, graphbase2, echo=FALSE}
+cor_base2[, 1:4] %>%
+  ggplot(aes(x = real, y = estimate)) +
+  geom_point(size = 2, shape = 1) +
+  theme_bw() +
+  xlab("Densité réelle") +
+  ylab("Estimation sur base2") +
+  geom_abline(slope = 1, intercept = 0)
+```
+
+## Estimations $log_2$
+
+```{r, graphbase22, echo=FALSE}
+cor_base2[, 1:4] %>%
+  filter(estimate < 80) %>%
+  ggplot(aes(x = real, y = estimate)) +
+  geom_point(size = 2, shape = 1) +
+  theme_bw() +
+  xlab("Densité réelle") +
+  ylab("Estimation sur base2") +
+  geom_abline(slope = 1, intercept = 0)
 ```
 
 ---
 
-```{r, graphbase2, echo=FALSE}
-cor_base2 %>%
+```{r, densities, echo=FALSE, fig.height=6.2}
+bb %>%
+  ggplot(aes(ab)) +
+  geom_density() +
+  facet_wrap(~ parc) +
+  theme_bw()
+```
+
+## Estimation $log_{10}$
+
+```{r, graphbase10, echo=FALSE}
+suppressWarnings({
+cor_base10 %>%
   ggplot(aes(x = real, y = estimate)) +
-  geom_point(size = 2) +
+  geom_point(size = 2, shape = 1) +
   theme_bw() +
-  xlab("Abondance réelle") +
-  ylab("Estimation sur base2") +
-  geom_abline(slope = 1, intercept = 0, color = "red")
+  scale_x_continuous(limits = c(0, 30)) +
+  scale_y_continuous(limits = c(0, 30)) +
+  xlab("Densité réelle") +
+  ylab("Estimation sur base10") +
+  geom_abline(slope = 1, intercept = 0)
+})
 ```

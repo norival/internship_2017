@@ -41,4 +41,45 @@ estim2 <- estim_abundance(x = transposed[["base2"]], surf = 1, n_cores = 4, addp
 
 cor_base2 <- estim_summary(transposed[["orig"]], estim2, surf = 1)
 
+# ------------------------------------------------------------------------------
+
+orig  <- transposed[["orig"]]
+base2 <- transposed[["base2"]]
+bad21 <- cor_base2[abs(cor_base2$estimate - cor_base2$real) > 5,]
+badid <- paste0(bad21$sp, bad21$parc)
+id    <- paste0(orig$sp, orig$carre.parc)
+bad2 <- base2[id %in% badid, -3]
+n2 <- apply(bad2[,3:length(bad2)], 1, function(x) sum(x == 2))
+n1 <- apply(bad2[,3:length(bad2)], 1, function(x) sum(x == 1))
+n0 <- apply(bad2[,3:length(bad2)], 1, function(x) sum(x == 0))
+bad2sum <- cbind.data.frame(bad2[, 1:2], real = bad21$real, estimate =
+                            bad21$estimate, n0, n1, n2)
+badorig <- orig[id %in% badid, -3]
+write.csv(badorig, "~/desktop/data_stage2/badplots.csv", row.names = FALSE)
+write.csv(bad2sum, "~/desktop/data_stage2/badsum.csv", row.names = FALSE)
+
+bb <- cbind()
+for (i in 1:nrow(badorig)) {
+  b <- cbind(i, as.numeric(badorig[i, 3:length(badorig)]))
+  bb <- rbind(bb, b)
+}
+bb <- as.data.frame(bb)
+colnames(bb) <- c("parc", "ab")
+
+# ------------------------------------------------------------------------------
+
+estim10 <- estim_abundance01(x = transposed[["base10"]], surf = 1, addpos = FALSE)
+
+cor_base10 <- estim_summary(transposed[["orig"]], estim10, surf = 1)
+
+cor_base10 %>%
+  ggplot(aes(x = real, y = estimate)) +
+  geom_point(size = 2, shape = 1) +
+  theme_bw() +
+  scale_x_continuous(limits = c(0, 30)) +
+  scale_y_continuous(limits = c(0, 30)) +
+  xlab("Densité réelle") +
+  ylab("Estimation sur base10") +
+  geom_abline(slope = 1, intercept = 0)
+
 save.image('/tmp/data_verif.RData')
