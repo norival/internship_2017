@@ -12,9 +12,9 @@ flore <- read.csv("data/raw/flore_tot_per1.csv", encoding = "latin1", sep = ";",
 flore2013 <- flore[flore$Annee == 2013 & flore$Quadrat != "Transect", ]
 
 # remove all NAs lines
-flore2013 <-
-  flore2013[which(apply(flore2013[, 16:ncol(flore2013)], 1, function(x) sum(is.na(x)))
-                  != ncol(flore2013) - 15),]
+# flore2013 <-
+#   flore2013[which(apply(flore2013[, 16:ncol(flore2013)], 1, function(x) sum(is.na(x)))
+#                   != ncol(flore2013) - 15),]
 
 
 # -- check estimations ---------------------------------------------------------
@@ -68,11 +68,11 @@ colnames(bb) <- c("parc", "ab")
 
 # ------------------------------------------------------------------------------
 
-estim10 <- estim_abundance01(x = transposed[["base10"]], surf = 1, addpos = FALSE)
+estim01 <- estim_abundance01(x = transposed[["base0"]], surf = 1, addpos = FALSE)
 
-cor_base10 <- estim_summary(transposed[["orig"]], estim10, surf = 1)
+cor_base0 <- estim_summary(transposed[["orig"]], estim01, surf = 1)
 
-cor_base10 %>%
+cor_base0 %>%
   ggplot(aes(x = real, y = estimate)) +
   geom_point(size = 2, shape = 1) +
   theme_bw() +
@@ -81,5 +81,21 @@ cor_base10 %>%
   xlab("Densité réelle") +
   ylab("Estimation sur base10") +
   geom_abline(slope = 1, intercept = 0)
+
+# ------------------------------------------------------------------------------
+# empirical
+
+a <- as.numeric(as.matrix(flore2013[, 16:length(flore2013)]))
+b0 <- a
+b0[b0 > 1] <- 1
+b2 <- a
+b2[b2 > 2] <- 2
+b10 <- a
+b10[b10 >= 2 &    b10 < 10]     <- 2
+b10[b10 >= 10 &   b10 < 100]    <- 3
+b10[b10 >= 100 &  b10 < 1000]   <- 4
+b10[b10 >= 1000 & b10 < 10000]  <- 5
+plot(b10, log(a))
+plot(b2, a)
 
 save.image('/tmp/data_verif.RData')
