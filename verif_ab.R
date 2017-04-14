@@ -38,8 +38,12 @@ cor_gmean <- estim_summary_gm(tab = transposed[["orig"]], gmean, surf = 1)
 ## test on base2
 # compute estimtions
 estim2 <- estim_abundance(x = transposed[["base2"]], surf = 1, n_cores = 4, addpos = FALSE)
+estim2slambfull <- estim_abundance(x = transposed[["base2"]], surf = 1, n_cores = 4,
+                                   addpos = FALSE, estim_slambda = TRUE,
+                                   return_probas = TRUE)
 
 cor_base2 <- estim_summary(transposed[["orig"]], estim2, surf = 1)
+cor_base2slamb <- estim_summary(transposed[["orig"]], estim2slamb, surf = 1)
 
 # ------------------------------------------------------------------------------
 
@@ -99,3 +103,23 @@ plot(b10, log(a))
 plot(b2, a)
 
 save.image('/tmp/data_verif.RData')
+
+# ------------------------------------------------------------------------------
+# distribution of abundances
+
+orig <- transposed[["orig"]]
+allsp <- data.frame(character(), numeric())
+for (sp in unique(orig$sp)) {
+  a <-
+    cbind.data.frame(sp, as.numeric(as.matrix(orig[orig$sp == sp, 4:length(orig)])))
+  allsp <- rbind.data.frame(allsp, a)
+}
+colnames(allsp) <- c("sp", "ab")
+allsp$sp <- as.character(allsp$sp)
+
+allsp[allsp$sp %in% unique(allsp$sp)[1:16],] %>%
+  ggplot(aes(ab)) +
+  geom_histogram(bins = 10) +
+  facet_wrap(~ sp)
+ggsave("~/desktop/distributions_abondances.png")
+write.csv(allsp, "~/desktop/distributions_abondances.csv")
