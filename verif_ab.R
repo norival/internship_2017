@@ -38,12 +38,8 @@ cor_gmean <- estim_summary_gm(tab = transposed[["orig"]], gmean, surf = 1)
 ## test on base2
 # compute estimtions
 estim2 <- estim_abundance(x = transposed[["base2"]], surf = 1, n_cores = 4, addpos = FALSE)
-estim2slambfull <- estim_abundance(x = transposed[["base2"]], surf = 1, n_cores = 4,
-                                   addpos = FALSE, estim_slambda = TRUE,
-                                   return_probas = TRUE)
 
 cor_base2 <- estim_summary(transposed[["orig"]], estim2, surf = 1)
-cor_base2slamb <- estim_summary(transposed[["orig"]], estim2slamb, surf = 1)
 
 # ------------------------------------------------------------------------------
 
@@ -123,3 +119,59 @@ allsp[allsp$sp %in% unique(allsp$sp)[1:16],] %>%
   facet_wrap(~ sp)
 ggsave("~/desktop/distributions_abondances.png")
 write.csv(allsp, "~/desktop/distributions_abondances.csv")
+
+# ------------------------------------------------------------------------------
+# graphs pour présentation cesab
+
+allsp0 <- allsp
+allsp0$ab[allsp0$ab > 1] <- 1
+allsp2 <- allsp
+allsp2$ab[allsp2$ab > 2] <- 2
+allsp10 <- allsp
+allsp10$ab[allsp10$ab >= 2 &    allsp10$ab < 10]     <- 2
+allsp10$ab[allsp10$ab >= 10 &   allsp10$ab < 100]    <- 3
+allsp10$ab[allsp10$ab >= 100 &  allsp10$ab < 1000]   <- 4
+allsp10$ab[allsp10$ab >= 1000 & allsp10$ab < 10000]  <- 5
+a <- cbind.data.frame(allsp$sp, allsp$ab, allsp0$ab, allsp2$ab, allsp10$ab)
+colnames(a) <- c("sp", "ab", "ab0", "ab2", "ab10")
+a$sp <- as.character(a$sp)
+suma <- matrix(ncol = 4, nrow = 0)
+for (sp in unique(a$sp)) {
+  datsp <- a[a$sp == sp,]
+  b <- cbind(mean(datsp$ab), mean(datsp$ab0),
+             mean(datsp$ab2), mean(datsp$ab10))
+  suma <- rbind(suma, b)
+}
+
+bb <- as.data.frame(matrix(ncol = 3, nrow = 0))
+for (i in 2:ncol(suma)) {
+  b <- cbind.data.frame(paste0("ab", i), suma[, 1], suma[, i])
+  bb <- rbind.data.frame(bb, b)
+}
+colnames(bb) <- c("base", "real", "meanab")
+ggplot(bb, aes(x = log(real), y = log(meanab), colour = base)) +
+  geom_point(size = 2) +
+  # geom_smooth(method = "lm") +
+  geom_abline(slope = 1, intercept = 0) +
+  xlab("log(Abondance réelle)") +
+  ylab("log(Note moyenne)") +
+  labs(colour = "Dégradation") +
+  scale_color_discrete(labels = c("0/1", "base2", "base10")) +
+  theme_bw()
+ggsave("~/desktop/graphs/note_moyenne_vs_abondance.png")
+
+# ------------------------------------------------------------------------------
+
+aa <-
+  rbind.data.frame(cbind.data.frame(base = "base0", cor_base0[,1:4]),
+                   cbind.data.frame(base = "base2", cor_base2[,1:4]),
+                   cbind.data.frame(base = "geom", cor_gmean[,1:4]))
+ggplot(aa, aes(x = log(estimate), y = log(real), colour = base)) +
+  geom_point(size = 2, shape = 1, position = "jitter") +
+  geom_abline(slope = 1, intercept = 0) +
+  labs(colour = "Estimation") +
+  xlab("log(Estimation)") +
+  ylab("log(Abondance réelle)") +
+  scale_color_discrete(labels = c("0/1", "base2", "Géometrique")) +
+  theme_bw()
+ggsave("~/desktop/graphs/estimation_vs_abondance.png")
