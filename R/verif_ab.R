@@ -120,6 +120,12 @@ allsp[allsp$sp %in% unique(allsp$sp)[1:16],] %>%
 ggsave("~/desktop/distributions_abondances.png")
 write.csv(allsp, "~/desktop/distributions_abondances.csv")
 
+a <- colSums(orig[, 4:length(orig)])
+allsp[allsp$sp %in% sample(unique(allsp$sp), 20), ] %>%
+  ggplot(aes(ab)) +
+  geom_histogram(bins = 15) +
+  facet_wrap(~ sp)
+
 # ------------------------------------------------------------------------------
 # graphs pour présentation cesab
 
@@ -175,3 +181,49 @@ ggplot(aa, aes(x = log(estimate), y = log(real), colour = base)) +
   scale_color_discrete(labels = c("0/1", "base2", "Géometrique")) +
   theme_bw()
 ggsave("~/desktop/graphs/estimation_vs_abondance.png")
+
+
+# ------------------------------------------------------------------------------
+# gamma-poisson distribution (negative binomiale)
+# The distribution of plants within plots follows a Poisson distribution whith
+# lambda paramater being a random parameter drawn from a gamme distribution.
+# Then we are looking for P(k|lambda), k being the number of plants obsevred in
+# the quadrate and lambda the random parameter drawn from the gamma
+# distribution.
+
+gpoisson <- estim_abundance(x = base2, surf = 1, n_cores = 3,
+                            fun = "gammapoisson", addpos = FALSE)
+cor_gpoisson <- estim_summary(transposed[["orig"]], gpoisson, surf = 1)
+
+
+# ------------------------------------------------------------------------------
+# some plots
+
+cor_gpoisson %>%
+  ggplot(aes(x = log(estimate, base = 10), y = log(real, base = 10))) +
+  # ggplot(aes(x = estimate, y = real)) +
+  geom_point(size = 2, shape = 1) +
+  theme_bw() +
+  xlab("Estimation sur base10") +
+  ylab("Densité réelle") +
+  geom_abline(slope = 1, intercept = 0)
+
+aa <-
+  rbind.data.frame(cbind.data.frame(base = "poisson", cor_base2[,1:4]),
+                   cbind.data.frame(base = "binom", cor_gpoisson[,1:4]))
+
+ggplot(aa, aes(x = log(estimate, base = 10), y = log(real, base = 10), colour = base)) +
+# ggplot(aa, aes(x = estimate, y = real, colour = base)) +
+# ggplot(aa, aes(x = log(estimate), y = log(real), colour = base)) +
+  geom_point(size = 2, shape = 1, position = "jitter") +
+  geom_abline(slope = 1, intercept = 0) +
+  labs(colour = "Estimation") +
+  xlab("log(Estimation)") +
+  ylab("log(Abondance observée)") +
+  scale_color_discrete(labels = c("Poisson", "Binomiale")) +
+  theme_bw() +
+  theme(axis.title = element_text(size = 15),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 12)) +
+  ggtitle("Abondance observée Vs Abondance estimée (log)")
