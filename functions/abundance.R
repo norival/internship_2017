@@ -20,7 +20,48 @@ h.fct <- function(ltheta,v=v) {
   return(ll)
 }
 
-estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE) {
+lgpoisson <- function(k, r, theta) {
+  # log-gamma-posson mixture law:
+  # - 'r' and 'theta': paramaters for the gamma law
+  # - value: return the log-likelihood 'ln P(X=k)'
+
+  p <- 1 / (theta + 1)
+  q <- 1 - p
+
+  pk <-
+    gamma(k + r) / (gamma(r) * factorial(k)) * p^r * q^k
+
+  return(log(pk))
+}
+
+gammapoisson <- function(param, v) {
+  # on définit ensuite la fonction à minimiser:
+  # the function to minimize when estimating with Poisson-Gamma distribution
+
+  # 'param' are given as log:
+  param <- exp(param)
+
+  # log-likelihood to observe 0 plant
+  lp0 <- lgpoisson(k = 0, param[1], param[2])
+  # log-likelihood to observe 1 plant
+  lp1 <- lgpoisson(k = 1, param[1], param[2])
+  # log-likelihood to observe more than 1 plant
+  lp2 <- log(1 - exp(lp0) - exp(lp1))
+
+  lp <- c(lp0, lp1, lp2)
+
+  # log-vraissemblance du vecteur d'abondances (somme des log-vraissemblances de
+  # chaque abondance). On mutliplie par '-1' car on cherche à minimiser la
+  # fonction
+  # log-likelihood of abundance vector (sum of all likelihoods) * -1 because the
+  # function is minimized:
+  ll <- (-1)*sum(lp[v+1])
+
+  return(ll)
+}
+
+estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE,
+                            fun = "h.fct") {
   library(doSNOW)
 
   if (addpos & sum(grepl("Pa|In", x$carre.parc)) != length(x$carre.parc)) {
@@ -48,8 +89,9 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE
   cl <- makeCluster(n_cores)
   registerDoSNOW(cl)
   
+  export <- c(fun, "lgpoisson")
 
-  a <- foreach(i = 1:nrow(x), .combine = rbind, .export = "h.fct", .options.snow = opts) %dopar% {
+  a <- foreach(i = 1:nrow(x), .combine = rbind, .export = export, .options.snow = opts) %dopar% {
 
     if (progress) setTxtProgressBar(pb, i)
 
@@ -57,12 +99,24 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE
     # ici on récupère la ligne i, qui correspond à une espèce pour une parcelle
     v1 <- as.numeric(x[i, 4:ncol(x)])
 
-    # on estime l'abondance de la parcelle par la loi de poisson
-    Zu <- nlminb(c(0, 0), h.fct, v = v1, lower = c(-50, -50), upper = c(50, 50))
+    if (fun == "h.fct") {
+      # on estime l'abondance de la parcelle par la loi de poisson
+      Zu <- nlminb(c(0, 0), h.fct, v = v1, lower = c(-50, -50), upper = c(50, 50))
 
-    # on fait la moyenne de poisson sur le paramètre de Zu, qui correspond aux
-    # moyennes. On repasse en exponentielle car on avait fait un log
-    mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
+      # on fait la moyenne de poisson sur le paramètre de Zu, qui correspond aux
+      # moyennes. On repasse en exponentielle car on avait fait un log
+      mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
+
+    } else if (fun == "gammapoisson") {
+      Zu <- nlminb(c(0.001, 0.001), gammapoisson, v = v1,
+                   lower = c(0.001, 0.001), upper = c(500, 50),
+                   control = list(iter.max = 1000, abs.tol = 1e-20))
+
+      r <- exp(Zu$par[1])
+      p <- 1 / (exp(Zu$par[2]) + 1)
+      mm <- r * ((1 - p) / p)
+    }
+
     cbind.data.frame(x$carre.parc[i], x$sp[i], mm,
                      stringsAsFactors = F)
   }
