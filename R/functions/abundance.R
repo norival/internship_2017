@@ -41,6 +41,10 @@ gammapoisson <- function(param, v) {
   # 'param' are given as log:
   param <- exp(param)
 
+  # prevents the function to block on high parameter values, 30 seems to be a
+  # reasonable choice
+  if (max(param) > 30) return(100000)
+
   # log-likelihood to observe 0 plant
   lp0 <- lgpoisson(k = 0, param[1], param[2])
   # log-likelihood to observe 1 plant
@@ -108,8 +112,8 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE
       mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
 
     } else if (fun == "gammapoisson") {
-      Zu <- nlminb(c(0.001, 0.001), gammapoisson, v = v1,
-                   lower = c(0.001, 0.001), upper = c(500, 50),
+      Zu <- nlminb(c(0, 0), gammapoisson, v = v1,
+                   lower = c(-50, -50), upper = c(50, 50),
                    control = list(iter.max = 1000, abs.tol = 1e-20))
 
       r <- exp(Zu$par[1])
