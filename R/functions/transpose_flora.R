@@ -72,9 +72,9 @@ estim_summary <- function(tab, tab_estim, surf) {
   tab_estim[tab_estim <= min(tab_estim)] <- 0
 
   # mat_vide <- matrix(0, ncol = 9, nrow = nrow(abond_per_plot) * ncol(abond_per_plot))
-  mat_vide <- matrix(0, ncol = 9, nrow = nrow(tab))
+  mat_vide <- matrix(0, ncol = 7, nrow = nrow(tab))
   dat <- data.frame(mat_vide)
-  colnames(dat) <- c("parc", "sp", "real", "estimate", paste("n", 0:4, sep = ""))
+  colnames(dat) <- c("parc", "sp", "real", "estimate", paste("n", 0:2, sep = ""))
 
   # create table with 2 column: one for the real value and one for the estimate
   # value
@@ -85,11 +85,9 @@ estim_summary <- function(tab, tab_estim, surf) {
       i <- i+1
       abreal <- as.numeric(tab[tab$carre.parc == parc & tab$sp == sp, 4:length(tab)])
       dat$real[i]     <- sum(abreal) / surfech
-      dat$n0[i]       <- length(abreal[abreal == 0])
-      dat$n1[i]       <- length(abreal[abreal == 1])
-      dat$n2[i]       <- length(abreal[abreal == 2])
-      dat$n3[i]       <- length(abreal[abreal == 3])
-      dat$n4[i]       <- length(abreal[abreal == 4])
+      dat$n0[i]       <- sum(abreal == 0)
+      dat$n1[i]       <- sum(abreal == 1)
+      dat$n2[i]       <- length(abreal) - dat$n0[i] - dat$n1[i]
       dat$sp[i]       <- sp
       dat$parc[i]     <- parc
       dat$estimate[i] <- tab_estim[parc, sp]
