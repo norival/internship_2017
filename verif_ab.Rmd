@@ -1,5 +1,5 @@
 ---
-title: "Vérification des abondances"
+title: "Estimations des abondances"
 date: Mis à jour le \today
 lang: fr
 fontsize: 12pt
@@ -13,101 +13,126 @@ knitr::opts_chunk$set(fig.width=4, fig.height=4, fig.path='Figs/',
 ```
 ```{r, loading_data, echo=FALSE}
 library(ggplot2)
-dat <- read.csv("data/generated/verifications.csv", row.names = 1)
+load("data/generated/data_verif.RData")
 ```
 
-## Description
+## Estimation des abondances
 
-Sur le jeu de données `manip_ble_2014`, les relevés floristiques sont donnés en
-base 10 :
-
-- 0 : 0 plante
-- 1 : 1 plante
-- 2 : entre 2 et 9 plantes
-- 3 : entre 10 et 99 plantes
-- 4 : entre 100 et 999 plantes
-- 3 : entre 1000 et 9999 plantes
-
-Ce jeu de données peut être utilisé pour vérifier si les estimations
-d'abondances faites pour les autres manips sont valables.
-
-
-## Pour les relevés en présence/absence (0/1) 
-Pour tester cette estimation, toutes les notes supérieures à 1 sont ramenées à
-1 puis l'estimation est faite de la même façon que les autres relevés :
+Estimation par une loi binomiale négative (résultant d'un mélange de
+Gamma-Poisson).
+On suppose que les plantes sont distribuées au sein de la parcelle selon une loi
+de Poisson dont le paramètre $\lambda$ est lui-même une variable aléatoire.
+On suppose que ce paramètre $\lambda$ suit une distribution Gamma.
 
 \[
-  abondance = \log\frac{n_0+n_1}{n_0}
+  P(X=k) = \frac{\Gamma(k+r)}{\Gamma(r)k!} p^r q^k
 \]
 
-Avec:
+Avec :
 
-- $n_0$ le nombre de quadras où l'espèce est à 0
-- $n_1$ le nombre de quadras où l'espèce est à 1
+- $\Gamma(r)$ la valeur de la fonction gamma en $r$
+- $p$, la probabilité de 'succès' de la loi et $q$ la probabilité complémentaire
+  ($p = \frac{1}{\theta + 1}$)
+- $r$ et $\theta$ sont les paramètres de la loi
 
-Quand le nombre de parcelles à 0 est nul, la valeur retournée est `Inf`.
+L'espérance de cette loi est :
 
+\[
+  \lambda = r\frac{q}{p}
+\]
 
-## Pour les relevés en log base 2
+Comme pour la loi de COM-Poisson, on cherche les paramètres $r$ et $\theta$ pour
+lesquels la fonction de vraissemblance est maximale.
 
-Pour tester cette estimation, toutes les notes supérieures à 2 sont ramenées à
-2 puis l'estimation est faite comme pour les autres relevés, en utilisant une
-loi de poisson "compound".
+La figure suivante montre les valeurs observées en fonction des valeurs estimées
+(en log).
+L'estimation par la loi binomiale négative semble plutôt correcte, mais un peu
+moins bien que celle par la loi géométrique.
 
+```{r, echo=FALSE, fig.width=7, fig.height=4.5}
+aa <-
+  rbind.data.frame(cbind.data.frame(base = "base0", cor_base0[,1:4]),
+                   cbind.data.frame(base = "base2", cor_base2[,1:4]),
+                   cbind.data.frame(base = "geom",  cor_gmean[,1:4]),
+                   cbind.data.frame(base = "binom", cor_gpoisson[,1:4]))
+levels(aa$base) <- c("Poisson", "COM-Poisson", "Géométrique", "Binomiale")
 
-## Test des estimations
-
-Les valeurs estimées sont ajustées en fonction des valeurs réelles.
-Les 3 différentes périodes sont séparées, ce qui donne les résultats suivants
-(la droite noire correspond à la droite $y=x$ et chaque point correspond à
-l'estimation moyenne pour une espèce dans une parcelle):
-
-```{r fixscales, eval=TRUE, echo=FALSE, fig.height=9, fig.width=7}
-dat_noinf <- dat[!(is.infinite(dat$estimate)),]
-
-f_labels <- aggregate(data.frame(r2 = dat$r2, eqn = dat$eqn),
-                      list(periode = dat$periode, base = dat$base),
-                      unique)
-f_labels$r2 <- paste("R2=", round(f_labels$r2, 3), sep = "")
-
-p <- ggplot(dat, aes(x = real, y = estimate)) +
-  geom_point(size = 1) +
+ggplot(aa, aes(x = log(estimate), y = log(real))) +
+  geom_point(size = 2, shape = 1, position = "jitter") +
   geom_abline(slope = 1, intercept = 0) +
-  xlim(0, 40) +
-  ylim(0, 40) +
-  xlab("Valeurs observées") +
-  ylab("Valeurs estimées") +
-  facet_grid(periode ~ base) +
-  geom_text(x = 32, y = 20, aes(label = eqn), data = f_labels,
-            colour = "red", fontface = "bold") +
-  geom_text(x = 32, y = 15, aes(label = r2), data = f_labels,
-            colour = "red", fontface = "bold")
-plot(p)
+  facet_wrap(~ base, scales = "free") +
+  xlab("log(Estimation)") +
+  ylab("log(Abondance observée)") +
+  theme_bw()
 ```
 
-### Problèmes d'estimation
 
-Il y a un problème sur la période 3, il y a 95 points qui sont dupliqués, pour
-lesquelles il y a plusieurs fois la même espèce dans un sous quadra, avec des
-notes parfois différentes. Est-ce qu'il faut regrouper ces valeurs ?
+## Vérification des estimations
 
-Je pense que les points qui sont bizarres pour les fortes valeurs d'abondances
-observées viennent de la fonction d'estimation.
-J'ai regardé quelques-uns de ces points au hasard et à chaque fois ils ont un
-grand nombre de notes à '2' dans les sous-quadras.
-La figure montre l'évolution de l'estimation quand le nombre de notes à 2
-augmente dans un vecteur de 40 notes d'abondances (40 sous-quadras).
+### Modèles linéaires
 
-```{r test, fig.width=7, fig.height=5}
-est <- numeric(40)
-ab <- sample(c(0,1), 40, replace = T)
-for (i in 1:40) {
-  ab[1:i] <- 2
+Vérification par des modèles linéaires :
 
-  # estimation
-  Zu <- nlminb(c(0, 0), h.fct, v = ab, lower = c(-50, -50),upper = c(50, 50))
-  est[i] <- com.mean(exp(Zu$par[1]), exp(Zu$par[2])) / 0.25
-}
-plot(1:40, est, xlab = "Nombre de notes à 2 dans le vecteur d'abondances",
-     ylab = "Abondance estimée")
+```{r models, echo=TRUE}
+# estimations avec Poisson simple
+modb0 <- lm(real ~ estimate,
+            data = aa[aa$base == "Poisson" & !is.infinite(aa$estimate),])
+summary(modb0)
+
+# estimations avec COM Poisson
+modb2 <- lm(real ~ estimate, data = aa[aa$base == "COM-Poisson",])
+summary(modb2)
+
+# estimation par moyenne géométrique de la classe
+modgeo <- lm(real ~ estimate, data = aa[aa$base == "Géométrique",])
+summary(modgeo)
+
+# estimation par loi Binomiale négative
+modnbino <- lm(real ~ estimate, data = aa[aa$base == "Binomiale",])
+summary(modnbino)
 ```
+
+### Évaluation des modèles par bootstrap
+
+La figure suivante montre un bootstrap ($n=10000$) sur les coefficients des
+modèles linéaires. La droite rouge correspond à la droite $y=x$ et les zones
+colorées aux intervalles de confiance à 95 %.
+L'estimation par une loi de Poisson est largement sous-estimée.
+L'estimation par une loi de COM-Poisson est largement sur-estimée.
+L'estimation par la moyenne géométrique ne diffère pas de la valeur observée
+(recoupement de l'IC95 et de la droite $y=x$) jusqu'à une valeur d'environ 25
+puis est légèrement sur-estimée pour les valeurs supérieures.
+
+Il y a un fort recoupement des intervalles de confiance pour les estimations par
+moyenne géométrique et par loi binomiale négative.
+Ces deux méthodes donnent donc des résultats sensiblement identiques, la méthode
+par loi binomiale négative sur-estimant légèrement plus les abondances.
+
+```{r bootstraps, echo=FALSE, fig.width=7, fig.height=4.5}
+tab_boot$estimation <- as.factor(tab_boot$estimation)
+levels(tab_boot$estimation) <- c("Poisson", "COM-Poisson", "Géométrique", "Binomiale")
+
+ggplot(tab_boot, aes(x = x, y = moy, fill = estimation)) +
+  geom_line(aes(colour = estimation), size = 1.2) +
+  geom_ribbon(aes(ymin = icinf, ymax = icsup), alpha = 0.2) +
+  geom_abline(slope = 1, intercept = 0, col = "red", size = 1.2) +
+  xlim(c(0, 50)) +
+  ylim(c(0, 50)) +
+  xlab("Abondance estimée") +
+  ylab("Abondance observée") +
+  labs(fill = "Méthode") +
+  labs(colour = "Méthode") +
+  theme_bw()
+```
+
+Le tableau suivant donne les valeurs de $R^2$ pour les modèles bootstrapés, avec
+intervalles de confiance à 95 %.
+
+```{r bootstraps_tab, echo=FALSE}
+knitr::kable(bootsum, digits = 2)
+```
+
+Le modèle qui explique le plus les variations est celui basé sur l'estimation
+par moyenne géométrique (fort $R^2$ et intervalle de confiance resserré).
+L'estimation par la loi binomiale négative a un $R^2$ élevé mais un intervalle
+de confiance plus large.

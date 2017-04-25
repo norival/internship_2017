@@ -111,8 +111,8 @@ estim_summary_gm <- function(tab, tabgm, surf) {
   surfech <- surf * (length(tab) - 3)
 
   for (i in 1:nrow(tab)) {
-    dat$real[i]     <- sum(as.numeric(tab[i, 4:length(tab)])) #/ surfech
-    dat$estimate[i] <- sum(as.numeric(tabgm[i, 4:length(tabgm)])) #/ surfech
+    dat$real[i]     <- sum(as.numeric(tab[i, 4:length(tab)])) / surfech
+    dat$estimate[i] <- sum(as.numeric(tabgm[i, 4:length(tabgm)])) / surfech
   }
 
   return(dat)
