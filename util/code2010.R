@@ -223,19 +223,3 @@ A_Diversity=cbind(A_Diversity_obs,xtemp)
 # abline(0,1)
 
 write.table(A_Diversity, "data/generated/Diversity_fieldcore2010.csv", sep = ";")
-
-# -- estimation des abondances -------------------------------------------------
-
-# package
-source("functions/abundance.R", encoding = "utf8")
-
-# on choppe les donnees
-data2010 <- read.csv("data/generated/transpose_abondance_per_quadrat2010.csv",
-                     sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
-
-abond_per_plot <- estim_abundance(data2010, surf = 4, n_cores = 4)
-
-write.csv(abond_per_plot, "data/generated/abondt_per_quadra_2010.csv",
-          row.names = TRUE)
-
-rm(list = ls())
