@@ -195,6 +195,11 @@ gpoisson <- estim_abundance(x = base2, surf = 1, n_cores = 3,
                             fun = "gammapoisson", addpos = FALSE)
 cor_gpoisson <- estim_summary(transposed[["orig"]], gpoisson, surf = 1)
 
+aa <-
+  rbind.data.frame(cbind.data.frame(base = "base0", cor_base0[,1:4]),
+                   cbind.data.frame(base = "base2", cor_base2[,1:4]),
+                   cbind.data.frame(base = "geom",  cor_gmean[,1:4]),
+                   cbind.data.frame(base = "binom", cor_gpoisson[,1:4]))
 
 # ------------------------------------------------------------------------------
 # some plots
@@ -208,22 +213,43 @@ cor_gpoisson %>%
   ylab("Densité réelle") +
   geom_abline(slope = 1, intercept = 0)
 
-aa <-
-  rbind.data.frame(cbind.data.frame(base = "poisson", cor_base2[,1:4]),
-                   cbind.data.frame(base = "binom", cor_gpoisson[,1:4]))
+# ------------------------------------------------------------------------------
+# bootstraps on models coefficients
+nboot <- 10000
 
-ggplot(aa, aes(x = log(estimate, base = 10), y = log(real, base = 10), colour = base)) +
-# ggplot(aa, aes(x = estimate, y = real, colour = base)) +
-# ggplot(aa, aes(x = log(estimate), y = log(real), colour = base)) +
-  geom_point(size = 2, shape = 1, position = "jitter") +
-  geom_abline(slope = 1, intercept = 0) +
-  labs(colour = "Estimation") +
-  xlab("log(Estimation)") +
-  ylab("log(Abondance observée)") +
-  scale_color_discrete(labels = c("Poisson", "Binomiale")) +
-  theme_bw() +
-  theme(axis.title = element_text(size = 15),
-        axis.text = element_text(size = 12),
-        legend.title = element_text(size = 12),
-        legend.text = element_text(size = 12)) +
-  ggtitle("Abondance observée Vs Abondance estimée (log)")
+# bootstraps on models
+bootbase0    <- bootstrap(nboot, cor_base0)
+bootgmean    <- bootstrap(nboot, cor_gmean)
+bootbase2    <- bootstrap(nboot, cor_base2)
+bootgpoisson <- bootstrap(nboot, cor_gpoisson)
+
+# compute predictd values with IC95
+predbootbase0    <- bootpred(0:50, bootbase0)
+predbootgmean    <- bootpred(0:50, bootgmean)
+predbootbase2    <- bootpred(0:50, bootbase2)
+predbootgpoisson <- bootpred(0:50, bootgpoisson)
+
+tab_boot <-
+  rbind.data.frame(predbootbase0, predbootgmean, predbootbase2, predbootgpoisson)
+tab_boot$estimation <-
+  rep(c("0/1", "gmean", "base2", "gpoisson"), rep(nrow(predbootgmean), 4))
+
+
+# summary table for bootstraps
+bootsum <-
+  cbind.data.frame(estim   = c("Poisson", "Moyenne géométrique", "COM-Poisson", "Gamma-Poisson"),
+                   r_icinf = rbind(quantile(bootbase0$r.squared,    0.025),
+                                   quantile(bootgmean$r.squared,    0.025),
+                                   quantile(bootbase2$r.squared,    0.025),
+                                   quantile(bootgpoisson$r.squared, 0.025)),
+                   r_mean  = rbind(mean(bootbase0$r.squared),
+                                   mean(bootgmean$r.squared),
+                                   mean(bootbase2$r.squared),
+                                   mean(bootgpoisson$r.squared)),
+                   r_icinf = rbind(quantile(bootbase0$r.squared,    0.975),
+                                   quantile(bootgmean$r.squared,    0.975),
+                                   quantile(bootbase2$r.squared,    0.975),
+                                   quantile(bootgpoisson$r.squared, 0.975)))
+colnames(bootsum) <- c("Estimation", "R2 Inf", "R2 moy", "R2 sup")
+
+save.image('/tmp/data_verif.RData')
