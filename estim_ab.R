@@ -16,7 +16,8 @@ source("functions/abundance.R")
 data2006 <- read.csv("data/generated/transpose_abondance_per_quadrat2006.csv",
                      sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
 
-abond_per_plot <- estim_abundance(data2006, surf = 4, n_cores = 4)
+abond_per_plot <- estim_abundance(data2006, surf = 4, n_cores = 4,
+                                  fun = "gammapoisson")
 
 write.csv(abond_per_plot, "data/generated/abondt_per_plot_2006.csv",
           row.names = TRUE)
@@ -28,7 +29,8 @@ rm(c("abond_per_plot", "data2006"))
 data2007 <- read.csv("data/generated/transpose_abondance_per_quadrat2007.csv",
                      sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
 
-abond_per_plot <- estim_abundance(data2007, surf = 4, n_cores = 4)
+abond_per_plot <- estim_abundance(data2007, surf = 4, n_cores = 4,
+                                  fun = "gammapoisson")
 
 write.csv(abond_per_plot, "data/generated/abond_per_plot_2007.csv",
           row.names = TRUE)
@@ -39,7 +41,8 @@ rm(c("abond_per_plot", "data2007"))
 data2008 <- read.csv("data/generated/transpose_abondance_per_quadrat2008.csv",
                      sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
 
-abond_per_plot <- estim_abundance(data2008, surf = 4, n_cores = 4)
+abond_per_plot <- estim_abundance(data2008, surf = 4, n_cores = 4,
+                                  fun = "gammapoisson")
 
 write.csv(abond_per_plot, "data/generated/abond_per_plot_2008.csv",
           row.names = TRUE)
@@ -50,7 +53,8 @@ rm(c("abond_per_plot", "data2008"))
 data2009 <- read.csv("data/generated/transpose_abondance_per_quadrat2009.csv",
                      sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
 
-abond_per_plot <- estim_abundance(data2009, surf = 4, n_cores = 4)
+abond_per_plot <- estim_abundance(data2009, surf = 4, n_cores = 4,
+                                  fun = "gammapoisson")
 
 write.csv(abond_per_plot, "data/generated/abond_per_plot_2009.csv",
           row.names = TRUE)
@@ -61,7 +65,8 @@ rm(c("abond_per_plot", "data2009"))
 data2010 <- read.csv("data/generated/transpose_abondance_per_quadrat2010.csv",
                      sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
 
-abond_per_plot <- estim_abundance(data2010, surf = 4, n_cores = 4)
+abond_per_plot <- estim_abundance(data2010, surf = 4, n_cores = 4,
+                                  fun = "gammapoisson")
 
 write.csv(abond_per_plot, "data/generated/abond_per_plot_2010.csv",
           row.names = TRUE)
@@ -72,7 +77,8 @@ rm(c("abond_per_plot", "data2010"))
 data2011 <- read.csv("data/generated/transpose_abondance_per_quadrat2011.csv",
                      sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
 
-abond_per_plot <- estim_abundance(data2011, surf = 4, n_cores = 4)
+abond_per_plot <- estim_abundance(data2011, surf = 4, n_cores = 4,
+                                  fun = "gammapoisson")
 
 write.csv(abond_per_plot, "data/generated/abond_per_plot_2011.csv",
           row.names = TRUE)
@@ -83,7 +89,8 @@ rm(c("abond_per_plot", "data2011"))
 data2013 <- read.csv("data/generated/transpose_abondance_per_quadrat2013.csv",
                      sep = ";", stringsAsFactors = FALSE, encoding = "utf8")
 
-abond_per_plot <- estim_abundance(data2011, surf = 4, n_cores = 4)
+abond_per_plot <- estim_abundance(data2013, surf = 4, n_cores = 4,
+                                  fun = "gammapoisson")
 
 write.csv(abond_per_plot, "data/generated/abond_per_plot_2013.csv",
           row.names = TRUE)
@@ -97,6 +104,9 @@ rm(c("abond_per_plot", "data2013"))
 # si une note est > 2, on la remplace par 2.
 data2014 <- read.csv("data/generated/transpose_abondance_per_sousquadrat2014.csv",
                   sep = ";", stringsAsFactors = FALSE)
+
+# grouping
+data2014 <- group_subqd(data2014, base2 = TRUE, n.subqd = 4)
 
 abond_per_plot <- estim_abundance01(data2014, surf = 1, gp.subquadra = T, base2 = T)
 
