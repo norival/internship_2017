@@ -1,6 +1,6 @@
 # -- packages and functions ----------------------------------------------------
 library(tidyverse)
-source("functions/transpose_flora.R", encoding = "utf8")
+source("functions/verif_ab.R", encoding = "utf8")
 source("functions/abundance.R", encoding = "utf8")
 
 
