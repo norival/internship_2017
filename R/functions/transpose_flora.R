@@ -117,3 +117,47 @@ estim_summary_gm <- function(tab, tabgm, surf) {
 
   return(dat)
 }
+
+# ------------------------------------------------------------------------------
+
+bootstrap <- function(nboot, tab) {
+  bootres <- data.frame(interc    = numeric(nboot),
+                        estimate  = numeric(nboot),
+                        r.squared = numeric(nboot))
+
+  for (i in 1:nboot) {
+    samp <- sample(1:nrow(tab), nrow(tab), replace = TRUE)
+    dat <- tab[samp, c("real", "estimate")]
+
+    mod <- lm(real ~ estimate, data = dat[!is.infinite(dat$estimate),])
+
+    bootres[i, "interc"]    <- as.numeric(mod$coefficients[1])
+    bootres[i, "estimate"]  <- as.numeric(mod$coefficients[2])
+    bootres[i, "r.squared"] <- summary(mod)$r.squared
+  }
+
+  return(bootres)
+}
+
+# ------------------------------------------------------------------------------
+
+bootpred <- function(x, boot) {
+
+  dat <- data.frame(x = x, icinf = numeric(length(x)),
+                    icsup = numeric(length(x)),
+                    moy = numeric(length(x)))
+
+  ainf <- quantile(boot[,2], c(0.025, 0.975))[1]
+  binf <- quantile(boot[,1], c(0.025, 0.975))[1]
+  dat$icinf <- ainf * dat$x + binf
+
+  asup <- quantile(boot[,2], c(0.025, 0.975))[2]
+  bsup <- quantile(boot[,1], c(0.025, 0.975))[2]
+  dat$icsup <- asup * dat$x + bsup
+
+  amoy <- mean(boot[,2])
+  bmoy <- mean(boot[,1])
+  dat$moy <- amoy * dat$x + bmoy
+
+  return(dat)
+}
