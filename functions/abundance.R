@@ -148,7 +148,12 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE
   stopCluster(cl)
 }
 
-estim_abundance01 <- function(x, surf, gp.subquadra = FALSE, base2 = FALSE, progress = TRUE, addpos = TRUE) {
+# ------------------------------------------------------------------------------
+# This one is not used anymore for estimations but is used by the script that
+# checks estimations
+
+estim_abundance01 <- function(x, surf, gp.subquadra = FALSE, base2 = FALSE,
+                              progress = TRUE, addpos = TRUE, fun = "h.fct") {
   # estimates abundance when data is 0/1
 
   if (addpos & sum(grepl("Pa|In", x$carre.parc)) == 0) {
@@ -239,4 +244,33 @@ estim_abundance01 <- function(x, surf, gp.subquadra = FALSE, base2 = FALSE, prog
 
   return(abond_per_plot)
 
+}
+
+# ------------------------------------------------------------------------------
+
+group_subqd <- function(x, base2 = TRUE, n.subqd = 4) {
+  # x <- data2016
+  # n.subqd <- 4
+
+  mat <- x[, 4:length(x)]
+
+  newmat <- matrix(nrow = nrow(mat), ncol = ncol(mat) / n.subqd, 0)
+
+  for(i in 1:ncol(newmat)) {
+    # compte tous les sous quadras
+    ii <- 4*(i-1) + (1:4)
+    quadra <- as.numeric(rowSums(mat[, ii]))
+    if (base2) {
+      # si > 2, plusieurs plantes dans le quadra -> 2
+      quadra[quadra > 2] <- 2
+    } else {
+      # si > 1, plusieurs plantes dans le quadra -> 1
+      quadra[quadra > 1] <- 1
+    }
+    newmat[,i] <- quadra
+  }
+
+  colnames(newmat) <- paste0("q", 1:ncol(newmat))
+
+  return(cbind.data.frame(x[, 1:3], newmat))
 }

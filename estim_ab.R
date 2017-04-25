@@ -108,7 +108,8 @@ data2014 <- read.csv("data/generated/transpose_abondance_per_sousquadrat2014.csv
 # grouping
 data2014 <- group_subqd(data2014, base2 = TRUE, n.subqd = 4)
 
-abond_per_plot <- estim_abundance01(data2014, surf = 1, gp.subquadra = T, base2 = T)
+abond_per_plot <- estim_abundance(data2014, surf = 1, n_cores = 4,
+                                  fun = "gammapoisson")
 
 write.csv(abond_per_plot, "data/generated/abond_per_plot_2014.csv",
           row.names = TRUE)
@@ -120,7 +121,11 @@ rm(c("abond_per_plot", "data2014"))
 data2015 <- read.csv("data/generated/transpose_abondance_per_sousquadrat2015.csv",
                   sep = ";", stringsAsFactors = FALSE)
 
-abond_per_plot <- estim_abundance01(data2015, surf = 1, gp.subquadra = T, base2 = T)
+# grouping
+data2015 <- group_subqd(data2015, base2 = TRUE, n.subqd = 4)
+
+abond_per_plot <- estim_abundance(data2015, surf = 1, n_cores = 4,
+                                  fun = "gammapoisson")
 
 write.csv(abond_per_plot, "data/generated/abond_per_plot_2015.csv",
           row.names = TRUE)
@@ -132,7 +137,11 @@ rm(c("abond_per_plot", "data2015"))
 data2016 <- read.csv("data/generated/transpose_abondance_per_sousquadrat2016.csv",
                   sep = ";", stringsAsFactors = FALSE)
 
-abond_per_plot <- estim_abundance01(data2016, surf = 1, gp.subquadra = T, base2 = T)
+# grouping
+data2016 <- group_subqd(data2016, base2 = TRUE, n.subqd = 4)
+
+abond_per_plot <- estim_abundance(data2016, surf = 1, n_cores = 4,
+                                  fun = "gammapoisson")
 
 write.csv(abond_per_plot, "data/generated/abond_per_plot_2016.csv",
           row.names = TRUE)
