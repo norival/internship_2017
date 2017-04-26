@@ -123,7 +123,8 @@ estim_summary_gm <- function(tab, tabgm, surf) {
 bootstrap <- function(nboot, tab) {
   bootres <- data.frame(interc    = numeric(nboot),
                         estimate  = numeric(nboot),
-                        r.squared = numeric(nboot))
+                        r.squared = numeric(nboot),
+                        sigma     = numeric(nboot))
 
   for (i in 1:nboot) {
     samp <- sample(1:nrow(tab), nrow(tab), replace = TRUE)
@@ -134,6 +135,7 @@ bootstrap <- function(nboot, tab) {
     bootres[i, "interc"]    <- as.numeric(mod$coefficients[1])
     bootres[i, "estimate"]  <- as.numeric(mod$coefficients[2])
     bootres[i, "r.squared"] <- summary(mod)$r.squared
+    bootres[i, "sigma"]     <- sigma(mod)
   }
 
   return(bootres)
@@ -143,21 +145,19 @@ bootstrap <- function(nboot, tab) {
 
 bootpred <- function(x, boot) {
 
-  dat <- data.frame(x = x, icinf = numeric(length(x)),
-                    icsup = numeric(length(x)),
-                    moy = numeric(length(x)))
+  mat <- matrix(nrow = length(x), ncol = nrow(boot), 0)
 
-  ainf <- quantile(boot[,2], c(0.025, 0.975))[1]
-  binf <- quantile(boot[,1], c(0.025, 0.975))[1]
-  dat$icinf <- ainf * dat$x + binf
+  for (i in 1:length(x)) {
+    for (j in 1:nrow(boot)) {
+      mat[i, j] <- boot[j, 2] * log(x[i]) + boot[j, 1]
+      mat[i, j] <- exp(mat[i, j]) * exp(boot[j, 4]^2 / boot[j, 4])
+    }
+  }
 
-  asup <- quantile(boot[,2], c(0.025, 0.975))[2]
-  bsup <- quantile(boot[,1], c(0.025, 0.975))[2]
-  dat$icsup <- asup * dat$x + bsup
-
-  amoy <- mean(boot[,2])
-  bmoy <- mean(boot[,1])
-  dat$moy <- amoy * dat$x + bmoy
+  moy   <- rowMeans(mat)
+  icinf <- apply(mat, 1, function(x) quantile(x, 0.025))
+  icsup <- apply(mat, 1, function(x) quantile(x, 0.975))
+  dat   <- cbind.data.frame(x, moy, icinf, icsup)
 
   return(dat)
 }

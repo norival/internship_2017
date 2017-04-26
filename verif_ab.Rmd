@@ -45,11 +45,28 @@ Comme pour la loi de COM-Poisson, on cherche les paramètres $r$ et $\theta$ pou
 lesquels la fonction de vraissemblance est maximale.
 
 La figure suivante montre les valeurs observées en fonction des valeurs estimées
-(en log).
+(sans log et en log).
 L'estimation par la loi binomiale négative semble plutôt correcte, mais un peu
 moins bien que celle par la loi géométrique.
 
-```{r, echo=FALSE, fig.width=7, fig.height=4.5}
+```{r graphnolog, echo=FALSE, fig.width=7, fig.height=4.2, fig.cap="Sans log"}
+aa <-
+  rbind.data.frame(cbind.data.frame(base = "base0", cor_base0[,1:4]),
+                   cbind.data.frame(base = "base2", cor_base2[,1:4]),
+                   cbind.data.frame(base = "geom",  cor_gmean[,1:4]),
+                   cbind.data.frame(base = "binom", cor_gpoisson[,1:4]))
+levels(aa$base) <- c("Poisson", "COM-Poisson", "Géométrique", "Binomiale")
+
+ggplot(aa, aes(x = estimate, y = real)) +
+  geom_point(size = 2, shape = 1, position = "jitter") +
+  geom_abline(slope = 1, intercept = 0) +
+  facet_wrap(~ base, scales = "free") +
+  xlab("Estimation") +
+  ylab("Abondance observée") +
+  theme_bw()
+```
+
+```{r graphlog, echo=FALSE, fig.width=7, fig.height=4.2, fig.cap="Avec log-log"}
 aa <-
   rbind.data.frame(cbind.data.frame(base = "base0", cor_base0[,1:4]),
                    cbind.data.frame(base = "base2", cor_base2[,1:4]),
@@ -74,21 +91,28 @@ ggplot(aa, aes(x = log(estimate), y = log(real))) +
 Vérification par des modèles linéaires :
 
 ```{r models, echo=TRUE}
+# On passe les valeurs en log pour homogénéiser la variance
+aa$estimate <- log(aa$estimate)
+aa$real <- log(aa$real)
+
 # estimations avec Poisson simple
 modb0 <- lm(real ~ estimate,
             data = aa[aa$base == "Poisson" & !is.infinite(aa$estimate),])
 summary(modb0)
 
 # estimations avec COM Poisson
-modb2 <- lm(real ~ estimate, data = aa[aa$base == "COM-Poisson",])
+modb2 <- lm(real ~ estimate,
+            data = aa[aa$base == "COM-Poisson" & !is.infinite(aa$estimate),])
 summary(modb2)
 
 # estimation par moyenne géométrique de la classe
-modgeo <- lm(real ~ estimate, data = aa[aa$base == "Géométrique",])
+modgeo <- lm(real ~ estimate,
+             data = aa[aa$base == "Géométrique" & !is.infinite(aa$estimate),])
 summary(modgeo)
 
 # estimation par loi Binomiale négative
-modnbino <- lm(real ~ estimate, data = aa[aa$base == "Binomiale",])
+modnbino <- lm(real ~ estimate,
+               data = aa[aa$base == "Binomiale" & !is.infinite(aa$estimate),])
 summary(modnbino)
 ```
 
@@ -97,6 +121,18 @@ summary(modnbino)
 La figure suivante montre un bootstrap ($n=10000$) sur les coefficients des
 modèles linéaires. La droite rouge correspond à la droite $y=x$ et les zones
 colorées aux intervalles de confiance à 95 %.
+Ce que j'ai fait concrètement:
+
+1. Réchantillonnage aléatoire des couples log(X)-log(Y) 10000 fois
+2. Sur chaque rééchantillonnage, ajustement du modèle log(Y) ~ log(X)
+3. Pour chaque modèle, calcul des valeurs prédites pour log(x) avec x = 1:30
+4. Passage de ces valeurs prédites en exponentielle pour avoir les avoir en
+   abondance
+5. Normalisation de ces valeurs en les multipliant par $e^{\sigma^2/\sigma}$
+   avec $\sigma$ l'erreur sur les résidus du modèle
+6. Pour chaque valeur de x, calcul de la valeur prédite moyenne et des quantiles
+   à 2,5 % et 97,5% pour avoir l'intervalle de confiance à 95%
+
 L'estimation par une loi de Poisson est largement sous-estimée.
 L'estimation par une loi de COM-Poisson est largement sur-estimée.
 L'estimation par la moyenne géométrique ne diffère pas de la valeur observée
@@ -106,33 +142,24 @@ puis est légèrement sur-estimée pour les valeurs supérieures.
 Il y a un fort recoupement des intervalles de confiance pour les estimations par
 moyenne géométrique et par loi binomiale négative.
 Ces deux méthodes donnent donc des résultats sensiblement identiques, la méthode
-par loi binomiale négative sur-estimant légèrement plus les abondances.
+par loi binomiale négative sous-estimant légèrement plus les abondances.
 
 ```{r bootstraps, echo=FALSE, fig.width=7, fig.height=4.5}
 tab_boot$estimation <- as.factor(tab_boot$estimation)
 levels(tab_boot$estimation) <- c("Poisson", "COM-Poisson", "Géométrique", "Binomiale")
+aa$estimation <- aa$base
 
 ggplot(tab_boot, aes(x = x, y = moy, fill = estimation)) +
   geom_line(aes(colour = estimation), size = 1.2) +
   geom_ribbon(aes(ymin = icinf, ymax = icsup), alpha = 0.2) +
   geom_abline(slope = 1, intercept = 0, col = "red", size = 1.2) +
-  xlim(c(0, 50)) +
-  ylim(c(0, 50)) +
+  # geom_point(data = aa, aes(x = exp(estimate), y = exp(real), colour =
+  # estimation), size = 0.4, shape = 1) +
+  xlim(c(0, 30)) +
+  ylim(c(0, 42)) +
   xlab("Abondance estimée") +
   ylab("Abondance observée") +
   labs(fill = "Méthode") +
   labs(colour = "Méthode") +
   theme_bw()
 ```
-
-Le tableau suivant donne les valeurs de $R^2$ pour les modèles bootstrapés, avec
-intervalles de confiance à 95 %.
-
-```{r bootstraps_tab, echo=FALSE}
-knitr::kable(bootsum, digits = 2)
-```
-
-Le modèle qui explique le plus les variations est celui basé sur l'estimation
-par moyenne géométrique (fort $R^2$ et intervalle de confiance resserré).
-L'estimation par la loi binomiale négative a un $R^2$ élevé mais un intervalle
-de confiance plus large.

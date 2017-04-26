@@ -1,5 +1,6 @@
 # -- packages and functions ----------------------------------------------------
-library(tidyverse)
+library(ggplot2)
+library(magrittr)
 source("functions/verif_ab.R", encoding = "utf8")
 source("functions/abundance.R", encoding = "utf8")
 
@@ -97,19 +98,32 @@ aa <-
 nboot <- 10000
 
 # bootstraps on models
-bootbase0    <- bootstrap(nboot, cor_base0)
-bootgmean    <- bootstrap(nboot, cor_gmean)
-bootbase2    <- bootstrap(nboot, cor_base2)
-bootgpoisson <- bootstrap(nboot, cor_gpoisson)
+## the regression must be done on log-log values so the variance is homogeneous,
+## we convert the values first
+lcor_base0 <-
+  cbind.data.frame(real = log(cor_base0$real), estimate = log(cor_base0$estimate))
+bootbase0 <- bootstrap(nboot, lcor_base0)
+
+lcor_gmean <-
+  cbind.data.frame(real = log(cor_gmean$real), estimate = log(cor_gmean$estimate))
+bootgmean <- bootstrap(nboot, lcor_gmean)
+
+lcor_cpoisson <-
+  cbind.data.frame(real = log(cor_base2$real), estimate = log(cor_base2$estimate))
+bootcpoisson <- bootstrap(nboot, lcor_cpoisson)
+
+lcor_gpoisson <-
+  cbind.data.frame(real = log(cor_gpoisson$real), estimate = log(cor_gpoisson$estimate))
+bootgpoisson <- bootstrap(nboot, lcor_gpoisson)
 
 # compute predictd values with IC95
-predbootbase0    <- bootpred(0:50, bootbase0)
-predbootgmean    <- bootpred(0:50, bootgmean)
-predbootbase2    <- bootpred(0:50, bootbase2)
-predbootgpoisson <- bootpred(0:50, bootgpoisson)
+predbootbase0    <- bootpred(0:30, bootbase0)
+predbootgmean    <- bootpred(0:30, bootgmean)
+predbootcpoisson <- bootpred(0:30, bootcpoisson)
+predbootgpoisson <- bootpred(0:30, bootgpoisson)
 
 tab_boot <-
-  rbind.data.frame(predbootbase0, predbootgmean, predbootbase2, predbootgpoisson)
+  rbind.data.frame(predbootbase0, predbootgmean, predbootcpoisson, predbootgpoisson)
 tab_boot$estimation <-
   rep(c("0/1", "gmean", "base2", "gpoisson"), rep(nrow(predbootgmean), 4))
 
@@ -118,15 +132,15 @@ bootsum <-
   cbind.data.frame(estim   = c("Poisson", "Moyenne géométrique", "COM-Poisson", "Gamma-Poisson"),
                    r_icinf = rbind(quantile(bootbase0$r.squared,    0.025),
                                    quantile(bootgmean$r.squared,    0.025),
-                                   quantile(bootbase2$r.squared,    0.025),
+                                   quantile(bootcpoisson$r.squared, 0.025),
                                    quantile(bootgpoisson$r.squared, 0.025)),
                    r_mean  = rbind(mean(bootbase0$r.squared),
                                    mean(bootgmean$r.squared),
-                                   mean(bootbase2$r.squared),
+                                   mean(bootcpoisson$r.squared),
                                    mean(bootgpoisson$r.squared)),
                    r_icinf = rbind(quantile(bootbase0$r.squared,    0.975),
                                    quantile(bootgmean$r.squared,    0.975),
-                                   quantile(bootbase2$r.squared,    0.975),
+                                   quantile(bootcpoisson$r.squared, 0.975),
                                    quantile(bootgpoisson$r.squared, 0.975)))
 colnames(bootsum) <- c("Estimation", "R2 Inf", "R2 moy", "R2 sup")
 
