@@ -150,7 +150,7 @@ bootpred <- function(x, boot) {
   for (i in 1:length(x)) {
     for (j in 1:nrow(boot)) {
       mat[i, j] <- boot[j, 2] * log(x[i]) + boot[j, 1]
-      mat[i, j] <- exp(mat[i, j]) * exp(boot[j, 4]^2 / boot[j, 4])
+      mat[i, j] <- exp(mat[i, j]) * exp(boot[j, 4]^2 / 2)
     }
   }
 

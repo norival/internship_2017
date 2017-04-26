@@ -128,7 +128,7 @@ Ce que j'ai fait concrètement:
 3. Pour chaque modèle, calcul des valeurs prédites pour log(x) avec x = 1:30
 4. Passage de ces valeurs prédites en exponentielle pour avoir les avoir en
    abondance
-5. Normalisation de ces valeurs en les multipliant par $e^{\sigma^2/\sigma}$
+5. Normalisation de ces valeurs en les multipliant par $e^{\sigma^2/2}$
    avec $\sigma$ l'erreur sur les résidus du modèle
 6. Pour chaque valeur de x, calcul de la valeur prédite moyenne et des quantiles
    à 2,5 % et 97,5% pour avoir l'intervalle de confiance à 95%
