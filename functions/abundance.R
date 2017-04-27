@@ -34,7 +34,7 @@ lgpoisson <- function(k, r, theta) {
   return(log(pk))
 }
 
-gammapoisson <- function(param, v) {
+gammapoisson <- function(param, v, maxtheta = 30) {
   # on définit ensuite la fonction à minimiser:
   # the function to minimize when estimating with Poisson-Gamma distribution
 
@@ -43,7 +43,7 @@ gammapoisson <- function(param, v) {
 
   # prevents the function to block on high parameter values, 30 seems to be a
   # reasonable choice
-  if (max(param) > 30) return(100000)
+  if (max(param) > maxtheta) return(100000)
 
   # log-likelihood to observe 0 plant
   lp0 <- lgpoisson(k = 0, param[1], param[2])
@@ -65,7 +65,7 @@ gammapoisson <- function(param, v) {
 }
 
 estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE,
-                            fun = "h.fct") {
+                            fun = "h.fct", maxtheta = 30) {
   library(doSNOW)
 
   if (addpos & sum(grepl("Pa|In", x$carre.parc)) != length(x$carre.parc)) {
@@ -93,7 +93,7 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE
   cl <- makeCluster(n_cores)
   registerDoSNOW(cl)
   
-  export <- c(fun, "lgpoisson")
+  export <- c(fun, "lgpoisson", "maxtheta")
 
   a <- foreach(i = 1:nrow(x), .combine = rbind, .export = export, .options.snow = opts) %dopar% {
 
@@ -112,7 +112,7 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE
       mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
 
     } else if (fun == "gammapoisson") {
-      Zu <- nlminb(c(0, 0), gammapoisson, v = v1,
+      Zu <- nlminb(c(0, 0), gammapoisson, v = v1, maxtheta = maxtheta,
                    lower = c(-50, -50), upper = c(50, 50),
                    control = list(iter.max = 1000, abs.tol = 1e-20))
 

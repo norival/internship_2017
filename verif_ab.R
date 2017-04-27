@@ -50,7 +50,7 @@ cor_base2 <- estim_summary(transposed[["orig"]], estim2, surf = 1)
 # the quadrate and lambda the random parameter drawn from the gamma
 # distribution.
 gpoisson <- estim_abundance(x = transposed[["base2"]], surf = 1, n_cores = 3,
-                            fun = "gammapoisson", addpos = FALSE)
+                            fun = "gammapoisson", addpos = FALSE, maxtheta = 20)
 cor_gpoisson <- estim_summary(transposed[["orig"]], gpoisson, surf = 1)
 
 
@@ -145,3 +145,55 @@ bootsum <-
 colnames(bootsum) <- c("Estimation", "R2 Inf", "R2 moy", "R2 sup")
 
 save.image('data/generated/data_verif.RData')
+
+
+# ------------------------------------------------------------------------------
+# optimisation of minimisation parameters
+# this is commented because it is quite long to run...
+
+# test different values of maxthetat for the optimisation function. maxtheta is
+# the threshold value from which estimated parameter is considered too high.
+# maxtheta <- 15:35
+
+# results <- optim_maxtheta(transposed, maxtheta, fun = "gammapoisson", surf = 1,
+#                           nboot = 2500)
+
+# some plots to check that
+# a <- data.frame(x = numeric(), moy = numeric(), icinf = numeric(), icsup = numeric())
+# for (i in 1:length(results)) {
+#   a <- rbind.data.frame(a, results[[i]])
+# }
+# a$maxtheta <- as.character(rep(10:50, rep(nrow(results[[1]]), length(10:50))))
+
+# a[a$maxtheta %in% c(15:25, 30),] %>%
+#   ggplot(aes(x = x, y = moy, colour = maxtheta)) +
+#   geom_line() +
+#   geom_abline(intercept = 0, slope = 1) +
+#   theme(axis.title   = element_text(size = 16),
+#         legend.title = element_text(size = 16),
+#         axis.text  = element_text(size = 14),
+#         legend.text  = element_text(size = 14)) +
+#   # geom_ribbon(aes(ymin = icinf, ymax = icsup, fill = maxtheta), alpha = 0.2) +
+#   theme_bw()
+# # ggsave("~/desktop/graphs/binom_maxtheta.png")
+
+# a <- rbind.data.frame(cor_gpoisson, cor_gpoisson30)
+# a$maxtheta <- as.character(rep(c(20, 30), rep(nrow(cor_gpoisson), 2)))
+
+# ggplot(a, aes(x = estimate, y = real, colour = maxtheta)) +
+#   geom_point(size = 2, shape = 1, position = "jitter") +
+#   geom_abline(intercept = 0, slope = 1) +
+#   theme(axis.title   = element_text(size = 16),
+#         legend.title = element_text(size = 16),
+#         axis.text  = element_text(size = 14),
+#         legend.text  = element_text(size = 14))
+# # ggsave("~/desktop/graphs/binom_nolog.png")
+
+# ggplot(a, aes(x = log(estimate), y = log(real), colour = maxtheta)) +
+#   geom_point(size = 2, shape = 1, position = "jitter") +
+#   geom_abline(intercept = 0, slope = 1) +
+#   theme(axis.title   = element_text(size = 16),
+#         legend.title = element_text(size = 16),
+#         axis.text  = element_text(size = 14),
+#         legend.text  = element_text(size = 14))
+# # ggsave("~/desktop/graphs/binom_log.png")

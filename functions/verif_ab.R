@@ -161,3 +161,39 @@ bootpred <- function(x, boot) {
 
   return(dat)
 }
+
+# ------------------------------------------------------------------------------
+
+optim_maxtheta <- function(transposed, maxtheta, fun = "gammapoisson", surf = 1,
+                           nboot = 2500) {
+
+  # function to optimize the maxtheta parameter in the minimised function
+  # returns a list with prediction from bootstraps
+
+  results <- list()
+  for (i in maxtheta) {
+    # the loop compute estimation for all values of maxtheta, run the bootstrap
+    # procedure on it, and store the results, we can the determine which value of
+    # maxtheta is the best
+    cat("maxtheta =", i, "\n")
+
+    estim <- estim_abundance(x = transposed[["base2"]], surf = surf, n_cores = 3,
+                             fun = fun, addpos = FALSE, maxtheta = i)
+    cor_estim <- estim_summary(transposed[["orig"]], estim, surf = surf)
+
+    lcor_estim <-
+      cbind.data.frame(real = log(cor_estim$real), estimate = log(cor_estim$estimate))
+
+    cat("bootstrap...\n")
+    bootestim <- bootstrap(nboot, lcor_estim)
+
+    cat("prediction...\n")
+    predbootestim <- bootpred(0:30, bootestim)
+
+    results[[i]] <- predbootestim
+
+    rm(list=c("estim", "cor_estim", "lcor_estim", "bootestim", "predbootestim"))
+  }
+
+  return(results)
+}
