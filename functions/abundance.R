@@ -65,12 +65,29 @@ gammapoisson <- function(param, v, maxtheta = 30) {
 }
 
 estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE,
-                            fun = "h.fct", maxtheta = 30) {
-  library(doSNOW)
+                            fun = "h.fct", maxtheta = 30, nopar = FALSE) {
+
+  if (!nopar) library(doSNOW)
 
   if (addpos & sum(grepl("Pa|In", x$carre.parc)) != length(x$carre.parc)) {
     # adds the position to the name of the plot, like in the old days
     x$carre.parc <- paste(x$carre.parc, stringr::str_to_title(x$pos), sep = "-")
+  }
+
+  abond_per_plot <- matrix(Inf,
+                           ncol = length(unique(x$sp)),
+                           nrow = length(unique(x$carre.parc)))
+
+  colnames(abond_per_plot) <- unique(x$sp)
+  rownames(abond_per_plot) <- unique(x$carre.parc)
+
+  # add this if parallelization is not working (eg 'makeCluster()' hangs
+  # indefinitely), it uses the non parallelized function at the end of this file
+  # and exit the main function
+  if (nopar) {
+    out <- estim_nopar(x = x, out = abond_per_plot, surf = surf, fun = fun,
+                       maxtheta = maxtheta, progress = progress)
+    return(out)
   }
 
   if (progress) {
@@ -82,13 +99,6 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE
   } else {
     opts <- list()
   }
-
-  abond_per_plot <- matrix(Inf,
-                           ncol = length(unique(x$sp)),
-                           nrow = length(unique(x$carre.parc)))
-
-  colnames(abond_per_plot) <- unique(x$sp)
-  rownames(abond_per_plot) <- unique(x$carre.parc)
 
   cl <- makeCluster(n_cores)
   registerDoSNOW(cl)
@@ -273,4 +283,45 @@ group_subqd <- function(x, base2 = TRUE, n.subqd = 4) {
   colnames(newmat) <- paste0("q", 1:ncol(newmat))
 
   return(cbind.data.frame(x[, 1:3], newmat))
+}
+
+
+# ------------------------------------------------------------------------------
+# this is just a non-parellelized version of the part that do the estimation,
+# used when 'nopar' arg is set to TRUE.
+
+estim_nopar <- function(x, out, surf, fun, maxtheta, progress) {
+
+  cat("No parallelization! This can be very slow!\n")
+  cat("Estimation of abundances...\n")
+
+  if (progress) {
+    pb  <- txtProgressBar(min = 0, max = nrow(x), style = 3, width = 80)
+  }
+
+  for (i in 1:nrow(x)) {
+    if (progress) setTxtProgressBar(pb, i)
+
+    v1 <- as.numeric(x[i, 4:ncol(x)])
+
+    if (fun == "h.fct") {
+      Zu <- nlminb(c(0, 0), h.fct, v = v1, lower = c(-50, -50), upper = c(50, 50))
+      mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
+
+    } else if (fun == "gammapoisson") {
+      Zu <- nlminb(c(0, 0), gammapoisson, v = v1, maxtheta = maxtheta,
+                   lower = c(-50, -50), upper = c(50, 50),
+                   control = list(iter.max = 1000, abs.tol = 1e-20))
+
+      r <- exp(Zu$par[1])
+      p <- 1 / (exp(Zu$par[2]) + 1)
+      mm <- r * ((1 - p) / p)
+    }
+
+    out[x$carre.parc[i], x$sp[i]] <- mm / surf
+  }
+
+  if (progress) close(pb)
+
+  return(out)
 }

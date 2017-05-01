@@ -4,6 +4,13 @@ library(magrittr)
 source("functions/verif_ab.R", encoding = "utf8")
 source("functions/abundance.R", encoding = "utf8")
 
+# global 'nopar' flag: on some machines, parallelization of the estimation
+# function does not work properly ('makeCluster' hangs indefinitely and nothing
+# happens). I did not manage to find neither a cause or a workaround so I made a
+# non parallelized version of the function, triggered into the main funciton by
+# the 'nopar' argument. You can set it to TRUE here so every call to the
+# function takes it into account.
+nopar <- FALSE
 
 # -- data ----------------------------------------------------------------------
 flore <- read.csv("data/raw/flore_tot_per1.csv", encoding = "latin1", sep = ";",
@@ -40,7 +47,8 @@ estim01 <- estim_abundance01(x = transposed[["base0"]], surf = 1, addpos = FALSE
 cor_base0 <- estim_summary(transposed[["orig"]], estim01, surf = 1)
 
 ## estimate with COM-Poisson distribution
-estim2 <- estim_abundance(x = transposed[["base2"]], surf = 1, n_cores = 4, addpos = FALSE)
+estim2 <- estim_abundance(x = transposed[["base2"]], surf = 1, n_cores = 4, addpos = FALSE,
+                          nopar = nopar)
 cor_base2 <- estim_summary(transposed[["orig"]], estim2, surf = 1)
 
 ## estimate with negative binomiale distribution
@@ -50,7 +58,8 @@ cor_base2 <- estim_summary(transposed[["orig"]], estim2, surf = 1)
 # the quadrate and lambda the random parameter drawn from the gamma
 # distribution.
 gpoisson <- estim_abundance(x = transposed[["base2"]], surf = 1, n_cores = 3,
-                            fun = "gammapoisson", addpos = FALSE, maxtheta = 20)
+                            fun = "gammapoisson", addpos = FALSE, maxtheta = 20,
+                            nopar = nopar)
 cor_gpoisson <- estim_summary(transposed[["orig"]], gpoisson, surf = 1)
 
 
