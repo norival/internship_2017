@@ -153,6 +153,19 @@ bootsum <-
                                    quantile(bootgpoisson$r.squared, 0.975)))
 colnames(bootsum) <- c("Estimation", "R2 Inf", "R2 moy", "R2 sup")
 
+mod_gpoisson_sum <-
+  data.frame(val = c("mean", "inf", "sup"),
+             r = c(mean(bootgpoisson$r.squared),
+                   quantile(bootgpoisson$r.squared, 0.025),
+                   quantile(bootgpoisson$r.squared, 0.975)),
+             int = c(mean(bootgpoisson$interc),
+                     quantile(bootgpoisson$interc, 0.025),
+                     quantile(bootgpoisson$interc, 0.975)),
+
+             est = c(mean(bootgpoisson$estimate),
+                     quantile(bootgpoisson$estimate, 0.025),
+                     quantile(bootgpoisson$estimate, 0.975)))
+
 save.image('data/generated/data_verif.RData')
 
 
