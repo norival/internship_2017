@@ -34,7 +34,7 @@ transposed <- transpose_flora_tot(flore2013)
 # all estimations methods
 
 ## test correlation with geometric mean
-gmean <- transposed[["base10"]][, -(1:4)]
+gmean <- transposed[["base10"]][, -(1:3)]
 gmean[gmean == 2] <- exp(mean(log(c(2, 9))))
 gmean[gmean == 3] <- exp(mean(log(c(10, 99))))
 gmean[gmean == 4] <- exp(mean(log(c(100, 999))))
@@ -111,19 +111,20 @@ nboot <- 10000
 ## we convert the values first
 lcor_base0 <-
   cbind.data.frame(real = log(cor_base0$real), estimate = log(cor_base0$estimate))
-bootbase0 <- bootstrap(nboot, lcor_base0)
+bootbase0 <- bootstrap(nboot, lcor_base0[!is.infinite(lcor_base0$real) &
+                       !is.infinite(lcor_base0$estimate),])
 
 lcor_gmean <-
   cbind.data.frame(real = log(cor_gmean$real), estimate = log(cor_gmean$estimate))
-bootgmean <- bootstrap(nboot, lcor_gmean)
+bootgmean <- bootstrap(nboot, lcor_gmean[!is.infinite(lcor_gmean$real),])
 
 lcor_cpoisson <-
   cbind.data.frame(real = log(cor_base2$real), estimate = log(cor_base2$estimate))
-bootcpoisson <- bootstrap(nboot, lcor_cpoisson)
+bootcpoisson <- bootstrap(nboot, lcor_cpoisson[!is.infinite(lcor_cpoisson$real),])
 
 lcor_gpoisson <-
   cbind.data.frame(real = log(cor_gpoisson$real), estimate = log(cor_gpoisson$estimate))
-bootgpoisson <- bootstrap(nboot, lcor_gpoisson)
+bootgpoisson <- bootstrap(nboot, lcor_gpoisson[!is.infinite(lcor_gpoisson$real),])
 
 # compute predictd values with IC95
 predbootbase0    <- bootpred(0:30, bootbase0)

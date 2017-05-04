@@ -43,15 +43,19 @@ transpose_flora_tot <- function(tab) {
   }
 
   # convert tables according to different degradations of data
+  ## presence/absence
   A0  <- A
   A0[A0 > 1] <- 1
+  ## log_2
   A2  <- A
   A2[A2 > 2] <- 2
+  ## log_10
   A10 <- A
-  A10[A10 >= 2 &    A10 < 10]     <- 2
-  A10[A10 >= 10 &   A10 < 100]    <- 3
-  A10[A10 >= 100 &  A10 < 1000]   <- 4
-  A10[A10 >= 1000 & A10 < 10000]  <- 5
+  A10[A10 >= 1     & A10 < 10]     <- 1
+  A10[A10 >= 10    & A10 < 100]    <- 2
+  A10[A10 >= 100   & A10 < 1000]   <- 3
+  A10[A10 >= 1000  & A10 < 10000]  <- 4
+  A10[A10 >= 10000 & A10 < 100000] <- 5
 
   # we need a ghost column so the dataframe can be inputed to the function
   position <- rep("phantom", length(carre.parc))
@@ -112,7 +116,7 @@ estim_summary_gm <- function(tab, tabgm, surf) {
 
   for (i in 1:nrow(tab)) {
     dat$real[i]     <- sum(as.numeric(tab[i, 4:length(tab)])) / surfech
-    dat$estimate[i] <- sum(as.numeric(tabgm[i, 4:length(tabgm)])) / surfech
+    dat$estimate[i] <- sum(as.numeric(tabgm[i, ])) / surfech
   }
 
   return(dat)
@@ -130,7 +134,7 @@ bootstrap <- function(nboot, tab) {
     samp <- sample(1:nrow(tab), nrow(tab), replace = TRUE)
     dat <- tab[samp, c("real", "estimate")]
 
-    mod <- lm(real ~ estimate, data = dat[!is.infinite(dat$estimate),])
+    mod <- lm(real ~ estimate, data = dat)
 
     bootres[i, "interc"]    <- as.numeric(mod$coefficients[1])
     bootres[i, "estimate"]  <- as.numeric(mod$coefficients[2])
