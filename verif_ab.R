@@ -35,10 +35,11 @@ transposed <- transpose_flora_tot(flore2013)
 
 ## test correlation with geometric mean
 gmean <- transposed[["base10"]][, -(1:3)]
-gmean[gmean == 2] <- exp(mean(log(c(2, 9))))
-gmean[gmean == 3] <- exp(mean(log(c(10, 99))))
-gmean[gmean == 4] <- exp(mean(log(c(100, 999))))
-gmean[gmean == 5] <- exp(mean(log(c(1000, 9999))))
+gmean[gmean == 1] <- exp(mean(log(c(1, 9))))
+gmean[gmean == 2] <- exp(mean(log(c(10, 99))))
+gmean[gmean == 3] <- exp(mean(log(c(100, 999))))
+gmean[gmean == 4] <- exp(mean(log(c(1000, 9999))))
+gmean[gmean == 5] <- exp(mean(log(c(10000, 99999))))
 
 cor_gmean <- estim_summary_gm(tab = transposed[["orig"]], gmean, surf = 1)
 
