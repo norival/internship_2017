@@ -8,7 +8,7 @@
 library(tidyverse)
 source("functions/db_convert.R")
 source("functions/clean_df.R")
-source("functions/n_dose.R")
+source("functions/doseN.R")
 
 
 # -- data management -----------------------------------------------------------
