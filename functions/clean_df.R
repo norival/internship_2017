@@ -7,7 +7,7 @@
 
 clean_df <- function(x) {
   library(stringi)
-  x <- data_full_dirty
+  # x <- data_full_dirty
 
   # trim leading and trailing whitespaces from character vectors
   x <- data.frame(lapply(x, function(.x) if (class(.x) == "character") trimws(.x) else(.x)),
@@ -157,9 +157,6 @@ clean_df <- function(x) {
     stri_replace_all(fixed = "repulsif", replacement = "répulsif") %>%
     stri_replace_all(fixed = "regulateur", replacement = "Régulateur") %>%
     stri_trans_totitle()
-
-  # removes plot 2768 for 2011 because ambiguous units in 'Dose_Ferti'
-  x <- x[-which(x$ID_Parcelle == "2768" & x$Année_SuiviParcelle == "2011"),]
 
   # clean units
   x$Unité_dose <-
