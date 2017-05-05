@@ -6,83 +6,17 @@
 # modifié le 
 #################################################################
 
-setwd("~/Donnees/Chize_Flore/Prog")
-rm(list=ls())
-
-#####Charge le fichier des relevés de flore 2012
-data2012=read.csv("monitoring2012.csv", sep=";", dec= "," , 
-                  stringsAsFactors=FALSE,h=T)
-#vérification des données
-dim(data2012) #dimension du fichier de donnees 24787L & 31C
-head(data2012) #premieres lignes
-summary(data2012) #synthese des donnees
-var <- colnames(data2012)
-
-unique(data2012$Crop.Analyses) #céréale/Cereal, colza/Colza,Maïs/maïs
-
-###Correction des noms d'espèces adventices
-##code Joël
-source("modifs_fichier_log10.R")
-data2012=data2012[data2012$No_parcelle!="ID10_994",]
-data2012=modifs_fichier(tab=data2012)
-
-##pb with "6340-6918" field
-#data2012<-data2012[-which(data2012$Par=="6340-6918"),]
-#############################################################
-#####Creation d'un jeu de donnees avec les cultures annuelles
-#############################################################
-
-# On conserve Year, date, Nb_parcelle, Par, Par.interf, 
-#Crop.Analyses, pt, lat, LONG, Espèce_origin, abondance, ParPoint
-kept <-  c(3,4,6,7,8,9,11,12,13,14,22,31)
-
-weeds2012 <- data2012[, kept ]
-colnames(weeds2012)
-weeds2012C<-subset(weeds2012,weeds2012$Crop.Analyses!="friche")
-weeds2012C<-subset(weeds2012,weeds2012$Crop.Analyses!="luzerne")
-weeds2012C<-subset(weeds2012C,weeds2012C$Crop.Analyses!="prairie")
-weeds2012C<-subset(weeds2012C,weeds2012C$Crop.Analyses!="trèfle")
-
-#weeds2012C$Crop.Analyses[weeds2012C$pt==1]
-unique(weeds2012C$pt)
-weeds2012C$pt=as.factor(weeds2012C$pt)
-colnames(weeds2012C)[4]="carre.parc"
-
-######################################################################            
-### Mise en forme pour matrice sites x especes et calcul par quadrat
-######################################################################
-
-## Another lines will be the field number and position
-#"carré-parc" :: numero de parcelle
-#"Par.interf" : in, pa
-#"Crop.Analyses" : cereal, colza, tournesol
-#"lat"
-#"LONG"
-###colnames(weeds2012C)
-###length(unique(weeds2012C$carre.parc))
-## 183 parcelles
-
-###unique(weeds2012C$Par.interf)
-#[1] "In"  "pa" "in" "Pa" 
-weeds2012C$Par.interf[weeds2012C$Par.interf=="In"]="in"
-weeds2012C$Par.interf[weeds2012C$Par.interf=="Pa"]="pa"
-
-###length(unique(weeds2012C$Crop.Analyses))
-## 5 cultures
-
-###length(unique(weeds2012$Espèce_origin))
-## 294 espèces soit 294 colonnes dans la matrice
-
-weeds2012C1 <- cbind(weeds2012C, as.factor(weeds2012C$Espèce_origin))
-colnames(weeds2012C1) [12] <- "sp"
-
-write.table(weeds2012C1, "Data-Prog/weeds2012.csv", sep = ";")
-
 ###########################################
 ## Aggregation des especes
 ###########################################
 #weeds<-weeds2012C1
 weeds<-read.csv("Data-Prog/weeds2012.csv", sep = ";",dec=",")
+
+# remove 'luzerne' and 'prairie' and 'trèfle'
+weeds <- weeds[weeds$Crop.Analyses != "luzerne",]
+weeds <- weeds[weeds$Crop.Analyses != "prairie",]
+weeds <- weeds[weeds$Crop.Analyses != "trèfle",]
+
 test <- aggregate(data.frame(abondance = weeds$abondance), 
                   by = list(sp = weeds$sp, quadrat = weeds$pt, 
                             position = weeds$Par.interf,
@@ -261,8 +195,8 @@ A_Diversity$Type_Rich_stand=rep("Stand",length(A_Diversity[,1]))
 x=match(A_Diversity_obs$carre.parc,A_Diversity$carre.parc)
 xtemp=A_Diversity[x,]
 A_Diversity=cbind(A_Diversity_obs,xtemp)
-plot(A_Diversity$Richness,A_Diversity$Richness_mean,
-     xlab="Species richness 40m²",ylab="Species richness 20m²")
+# plot(A_Diversity$Richness,A_Diversity$Richness_mean,
+#      xlab="Species richness 40m²",ylab="Species richness 20m²")
 abline(0,1)
 
 write.table(A_Diversity, "Data-Prog/Diversity_fieldcore2012.csv", sep = ";")

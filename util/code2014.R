@@ -5,124 +5,16 @@
 # modifié le 
 ###########################################################
 
-#####Charge le fichier des relevés de flore 2014
-data2014=read.csv("data/raw/monitoring2014.csv", sep=";", dec= "," , 
-                  stringsAsFactors=FALSE,h=T,encoding="latin1")
-#data2014=read.csv("monitoring2014_corrigéparMarylin_29082016.csv", sep=";", dec= "," ,
-                  #stringsAsFactors=FALSE,h=T)
-#vérification des données
-dim(data2014) #dimension du fichier de donnees
-head(data2014) #premieres lignes
-summary(data2014) #synthese des donnees
-var <- colnames(data2014)
-unique(data2014$Crop.Analyses)
-
-# Remove the field sampled two times:
-data2014 = data2014[-which(data2014$carré.parc == "5641-6103b"), ] 
-
-# There is a problem with these fields (cf the shapefile on QGIS: the real sampled field does not correspond to carré.parc)
-data2014[which(data2014$carré.parc == "10042-13632"), ]$carré.parc =	"10042-10632"
-data2014[which(data2014$carré.parc == "1717-1460"), ]$carré.parc =	"1717-6641"
-data2014[which(data2014$carré.parc == "3708-3953"), ]$carré.parc =	"3708-3991"
-data2014[which(data2014$carré.parc == "7459-8252"), ]$carré.parc =	"7459-8258"
-data2014[which(data2014$carré.parc == "9829-10433"), ]$carré.parc =	"9829-10488"
-
-data2014b=data2014
-
-###Correction des noms d'espèces adventices
-##code Joël
-source("util/modifs_fichier.R", encoding = "latin1")
-data2014=modifs_fichier(tab=data2014)
-
-
-#############################################################
-#####Creation d'un jeu de donnees avec les cultures annuelles
-#############################################################
-
-# On conserve Year, date, Nb_parcelle, carré.parc, Par.interf, 
-#Crop.Analyses, pt, lat, LONG, Espèce_origin, abondance, ParPoint
-kept <- c(3:12,19)
-
-weeds2014 <- data2014[, kept ]
-colnames(weeds2014)
-weeds2014C<-subset(weeds2014,weeds2014$Crop.Analyses!="luzerne")
-weeds2014C<-subset(weeds2014C,weeds2014C$Crop.Analyses!="prairie")
-
-
-##weeds2014C$Crop.Analyses[weeds2014C$pt==1]
-sort(unique(weeds2014C$pt))
-weeds2014C$pt[weeds2014C$pt=="6q" ] <- "6d"
- 
-######################################################################            
-### Mise en forme pour matrice sites x especes et calcul par quadrat
-######################################################################
-
-## Another lines will be the field number and position
-#"carré-parc" :: numero de parcelle
-#"Par.interf" : in, pa1, pa2
-#"Crop.Analyses" : cereal, colza, tournesol
-#"lat"
-#"LONG"
-colnames(weeds2014C)
-length(unique(weeds2014C$"carré.parc"))
-## 156 parcelles
-
-unique(weeds2014C$Par.interf)
-#[1] "in"  "pa1" "pa2" "pa3" 
-#retrait de la 3ème ligne en plein champ
-weeds2014C=subset(weeds2014C,weeds2014C$Par.interf!="pa3")
-
-length(unique(weeds2014C$Crop.Analyses))
-## 10 cultures
-
-length(unique(weeds2014$Espèce_origin))
-## 215 espèces soit 215 colonnes dans la matrice
-
-weeds2014C1 <- cbind(weeds2014C, as.factor(weeds2014C$Espèce_origin))
-colnames(weeds2014C1) [12] <- "sp"
-
-## Separe les noms des quadrats en quadrats et sub-quadrats
-#nchar(weeds2014C1$pt)
-## Nombre de quadrats
-#substr(weeds2014C1[nchar(weeds2014C1$pt)==2, ]$pt, 0, 1)
-#substr(weeds2014C1[nchar(weeds2014C1$pt)==3, ]$pt, 0, 2)
-## Nombre de sub-quadrats
-#substr(weeds2014C1[nchar(weeds2014C1$pt)==2, ]$pt, 2, 3)
-#substr(weeds2014C1[nchar(weeds2014C1$pt)==3, ]$pt, 3, 4)
-
-#### 3 niveaux : field, plot (quadrat 1m²) et 
-### quadrat (équivalent aux sous-quadrats a, b, c, d)
-
-colnames(weeds2014C1)
-#[1] "Year"          "date"          "No_parcelle"   "carré.parc"    "Par.interf"   
-#[6] "Crop.Analyses" "pt"            "lat"           "LONG"          "Espèce_origin"
-#[11] "abondance"     "ParPoint"      "sp" 
-
-weeds1 <- weeds2014C1[nchar(weeds2014C1$pt)==2, ]
-weeds2 <- weeds2014C1[nchar(weeds2014C1$pt)==3, ]
-
-plot <- substr(weeds1$pt, 0, 1)
-quadrat <- substr(weeds1$pt, 2, 3)
-weeds1 <- cbind(weeds1, plot)
-weeds1 <- cbind(weeds1, quadrat )
-head(weeds1)
-
-plot <- substr(weeds2$pt, 0, 2)
-quadrat <- substr(weeds2$pt, 3, 4)
-weeds2 <- cbind(weeds2, plot)
-weeds2 <- cbind(weeds2, quadrat )
-head(weeds2)
-
-weeds <- rbind(weeds1, weeds2)
-head(weeds, 15)
-
-write.table(weeds, "data/generated/weeds2014.csv", sep = ";")
-
-
 ###########################################
 ## Aggregation des especes
 ###########################################
 weeds <- read.table("data/generated/weeds2014.csv", sep = ";")
+
+# remove 'luzerne' and 'prairie' and 'trèfle'
+weeds <- weeds[weeds$Crop.Analyses != "luzerne",]
+weeds <- weeds[weeds$Crop.Analyses != "prairie",]
+weeds <- weeds[weeds$Crop.Analyses != "trèfle",]
+
 test <- aggregate(data.frame(abondance = weeds$abondance), 
                   by = list(sp = weeds$sp, quadrat = weeds$quadrat, 
                             plot=weeds$plot, position = weeds$Par.interf, 
@@ -134,7 +26,7 @@ nrow(test[test$abondance > 1, ])
 # 33
 
 ## Juste set those lines with 1 value (the original data must be fixed after). 
-test[test$abondance > 1, ]$abondance <- 1
+test$abondance[test$abondance > 1] <- 1
 
 ##nrow(test)
 # 29554

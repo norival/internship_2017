@@ -5,138 +5,16 @@
 # modifié le 
 ###########################################################
 
-#####Charge le fichier des relevés de flore 2016
-data2016=read.csv("data/raw/monitoring2016.csv", sep=";", dec= "," , 
-                  stringsAsFactors=FALSE,h=T,
-                  encoding = "latin1")
-#vérification des données
-dim(data2016) #dimension du fichier de donnees
-head(data2016) #premieres lignes
-summary(data2016) #synthese des donnees
-var <- colnames(data2016)
-
-# Complete the Crop.Analyses field with OSC (cf onglet infos in the bota 2016 file)
-unique(data2016$Crop.Analyses)
-data2016[which(data2016$OSC==41),]$Crop.Analyses = "blé"
-data2016[which(data2016$OSC==40),]$Crop.Analyses = "céréale"
-data2016[which(data2016$OSC==50),]$Crop.Analyses = "colza"
-data2016[which(data2016$OSC==61),]$Crop.Analyses = "lin"
-data2016[which(data2016$OSC==76),]$Crop.Analyses = "lin/lentille"
-data2016[which(data2016$OSC==25),]$Crop.Analyses = "luzerne"
-data2016[which(data2016$OSC==71),]$Crop.Analyses = "maïs"
-data2016[which(data2016$OSC==48),]$Crop.Analyses = "mél ce/leg"
-data2016[which(data2016$OSC==44),]$Crop.Analyses = "orge hiver"
-data2016[which(data2016$OSC==77),]$Crop.Analyses = "pavot"
-data2016[which(data2016$OSC==62),]$Crop.Analyses = "pois"
-data2016[which(data2016$OSC==11),]$Crop.Analyses = "prairie"
-data2016[which(data2016$OSC==72),]$Crop.Analyses = "tournesol"
-data2016[which(data2016$OSC==26),]$Crop.Analyses = "trèfle"
-data2016[which(data2016$OSC==42),]$Crop.Analyses = "ble barbu"
-unique(data2016$Crop.Analyses)  
-
-
-###Correction des noms d'espèces adventices
-##code Joël
-source("util/modifs_fichier.R", encoding = "latin1")
-data2016=modifs_fichier(tab=data2016)
-
-#############################################################
-#####Creation d'un jeu de donnees avec les cultures annuelles
-#############################################################
-
-# On conserve Year, date, Nà_parcelle, carré.parc, Par.interf, 
-#Crop.Analyses, pt, lat, LONG, Espèce_origin, abondance, ParPoint
-kept <- c(3:4, 6:9, 11:14, 22, 34)
-
-weeds2016 <- data2016[, kept ]
-colnames(weeds2016)
-unique(weeds2016$Crop.Analyses)
-weeds2016C<-subset(weeds2016,weeds2016$Crop.Analyses!="luzerne")
-weeds2016C<-subset(weeds2016C,weeds2016C$Crop.Analyses!="prairie")
-weeds2016C<-subset(weeds2016C,weeds2016C$Crop.Analyses!="trèfle")
-weeds2016C<-subset(weeds2016C,weeds2016C$Crop.Analyses!="mél ce/leg")
-weeds2016C<-subset(weeds2016C,weeds2016C$Crop.Analyses!="lin")
-weeds2016C<-subset(weeds2016C,weeds2016C$Crop.Analyses!="pavot")
-weeds2016C<-subset(weeds2016C,weeds2016C$Crop.Analyses!="lin/lentille")
-unique(weeds2016C$Crop.Analyses)
-
-weeds2016C$Crop.Analyses[weeds2016C$Crop.Analyses=="ble barbu"]="cereal"
-weeds2016C$Crop.Analyses[weeds2016C$Crop.Analyses=="céréale"]="cereal"
-weeds2016C$Crop.Analyses[weeds2016C$Crop.Analyses=="blé"]="cereal"
-weeds2016C$Crop.Analyses[weeds2016C$Crop.Analyses=="orge hiver"]="cereal"
-unique(weeds2016C$Crop.Analyses)
-
-##weeds2016C$Crop.Analyses[weeds2016C$pt==1]
-sort(unique(weeds2016C$pt)) # good !
-
-
-######################################################################            
-### Mise en forme pour matrice sites x especes et calcul par quadrat
-######################################################################
-
-## Another lines will be the field number and position
-#"carré-parc" :: numero de parcelle
-#"Par.interf" : in, pa1, pa2
-#"Crop.Analyses" : cereal, colza, tournesol
-#"lat"
-#"LONG"
-colnames(weeds2016C)
-length(unique(weeds2016C$"carré.parc"))
-## 163 parcelles
-
-unique(weeds2016C$Par.interf)
-#[1] "in"  "pa1" "pa2" "pa3" 
-
-length(unique(weeds2016C$Crop.Analyses))
-## 5 cultures
-
-length(unique(weeds2016$Espèce_origin))
-## 282 espèces soit 215 colonnes dans la matrice
-
-weeds2016C1 <- cbind(weeds2016C, as.factor(weeds2016C$Espèce_origin))
-colnames(weeds2016C1) [13] <- "sp"
-
-## Separe les noms des quadrats en quadrats et sub-quadrats
-nchar(weeds2016C1$pt)
-## Nombre de quadrats
-substr(weeds2016C1[nchar(weeds2016C1$pt)==2, ]$pt, 0, 1)
-substr(weeds2016C1[nchar(weeds2016C1$pt)==3, ]$pt, 0, 2)
-## Nombre de sub-quadrats
-substr(weeds2016C1[nchar(weeds2016C1$pt)==2, ]$pt, 2, 3)
-substr(weeds2016C1[nchar(weeds2016C1$pt)==3, ]$pt, 3, 4)
-
-#### 3 niveaux : field, plot (quadrat 1m²) et 
-### quadrat (équivalent aux sous-quadrats a, b, c, d)
-
-colnames(weeds2016C1)
-#[1] "Year"          "date"          "No_parcelle"   "carré.parc"    "Par.interf"   
-#[6] "Crop.Analyses" "pt"            "lat"           "LONG"          "Espèce_origin"
-#[11] "abondance"     "ParPoint"      "sp" 
-
-weeds1 <- weeds2016C1[nchar(weeds2016C1$pt)==2, ]
-weeds2 <- weeds2016C1[nchar(weeds2016C1$pt)==3, ]
-
-plot <- substr(weeds1$pt, 0, 1)
-quadrat <- substr(weeds1$pt, 2, 3)
-weeds1 <- cbind(weeds1, plot)
-weeds1 <- cbind(weeds1, quadrat )
-head(weeds1)
-
-plot <- substr(weeds2$pt, 0, 2)
-quadrat <- substr(weeds2$pt, 3, 4)
-weeds2 <- cbind(weeds2, plot)
-weeds2 <- cbind(weeds2, quadrat )
-head(weeds2)
-
-weeds <- rbind(weeds1, weeds2)
-head(weeds, 15)
-
-write.table(weeds, "data/generated/weeds2016.csv", sep = ";")
-
 ###########################################
 ## Aggregation des especes
 ###########################################
 weeds <- read.table("data/generated/weeds2016.csv", sep = ";")
+
+# remove 'luzerne' and 'prairie' and 'trèfle'
+weeds <- weeds[weeds$Crop.Analyses != "luzerne",]
+weeds <- weeds[weeds$Crop.Analyses != "prairie",]
+weeds <- weeds[weeds$Crop.Analyses != "trèfle",]
+
 test <- aggregate(data.frame(abondance = weeds$abondance), 
                   by = list(sp = weeds$sp, quadrat = weeds$quadrat, 
                             plot=weeds$plot, position = weeds$Par.interf,

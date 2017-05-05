@@ -4,119 +4,256 @@ Espèce_origin;Remplace par un qui existe déjà;remplace par un nouveau;eliminer c
 Adonis-aestivalis;Adonis-annua;NA;NA;NA
 Adonis-sp;Adonis-annua;NA;NA;NA
 Aethusa-sp;Aethusa-cynapium;NA;NA;NA
+Agrostis-stolonofera;Agrostis-stolonifera;NA;NA;NA
 Alchemilla-sp;NA;Aphanes-sp;NA;NA
+Allium-sp;Allium-oleraceum;NA;NA;NA
 Amaranthus-sp-;Amaranthus-sp;NA;NA;NA
+Anagallis-arvensis;NA;Lysimachia-arvensis;NA;NA
+Anagallis-foemina;NA;Lysimachia-foemina;NA;NA
+Anagallis arvensis;NA;Lysimachia-arvensis;NA;NA
+Anagallis foemina;NA;Lysimachia-foemina;NA;NA
+Anagallis sp;NA;Lysimachia-sp;NA;NA
+Anagallis-sp;NA;Lysimachia-sp;NA;NA
 Anchusa-arvensis;NA;Lycopsis-arvensis;NA;NA
 Anthemis-altissima;Anthemis-arvensis;NA;NA;NA
-Aquilegia-sp;Aquilega-vulgaris;NA;NA;NA
+Anthemis-spp;Anthemis-sp;NA;NA;NA
+Anthericum;Anthericum-sp;NA;NA;NA
+Aquilega-vulgaris;Aquilegia-vulgaris;NA;NA;NA
+Aquilegia-sp;Aquilegia-vulgaris;NA;NA;NA
+Arbre;Z-Arbre;NA;NA;NA
+Arenaria-serpillyfolia;Arenaria-serpyllifolia;NA;NA;NA
 Arrhenatherum-bulbosum;NA;NA;eliminer ce nom;NA
+Arrhenatherum-eliatus;Arrhenatherum-elatius;NA;NA;NA
 Arrhenatherum-sp;Arrhenatherum-elatius;NA;NA;NA
+Arum-spp;Arum-sp;NA;NA;NA
 Aster-sp;NA;NA;eliminer ce nom;NA
 Aster-squamatus;NA;Symphyotrichum-squamatum;NA;NA
-Avena-sterilis;NA;Avena-sativa-sterilis;NA;NA
+Avena-fatua;NA;Anacampseros-pachyphylla;NA;NA
+Avena-sp;NA;Schedonorus-sp;NA;NA
+Barbarea-spp;Barbarea-sp;NA;NA;NA
+Bidens-tripartita-;Bidens-tripartita;NA;NA;NA
 Bifora-sp;Bifora-radians;NA;NA;NA
-Bromus-hordeaceus-/mollis;Bromus-mollis;NA;NA;NA
+Brachypodium-silvaticum;NA;Brachypodium-sylvaticum;NA;NA
+Brassiceae;Brassicaceae;NA;NA;NA
+Bromus-asper-ramosus;NA;NA;eliminer ce nom;NA
+Bromus-erectus;NA;Bromopsis-erecta;NA;NA
+Bromus-hordeaceus-/mollis;Bromus-hordeaceus;NA;NA;NA
+Bromus-inermis;NA;Bromopsis-inemis;NA;NA
+Bromus-mollis;Bromus-hordeaceus;NA;NA;NA
+Bromus-sterilis;NA;Anisantha-sterilis;NA;NA
 Bryonia-cretica-dioica;NA;Bryonia-cretica;NA;NA
 Bryonia-sp;NA;Bryonia-cretica;NA;NA
-Buglossoides-arvensis;NA;Lithospermum-arvense;NA;NA
-Buglossoides-arvensis-=-lithospermum-arvense;NA;Lithospermum-arvense;NA;NA
+Bryophyta-sp;NA;NA;eliminer ce nom;NA
+Buglossoides-arvensis-=-lithospermum-arvense;NA;Buglossoides-arvensis;NA;NA
+Cadamine-hirsuta;Cardamine-hirsuta;NA;NA;NA
+Caedamine-hirsuta;Cardamine-hirsuta;NA;NA;NA
 Calamintha-nepeta;Calamintha-sp;NA;NA;NA
 Calamintha-sp;NA;NA;NA;NA
+Calystegia-sepium;NA;Convolvulus-sepium;NA;NA
 Capsella-rubella;Capsella-bursa-pastoris;NA;NA;NA
+Capsella-spp;Capsella-sp;NA;NA;NA
+Capselle-bursapastoris;Capsella-bursa-pastoris;NA;NA;NA
+Cardamine-spp;Cardamine-sp;NA;NA;NA
+Cardaria-draba;NA;Lepidium-draba;NA;NA
+Carduus-spp;Carduus-sp;NA;NA;NA
+carduus-tenuiflorus;Carduus-tenuiflorus;NA;NA;NA
+Caryophyllacee-sp;Caryophyllaceae;NA;NA;NA
 Caucalis-sp;NA;NA;eliminer ce nom;NA
+Centaurea-cyanus;NA;Cyanus-segetum;NA;NA
 Centaurea-paniculata;Centaurea-sp;NA;NA;NA
-Chrysanthemum;Chrysanthemum-segetum;NA;NA;NA
-Chrysanthemum-segetum-=-Glebionis-segetum;Chrysanthemum-segetum;NA;NA;NA
-Chrysanthemum-sp;Chrysanthemum-segetum;NA;NA;NA
+Centaurea-spp;Centaurea-sp;NA;NA;NA
+Chaerophyllum;NA;Chaerophyllum-temulum;NA;NA
+Chenopodiastrum-hmurale;Chenopodiastrum-murale;NA;NA;NA
+Chenopodium-hybridum;NA;Chenopodiastrum-hybridum;NA;NA
+Chenopodium-murale;NA;Chenopodiastrum-murale;NA;NA
+Chenopodium-polyspermum;NA;Lipandra-polysperma;NA;NA
+Chrysanthemum;NA;Glebionis-segetum;NA;NA
+Chrysanthemum-segetum;NA;Glebionis-segetum;NA;NA
+Chrysanthemum-segetum-=-Glebionis-segetum;NA;Glebionis-segetum;NA;NA
+Chrysanthemum-sp;NA;Glebionis-segetum;NA;NA
 Cichorium-sp;Cichorium-intybus;NA;NA;NA
 Colza(culture);Brassica-napus;NA;NA;NA
 Coniza-sumatrensis;NA;Erigeron-sumatrensis;NA;NA
+Conyza-canadensis;NA;Erigeron-canadensis;NA;NA
+Conyza-sp;NA;Erigeron-sp;NA;NA
 Conyza-sumatrensis;NA;Erigeron-sumatrensis;NA;NA
 Coriandrum-sp;Bifora-radians;NA;NA;NA
 Coronopus-sp;NA;Lepidium-sp;NA;NA
-Crepis-vesicaria-taraxacifolia;Crepis-vesicaria;NA;NA;NA
+Crataegus-sp;NA;Crataegus-monogyna;NA;NA
+Crepis-vesicaria;Crepis-sp;NA;NA;NA
+Crepis-vesicaria-taraxacifolia;Crepis-sp;NA;NA;NA
+cucurbitaceae;Cucurbitaceae;NA;NA;NA
 Dactyle(culture);Dactylis-glomerata;NA;NA;NA
 Dactylis-sp;Dactylis-glomerata;NA;NA;NA
+Doronicum-sp;NA;Doronicum-plantagineum;NA;NA
+Elitrigia-repens;Elytrigia-repens;NA;NA;NA
 Elytrigia-/Agropyron-repens;Elytrigia-repens;NA;NA;NA
-Festuca-ovina;NA;NA;NA;doublon
-Festuca-ovina/rubra;attribuer a rubra ou ovina selon le plus frequent;NA;NA;NA
+Epilobium-sp-;Epilobium-sp;NA;NA;NA
+Erophila-verna;Draba-verna;NA;NA;NA
+Eupharbia-exigua;Euphorbia-exigua;NA;NA;NA
+Fagopyrum-sp;NA;Fagopyrum-esculentm;NA;NA
+Festuca-arundinacea;NA;Schedonorus-arundinaceus;NA;NA
+Festuca-gigantea;NA;Schedonorus-giganteus;NA;NA
+Festuca-ovina;Festuca-rubra;NA;NA;doublon
+Festuca-ovina/rubra;Festuca-rubra;NA;NA;NA
+Festuca-ovine;Festuca-rubra;NA;NA;NA
+Festuca-pratensis;NA;Schedonorus-pratensis;NA;NA
+festuca-rubra;Festuca-rubra;NA;NA;NA
 Féverolles(culture);Vicia-faba;NA;NA;NA
 Flypochaeris-glabra ?;NA;Hypochaeris-glabra;NA;NA
 Fourrage(culture);NA;NA;eliminer ce nom;NA
 Fraxinus-excelsior;NA;NA;eliminer ce nom;NA
 Galactites-tomentosa;NA;NA;eliminer ce nom;NA
 Galeopsis-angustifolia;Galeopsis-ladanum;NA;NA;NA
+Galium-cruciata;Cruciata-laevipes;NA;NA;NA
 Galium-cruciata-(Cruciata-laevipes);Cruciata-laevipes;NA;NA;NA
 Gentiana-cruciata;NA;NA;eliminer;NA
+Geranium-colombinum;Geranium-columbinum;NA;NA;NA
+Gnaphalium;Gnaphalium-sp;NA;NA;NA
+Helianthus-anuus;Helianthus-annuus;NA;NA;NA
 Helianthus-sp;Helianthus-annuus;NA;NA;NA
 Hieracium-pilosella;Pilosella-officinarum;NA;NA;NA
 Hieracium-sp;NA;NA;eliminer ce nom;NA
 Hyacinthoides-/Jacinthus-non-scripta;NA;Hyacinthoides-non-scripta;NA;NA
 Iris-sp;Iris-pseudacorus;NA;NA;NA
 Lactuca-scariola;NA;NA;eliminer ce nom;NA
-Lentille(culture);Fabaceae;NA;NA;NA
+lageron;NA;NA;eliminer ce nom;NA
+Lathyrus-latifolium;Lathyrus-latifolius;NA;NA;NA
+Lentille(culture);Lens-culinaris;NA;NA;NA
 Leucanthemum-sp;Leucanthemum-vulgare;NA;NA;NA
 Linaria-minor;Chaenorrhinum-minus;NA;NA;NA
 Luzerne(culture);Medicago-sativa;NA;NA;NA
 Lychnis-flos-cuculi;NA;NA;eliminer ce nom;NA
+Lythospermum-arvensis;Buglossoides-arvensis;NA;NA;NA
+Lythospermum-buglossoides;Buglossoides-arvensis;NA;NA;NA
 Maïs(culture);Zea-mays;NA;NA;NA
-Malva-setigera;NA;Althea-hirsuta;NA;NA
+Malva-negleta;Malva-neglecta;NA;NA;NA
+Malva-setigera;NA;Althaea-hirsuta;NA;NA
+Matricaria perforata;NA;Tripleurospermum-inodorum;NA;NA
+Matricaria-perforata;NA;Tripleurospermum-inodorum;NA;NA
 Matricaria-camomilla;NA;Matricaria-chamomilla;NA;NA
 Matricaria-recutita;Matricaria-chamomilla;NA;NA;NA
+Melilotus-officinalis;Trigonella-officinalis;NA;NA;NA
+Mentha-x-piperita;Mentha-sp;NA;NA;NA
+Microthalspi-perfoliata;NA;Microthlaspi-perfoliatum;NA;NA
 Millet(culture);Panicum-miliaceum;NA;NA;NA
 Moha(culture-Setaria-italica);Setaria-italica;NA;NA;NA
 Muscari-atlanticum;Muscari-neglectum;NA;NA;NA
 Muscari-neglectum/atlanticum;Muscari-neglectum;NA;NA;NA
 Muscari-neglectum-/atlanticum;Muscari-neglectum;NA;NA;NA
-Ononis-spinosa/repens;Ononis-repens;NA;NA;NA
-Ononis-spinosa-/repens;Ononis-repens;NA;NA;NA
-Ononis-viscosa;Ononis-sp;NA;NA;NA
+Muscari-spp;Muscari-sp;NA;NA;NA
+Muscari-toupet;Muscari-comosum;NA;NA;NA
+Myosotis versicolor;NA;Myosotis-discolor;NA;NA
+Myosotis-versicolor;NA;Myosotis-discolor;NA;NA
+None;NONE;NA;NA;NA
+Ononis-repens;Ononis-spinosa;NA;NA;NA
+Ononis-spinosa/repens;Ononis-spinosa;NA;NA;NA
+Ononis-spinosa-/repens;Ononis-spinosa;NA;NA;NA
+Ononis-viscosa;Ononis-spinosa;NA;NA;NA
 Orge(culture);Hordeum-vulgare;NA;NA;NA
-Orobanche-uniflora;Orocbanche-sp;NA;NA;NA
+Ornithogalum pyrenaicum;NA;Loncomelos-pyrenaicus;NA;NA
+Ornithogalum-pyrenaicum;NA;Loncomelos-pyrenaicus;NA;NA
+Orobanche-purpurea;Phelipanche-purpurea;NA;NA;NA
+Orobanche-uniflora;Orobanche-sp;NA;NA;NA
+Orobanche uniflora;Orobanche-sp;NA;NA;NA
+Petroselinum segetum;NA;Sison-segetum;NA;NA
+Petroselinum-segetum;NA;Sison-segetum;NA;NA
 Phalari-sp;NA;NA;eliminer ce nom;NA
 Phalaris-paradoxa-;Phalaris-paradoxa;NA;NA;NA
-Phleum-pratense;Phleum sp;NA;NA;NA
+Phleum-pratense;Phleum-sp;NA;NA;NA
+Picris echioides;NA;Helminthotheca-echioides;NA;NA
+Picris echoides;NA;Helminthotheca-echioides;NA;NA
+Picris-echioides;NA;Helminthotheca-echioides;NA;NA
+Picris-echioides;NA;Helminthotheca-echioides;NA;NA
+Picris-spp;Picris-sp;NA;NA;NA
+Poa-angustifolia;Poa-pratensis;NA;NA;NA
 Poa-glauca;NA;NA;eliminer ce nom;NA
 Pois(culture);Pisum-sativum;NA;NA;NA
-Polygonum-amphibium;Polygonum-persicaria;NA;NA;NA
+Polygonum persicaria;NA;Persicaria-maculosa;NA;NA
+Polygonum-persicaria;NA;Persicaria-maculosa;NA;NA
+Polygonum-amphibium;NA;Persicaria-maculosa;NA;NA
+Polygonum-lapathifolium;NA;Persicaria-lapathifolia;NA;NA
+Potentilla;Potentilla-sp;NA;NA;NA
+Potentilla-anserina;NA;Argentina-anserina;NA;NA
 Prairie(culture);NA;NA;eliminer ce nom;NA
 Pulicaria-sp;Pulicaria-dysenterica;NA;NA;NA
 Pulmonaria-officinalis;Pulmonaria-sp;NA;NA;NA
+Ranunculus ficaria;NA;Ficaria-verna;NA;NA
+Ranunculus-ficaria;NA;Ficaria-verna;NA;NA
+Ranunculus-paludosus-marais-fleur-jaune;NA;Ranunculus-paludosus;NA;NA
 Ranunculus-polyanthemos;Ranunculus-sp;NA;NA;NA
+Rapistrum;Rapistrum-sp;NA;NA;NA
 Ray-Grass(culture);Lolium-perenne;NA;NA;NA
+Repousse-cereal;Triticum-sp;NA;NA;NA
 Repousse-Lupinus;Lupinus-sp;NA;NA;NA
 Repousses-Brassica-napus-(colza);Brassica-napus;NA;NA;NA
 Repousse-Setaria-italica-maxima-(moha);Setaria-italica;NA;NA;NA
+Rubia;Rubia-sp;NA;NA;NA
+Rubus-fructicosus;Rubus-fruticosus;NA;NA;NA
+Rubus-fruticosus-sp;Rubus-fruticosus;NA;NA;NA
+Sanguisorba minor;NA;Poterium-sanguisorba;NA;NA
+Sanguisorba-minor;NA;Poterium-sanguisorba;NA;NA
 Saponaria-sp;NA;NA;eliminer ce nom;NA
+Saxifraga tridactylites;Saxifraga-tridactylites;NA;NA;NA
+Saxifraga-tridactylites;Saxifraga-tridactylites;NA;NA;NA
 Scandix-sp;Scandix-pecten-veneris;NA;NA;NA
+Scleranthus;Scleranthus-annuus;NA;NA;NA
+Sedum-telephium;NA;Hylotelephium-telephium;NA;NA
+Senecio-jacobaea;NA;Jacobaea-vulgaris;NA;NA
+Setaria viridis;Setaria-italica;NA;NA;NA
+Setaria-viridis;Setaria-italica;NA;NA;NA
+Setaria-spp;Setaria-sp;NA;NA;NA
 Silene-/Lychnis-flos-cuculi;Lychnis-flos-cuculi;NA;NA;NA
-Silene-alba/latifolia;Silene-latifolia-alba;NA;NA;NA
+Silene-alba;Silene-latifolia;NA;NA;NA
+Silene-alba/latifolia;Silene-latifolia;NA;NA;NA
+Silene-alba-latifolia;Silene-latifolia;NA;NA;NA
+Silene-latifolia/alba;Silene-latifolia;NA;NA;NA
+Silene-latifolia-alba;Silene-latifolia;NA;NA;NA
 Stachys-annua/officinalis;Stachys-annua;NA;NA;NA
 Stachys-annua-et-officinalis;Stachys-annua;NA;NA;NA
 Stachys-officinalis;NA;Betonica-officinalis;NA;NA
 Stellaria-aquatica;NA;Myosoton-aquaticum;NA;NA
+Stellaria-holosta;Stellaria-holostea;NA;NA;NA
+Sylibum-marianum;Silybum-marianum;NA;NA;NA
+Symphyotrichum squamatum;Symphyotrichum-subulatum;NA;NA;NA
+Symphyotrichum-squamatum;Symphyotrichum-subulatum;NA;NA;NA
 Tabac(culture);Nicotiana-tabacum;NA;NA;NA
+Tamus communis;NA;Dioscorea-communis;NA;NA
+Tamus-communis;NA;Dioscorea-communis;NA;NA
 Taraxacum-officinale;NA;Taraxacum-ruderale;NA;NA
+Taraxacum-officinalis;NA;Taraxacum-ruderale;NA;NA
+Tarxacum-officinalis;NA;Taraxacum-ruderale;NA;NA
 Taraxacum-sp;NA;Taraxacum-ruderale;NA;NA
-Thlaspi-perfoliatum;NA;Microthalspi-perfoliata;NA;NA
+Thlaspi-perfoliatum;NA;Microthalspi-perfoliatum;NA;NA
 Tordylium-sp;Tordylium-maximum;NA;NA;NA
 Tournesol(culture);Helianthus-annuus;NA;NA;NA
 Tricitcum-sp;NA;NA;eliminer ce nom;NA
 Trifolium-fragiferum;Trifolium-fragiferum;NA;NA;NA
+Trifolium-spp;Trifolium-sp;NA;NA;NA
+Trisetum;Trisetum-aestivalis;NA;NA;NA
 Trisetum-sp;Trisetum-flavescens;NA;NA;NA
 Tussilago-sp;Tussilago-farfara;NA;NA;NA
 Valerianella-sp.;Valerianella-sp;NA;NA;NA
+Verbascum;Verbascum-sp;NA;NA;NA
 Verbascum-sinuatum;NA;NA;eliminer ce nom;NA
+Verbena;Verbena-officinalis;NA;NA;NA
+Veronica-arvensis/polita;Veronica-arvensis;NA;NA;NA
+Veronica-arvensis/polita/polita;Veronica-arvensis;NA;NA;NA
 Vicia-angustifolia;Vicia-sativa;NA;NA;NA
 Vicia-faba=repousses-féverolles;Vicia-faba;NA;NA;NA
 Vignes(culture);Z-Arbre;NA;NA;NA
-Viola arvensis;Viola-arvensis/tricolor;NA;NA;NA
+Viola-arvensis/tricolor;Viola-arvensis;NA;NA;NA
 Viola-hirta/hirsuta;Viola-hirta;NA;NA;NA
 Viola-poilue;Viola-hirta;NA;NA;NA
+Vulpia;Vulpia-sp;NA;NA;NA
 x-No-Species;NONE;NA;NA;NA
 Zea-mays-;Zea-mays;NA;NA;NA
+Z-cereale;NA;Triticum-sp;NA;NA
+z-inconnu;NA;NA;eliminer ce nom;NA
 "z-inconnu-""de-alois""";NA;NA;eliminer ce nom;NA
+z-inconnu-1;NA;NA;eliminer ce nom;NA
 z-inconnu-1-feuille;NA;NA;eliminer ce nom;NA
+z-inconnu-2;NA;NA;eliminer ce nom;NA
 z-inconnu-Apiacée;Apiaceae;NA;NA;NA
 z-inconnu-Apiacée-poilue;Apiaceae;NA;NA;NA
 z-inconnu-Apiacée-velue;Apiaceae;NA;NA;NA
@@ -145,6 +282,7 @@ z-inconnu-F…-eleva;NA;NA;eliminer ce nom;NA
 z-inconnu-Fabacée;Fabaceae;NA;NA;NA
 z-inconnu-fausse-viola;NA;NA;eliminer ce nom;NA
 z-inconnu-faux-papaver;NA;NA;eliminer ce nom;NA
+z-inconnu-Feuilles-gaufrÚes;NA;NA;eliminer ce nom;NA
 z-inconnu-feuille-velue;NA;NA;eliminer ce nom;NA
 z-inconnu-fleur-blanche;NA;NA;eliminer ce nom;NA
 z-inconnu-G10531Rosacea;Rosaceae;NA;NA;NA
@@ -153,20 +291,24 @@ z-inconnu-Graminé-faux-dactyle;Poaceae;NA;NA;NA
 z-inconnu-Graminé-poilu-oreillette;Poaceae;NA;NA;NA
 z-inconnu-Grosse;NA;NA;NA;NA
 z-inconnu-illisible;NA;NA;NA;NA
+z-inconnu-Ischia-;NA;NA;eliminer ce nom;NA
 z-inconnu-kickxia-géant;Kickxia-sp;NA;NA;NA
 z-inconnu-Lamiacée;Lamiaceae;NA;NA;NA
 z-inconnu-Lamiacée;Lamiaceae;NA;NA;NA
+z-inconnu-lamiacée;NA;NA;eliminer ce nom;NA
 z-inconnu-lapsana;Lapsana-sp;NA;NA;NA
 z-inconnu-lierre;Hedera-helix;NA;NA;NA
-z-inconnu-Liliacée;Allium oleraceum;NA;NA;NA
+z-inconnu-Liliacée;Allium-oleraceum;NA;NA;NA
 z-inconnu-liseron;Convolvulus-sp;NA;NA;NA
 z-inconnu-luisante;NA;NA;eliminer ce nom;NA
 z-inconnu-luisante-vivace;NA;NA;eliminer ce nom;NA
 z-inconnu-mache;Valerianella-locusta;NA;NA;NA
+z-inconnu-Mega-cotylédon;NA;NA;eliminer ce nom;NA
 z-inconnu-morelle;Solanum-sp;NA;NA;NA
 z-inconnu-moutarde;Brassiceae;NA;NA;NA
 z-inconnu-persil;Apiaceae;NA;NA;NA
 z-inconnu-Persil-citron;Apiaceae;NA;NA;NA
+z-inconnu-Petite-fleur-jaune;NA;NA;eliminer ce nom;NA
 z-inconnu-petroselinum;Apiaceae;NA;NA;NA
 z-inconnu-Pinede;Z-Arbre;NA;NA;NA
 z-inconnu-pissenlit;NA;Taraxacum-ruderale;NA;NA
@@ -178,7 +320,12 @@ z-inconnu-point-blanc;NA;NA;eliminer ce nom;NA
 z-inconnu-Polynagonacée;Polygonaceae;NA;NA;NA
 z-inconnu-pourpre;NA;NA;eliminer ce nom;NA
 z-inconnu-Rosacée-;Rosaceae;NA;NA;NA
+Z-inconnu-Rosette-rouge;NA;NA;eliminer ce nom;NA
 z-inconnu-Rosette-sans-poil;NA;NA;eliminer ce nom;NA
 z-inconnu-torti;NA;NA;eliminer ce nom;NA
 z-inconnu-truc-blanc;NA;NA;eliminer ce nom;NA
-z-inconu-X;NA;z-inconnu-X;NA;NA
+z-inconnu-X;NA;NA;eliminer ce nom;NA
+z-inconnu-Y;NA;NA;eliminer ce nom;NA
+z-inconnu-Z;NA;NA;eliminer ce nom;NA
+z-inconu-X;NA;NA;eliminer ce nom;NA
+z-inconnu-F…-eleva;NA;NA;eliminer ce nom;NA

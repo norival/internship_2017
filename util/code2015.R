@@ -5,133 +5,16 @@
 # modifié le 
 ###########################################################
 
-#####Charge le fichier des relevés de flore 2015
-data2015=read.csv("data/raw/monitoring2015.csv", sep=";", dec= "," , 
-                  stringsAsFactors=FALSE,h=T,
-                  encoding = "latin1")
-#vérification des données
-dim(data2015) #dimension du fichier de donnees
-head(data2015) #premieres lignes
-summary(data2015) #synthese des donnees
-var <- colnames(data2015)
-unique(data2015$Crop.Analyses)
-data2015$Crop.Analyses[data2015$Crop.Analyses=="luzerne "]="luzerne"
-data2015$Crop.Analyses[data2015$Crop.Analyses=="orge "]="orge"
-
-# There is a problem with these fields (cf the shapefile on QGIS: the real sampled field does not correspond to carré.parc)
-data2015[which(data2015$carré.parc == "1750-4351"), ]$carré.parc =	"1750-3548"
-data2015[which(data2015$carré.parc == "10271-6656"), ]$carré.parc =	"10271-6718"
-data2015[which(data2015$carré.parc == "HC-7054"), ]$carré.parc =	"HC-6920"
-data2015[which(data2015$carré.parc == "11100-7625"), ]$carré.parc =	"11100-7598"
-data2015[which(data2015$carré.parc == "8871-13728"), ]$carré.parc =	"8871-13730"
-data2015[which(data2015$carré.parc == "3094-785"), ]$carré.parc =	"3094-15937"
-
-data2015b=data2015
-
-###Correction des noms d'espèces adventices
-##code Joël
-source("util/modifs_fichier.R", encoding = "latin1")
-data2015=modifs_fichier(tab=data2015)
-write.csv(data2015, "/tmp/data2015.csv", row.names = FALSE)
-
-#############################################################
-#####Creation d'un jeu de donnees avec les cultures annuelles
-#############################################################
-
-# On conserve Year, date, Nà_parcelle, carré.parc, Par.interf, 
-#Crop.Analyses, pt, lat, LONG, Espèce_origin, abondance, ParPoint
-kept <- c(3:8,10:13,20:21)
-
-weeds2015 <- data2015[, kept ]
-colnames(weeds2015)
-unique(weeds2015$Crop.Analyses)
-weeds2015C<-subset(weeds2015,weeds2015$Crop.Analyses!="friche")
-weeds2015C<-subset(weeds2015C,weeds2015C$Crop.Analyses!="luzerne")
-weeds2015C<-subset(weeds2015C,weeds2015C$Crop.Analyses!="prairie")
-weeds2015C<-subset(weeds2015C,weeds2015C$Crop.Analyses!="trèfle")
-weeds2015C<-subset(weeds2015C,weeds2015C$Crop.Analyses!="ce/leg")
-weeds2015C<-subset(weeds2015C,weeds2015C$Crop.Analyses!="ce/luz")
-unique(weeds2015C$Crop.Analyses)
-
-weeds2015C$Crop.Analyses[weeds2015C$Crop.Analyses=="orge"]="cereal"
-weeds2015C$Crop.Analyses[weeds2015C$Crop.Analyses=="céréale"]="cereal"
-weeds2015C$Crop.Analyses[weeds2015C$Crop.Analyses=="blé"]="cereal"
-weeds2015C$Crop.Analyses[weeds2015C$Crop.Analyses=="orge hivers"]="cereal"
-unique(weeds2015C$Crop.Analyses)
-
-##weeds2015C$Crop.Analyses[weeds2015C$pt==1]
-sort(unique(weeds2015C$pt))
-weeds2015C$pt[weeds2015C$pt=="6q" ] <- "6d"
-
-######################################################################            
-### Mise en forme pour matrice sites x especes et calcul par quadrat
-######################################################################
-
-## Another lines will be the field number and position
-#"carré-parc" :: numero de parcelle
-#"Par.interf" : in, pa1, pa2
-#"Crop.Analyses" : cereal, colza, tournesol
-#"lat"
-#"LONG"
-colnames(weeds2015C)
-length(unique(weeds2015C$"carré.parc"))
-## 156 parcelles
-
-unique(weeds2015C$Par.interf)
-#[1] "in"  "pa1" "pa2" "pa3" 
-#retrait de la 3ème ligne en plein champ
-weeds2015C=subset(weeds2015C,weeds2015C$Par.interf!="pa3")
-
-length(unique(weeds2015C$Crop.Analyses))
-## 10 cultures
-
-length(unique(weeds2015$Espèce_origin))
-## 215 espèces soit 215 colonnes dans la matrice
-
-weeds2015C1 <- cbind(weeds2015C, as.factor(weeds2015C$Espèce_origin))
-colnames(weeds2015C1) [13] <- "sp"
-
-## Separe les noms des quadrats en quadrats et sub-quadrats
-#nchar(weeds2015C1$pt)
-## Nombre de quadrats
-#substr(weeds2015C1[nchar(weeds2015C1$pt)==2, ]$pt, 0, 1)
-#substr(weeds2015C1[nchar(weeds2015C1$pt)==3, ]$pt, 0, 2)
-## Nombre de sub-quadrats
-#substr(weeds2015C1[nchar(weeds2015C1$pt)==2, ]$pt, 2, 3)
-#substr(weeds2015C1[nchar(weeds2015C1$pt)==3, ]$pt, 3, 4)
-
-#### 3 niveaux : field, plot (quadrat 1m²) et 
-### quadrat (équivalent aux sous-quadrats a, b, c, d)
-
-colnames(weeds2015C1)
-#[1] "Year"          "date"          "No_parcelle"   "carré.parc"    "Par.interf"   
-#[6] "Crop.Analyses" "pt"            "lat"           "LONG"          "Espèce_origin"
-#[11] "abondance"     "ParPoint"      "sp" 
-
-weeds1 <- weeds2015C1[nchar(weeds2015C1$pt)==2, ]
-weeds2 <- weeds2015C1[nchar(weeds2015C1$pt)==3, ]
-
-plot <- substr(weeds1$pt, 0, 1)
-quadrat <- substr(weeds1$pt, 2, 3)
-weeds1 <- cbind(weeds1, plot)
-weeds1 <- cbind(weeds1, quadrat )
-head(weeds1)
-
-plot <- substr(weeds2$pt, 0, 2)
-quadrat <- substr(weeds2$pt, 3, 4)
-weeds2 <- cbind(weeds2, plot)
-weeds2 <- cbind(weeds2, quadrat )
-head(weeds2)
-
-weeds <- rbind(weeds1, weeds2)
-head(weeds, 15)
-
-write.table(weeds, "data/generated/weeds2015.csv", sep = ";")
-
 ###########################################
 ## Aggregation des especes
 ###########################################
 weeds <- read.table("data/generated/weeds2015.csv", sep = ";")
+
+# remove 'luzerne' and 'prairie' and 'trèfle'
+weeds <- weeds[weeds$Crop.Analyses != "luzerne",]
+weeds <- weeds[weeds$Crop.Analyses != "prairie",]
+weeds <- weeds[weeds$Crop.Analyses != "trèfle",]
+
 test <- aggregate(data.frame(abondance = weeds$abondance), 
                   by = list(sp = weeds$sp, quadrat = weeds$quadrat, 
                             plot=weeds$plot, position = weeds$Par.interf,
@@ -311,40 +194,3 @@ write.table(A, "data/generated/transpose_abondance_per_sousquadrat2015.csv", sep
 # ------------------------------------------------------------------------------
 # End of commented stuff
 # ------------------------------------------------------------------------------
-
-
-# ------------------------------------------------------------------------------
-# Estimation des abondances
-# Problème: les abondances sont notées 0/1 (absence/présence).
-
-# ------------------------------------------------------------------------------
-# Estimation des abondances par une loi de Poisson par sous-quadrat
-
-source("functions/abundance.R", encoding = "utf8")
-
-weeds <- read.csv("data/generated/transpose_abondance_per_sousquadrat2015.csv",
-                  sep = ";", stringsAsFactors = FALSE)
-
-abond_per_plot <- estim_abundance01(weeds, surf = 0.25)
-
-write.csv(abond_per_plot, "data/generated/abondt_per_subquadra_2015_binomiale.csv",
-          row.names = TRUE)
-
-# ------------------------------------------------------------------------------
-# En regroupant les sous-quadras
-
-abond_per_plot <- estim_abundance01(weeds, surf = 1, gp.subquadra = TRUE)
-
-write.csv(abond_per_plot, "data/generated/abondt_per_quadra_2015_binomiale.csv",
-          row.names = TRUE)
-
-# ------------------------------------------------------------------------------
-# Passage des notes en log2
-# On considère ici qu'il ne peut y avoir plus d'une plante par sous-quadra. On
-# regroupe donc les sous-quadras en faisant la somme des indices d'abondances et
-# si une note est > 2, on la remplace par 2.
-
-abond_per_plot <- estim_abundance01(weeds, surf = 1, gp.subquadra = T, base2 = T)
-
-write.csv(abond_per_plot, "data/generated/abondt_per_quadra_2015_base2.csv",
-          row.names = TRUE)

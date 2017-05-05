@@ -15,19 +15,12 @@ modifs_fichier = function(tab=data2013)
                          encoding = "latin1")
   depart.dat <- tab
 
-  # compatibilite accents...
-  colnames(afaire.dat) <-
-    gsub("[éè]{1}", "e", colnames(afaire.dat))
-  colnames(depart.dat) <-
-    gsub("[éè]{1}", "e", colnames(depart.dat))
-
-
 ## suppression d'espece [col 4]
 casconcernes <- (1:nrow(afaire.dat))[!is.na(afaire.dat[,4])]
 numlig <- NULL
 for (icas in casconcernes)
 {
-numlig <- c(numlig,(1:nrow(depart.dat))[as.character(depart.dat$Espece_origin)==as.character(afaire.dat[icas,1])])#[,13]
+numlig <- c(numlig,(1:nrow(depart.dat))[as.character(depart.dat$Espèce_origin)==as.character(afaire.dat[icas,1])])#[,13]
 }
 
 interm1.dat <- depart.dat
@@ -39,77 +32,37 @@ casconcernes <- (1:nrow(afaire.dat))[!is.na(afaire.dat[,3])]
 numlig <- NULL
 for (icas in casconcernes)
 {
-numlig <- c(numlig,(1:nrow(depart.dat))[as.character(depart.dat$Espece_origin)==as.character(afaire.dat[icas,1])]) #[,13]
+numlig <- c(numlig,(1:nrow(interm1.dat))[as.character(interm1.dat$Espèce_origin)==as.character(afaire.dat[icas,1])]) #[,13]
 }
 
-v1 <- depart.dat$Espece_origin[numlig]#13
+v1 <- interm1.dat$Espèce_origin[numlig]#13
 jv1 <- match(v1,afaire.dat[casconcernes,1])
 v1 <- (afaire.dat[casconcernes,3])[jv1]
 
 interm2.dat <- interm1.dat
-interm2.dat$Espece_origin<- as.character(interm2.dat$Espece_origin) #13
-interm2.dat$Espece_origin[numlig] <- as.character(v1) #13
+interm2.dat$Espèce_origin<- as.character(interm2.dat$Espèce_origin) #13
+interm2.dat$Espèce_origin[numlig] <- as.character(v1) #13
 
-## existe deux fois [5]
+## remplacer par un existant
+ casconcernes <- (1:nrow(afaire.dat))[!is.na(afaire.dat[,2])]
 
-casconcernes <- (1:nrow(afaire.dat))[!is.na(afaire.dat[,5])]
-numlig <- NULL
-for (icas in casconcernes)
-{
-numlig <- c(numlig,(1:nrow(depart.dat))[as.character(depart.dat$Espece_origin)==as.character(afaire.dat[icas,1])])
-}
 
-### a faire à la main
-print(c("lignes susceptibles d'etre des doublons"))
-print(numlig)
+  numlig <- NULL
+  for (icas in casconcernes)
+    {
+    numlig <- c(numlig,(1:nrow(interm2.dat))[as.character(interm2.dat$Espèce_origin)==as.character(afaire.dat[icas,1])])
+    }
 
-## existe deja (sous deux noms !) [2]
-
-casconcernes <- (1:nrow(afaire.dat))[!is.na(afaire.dat[,2])]
-
-if(sum(casconcernes==30)>0){print("attention cas à gerer à la main (rubra ou ovina)")}
-numlig <- NULL
-for (icas in casconcernes)
-{
-numlig <- c(numlig,(1:nrow(depart.dat))[as.character(interm2.dat$Espece_origin)==as.character(afaire.dat[icas,1])])
-}
-
-### les modifs on va voir cas par cas
-
-k <- 0
-for (icas in casconcernes)
-{
-if(icas !=30){
-for (iparc in unique(interm2.dat$No_parcelle))
-{
-print(c(iparc,icas))
-du.dat <- interm2.dat[interm2.dat$No_parcelle==iparc,]
-k <- k+1
-namedouble <- afaire.dat[icas,2]
-nameorig <- afaire.dat[icas,1]
-ww <- match(c(nameorig,namedouble),as.character(du.dat$Espece_origin))
-if(is.na(ww[1])&!is.na(ww[2])) {du.dat$Espece_origin[ww[2]] <- nameorig}
-if(!is.na(ww[1])&!is.na(ww[2])) {
+  v1 <- interm2.dat$Espèce_origin[numlig]
+  jv1 <- match(v1,afaire.dat[casconcernes,1])
+  v1 <- (afaire.dat[casconcernes,2])[jv1]  ## fait
   
-  selocc <-(du.dat$Crop.Analyses[1]=="prairie") | (du.dat$Crop.Analyses[1,]=="luzerne") |
-     (du.dat$Crop.Analyses[1]=="trèfle") |(du.dat$Crop.Analyses[1]=="friche")
-       if(selocc){val <- sum(du.dat$abondance[ww,])}
-  if(!selocc){
-  w1 <- du.dat$abondance[ww[1]]
-  w2 <- du.dat$abondance[ww[2]]
-  w12 <- max(w1,w2)
-  if((w1==1)&(w2==1)) w12 <- 2
-  du.dat$abondance[ww[1]] <- w12
-}
-  du.dat <- du.dat[-ww[2]]
+  interm3.dat <- interm2.dat
+  interm3.dat$Espèce_origin <- as.character(interm3.dat$Espèce_origin)
+  interm3.dat$Espèce_origin[numlig] <- as.character(v1)
+  interm2.dat <- interm3.dat 
 
 
- }
-interm2.dat[interm2.dat$No_parcelle==iparc,] <- du.dat
-}
-  }
-
-}
 return(interm2.dat)
 }
  
