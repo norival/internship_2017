@@ -49,11 +49,30 @@ ift_herbi <- Intensite_Traitement()
 # -- nitrogen dose computation -------------------------------------------------
 # Compute nitrogen dose from values in reference table
 
-# reads the reference table for fertilizers
-fert <- read.csv("data/raw/BD_Fertilizers_dec2016.csv", stringsAsFactors = FALSE)
-fert$Fertilisant  <- toupper(trimws(fert$Fertilisant))
-colnames(fert)[2] <- "kg_n_100kg"
+# get the reference table
+fert <- read.csv("data/raw/Engrais_DB_Rui280317.csv", dec = ",",
+                 stringsAsFactors = FALSE)
+# we need only the name and the notrogen dose
+fert <- fert[, c("Nom.dans.BDD.Enquetes", "N")]
+colnames(fert) <- c("product", "doseN")
 
+# just a little cleaning to be sure (removes trailing whitespaces):
+fert$product <- trimws(fert$product)
+
+# make an unique identifier for the data
+bdd <- read.csv("data/generated/BDD_full.csv", stringsAsFactors = FALSE)
+
+bdd$id_parc_tri <- paste(bdd$ID_Parcelle, bdd$ID_Exploitation,
+                         bdd$Année_SuiviParcelle, sep = "_")
+
+# we need only the informations about fertilization in the database:
+kept  <- c("id_parc_tri", "Produit_Ferti", "Dose_Ferti", "Unité_dose")
+tab   <- bdd[, kept]
+
+# compute the dose. Results is given in Kg/HA
+nitrogen_doses <- n_dose(tab, fert)
+
+# ------------------------------------------------------------------------------
 data_full$id_parc_tri <- paste(data_full$ID_Parcelle, data_full$ID_Exploitation,
                                data_full$Année_SuiviParcelle, sep = "_")
 kept  <- c("id_parc_tri", "Produit_Ferti", "Dose_Ferti", "Unité_dose")
