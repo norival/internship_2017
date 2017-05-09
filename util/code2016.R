@@ -32,7 +32,7 @@ test[which(is.na(test$abondance)==TRUE), ]$abondance <- 1
 nrow(test[test$abondance > 1, ]) # 13
 
 ## Juste set those lines with 1 value (the original data must be fixed after). 
-test[test$abondance > 1, ]$abondance <- 1
+test$abondance[test$abondance > 1] <- 1
 
 nrow(test)
 # 35822

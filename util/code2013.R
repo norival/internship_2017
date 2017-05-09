@@ -31,7 +31,7 @@ test <- aggregate(data.frame(abondance = weeds$abondance),
 # 5667
 
 ## Juste set those lines with 2 value (the original data must be fixed after). 
-test$abundance[test$abondance > 2] <- 2
+test$abondance[test$abondance > 2] <- 2
 
 ##nrow(test)
 # 29008
