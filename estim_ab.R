@@ -19,7 +19,7 @@ data2006 <- read.csv("data/generated/transpose_abondance_per_quadrat2006.csv",
 abond_per_plot <- estim_abundance(data2006, surf = 4, n_cores = 4,
                                   fun = "gammapoisson", maxtheta = 20)
 
-write.csv(abond_per_plot, "data/generated/abondt_per_plot_2006.csv",
+write.csv(abond_per_plot, "data/generated/abond_per_plot_2006.csv",
           row.names = TRUE)
 
 rm(list = c("abond_per_plot", "data2006"))
