@@ -1,32 +1,34 @@
 # -- packages and functions ----------------------------------------------------
-library(tidyverse)
 library(topicmodels)
+library(doSNOW)
 source("functions/lda.R")
 
 # -- read the data -------------------------------------------------------------
-files <- list.files("data/generated", pattern = "abondt_per_quadra", full.names = TRUE)
-files <- files[!grepl("binomiale", files)]
+files <- list.files("data/generated", pattern = "abond_per_plot", full.names = TRUE)
 
 surf <- 20
 all_years <- numeric()
 for (file in files) {
-  year <- strsplit(file, "[_\\.]")[[1]][4]
+  year      <- strsplit(file, "[_\\.]")[[1]][4]
   all_years <- c(all_years, year)
-  var_name <- paste("weeds", year, sep = "")
+  var_name  <- paste("weeds", year, sep = "")
 
   assign(var_name, read.csv(file, stringsAsFactor = FALSE, row.names = 1) * surf)
 }
 
 
 # -- clean values --------------------------------------------------------------
-# group 2014:2016
+# group all years together
+
 allsp <- character()
 allpc <- character()
-for (i in 2014:2016) {
-  tmp <- get(paste("weeds", i, sep = ""))
+
+for (year in all_years) {
+  tmp <- get(paste("weeds", year, sep = ""))
   allsp <- c(allsp, colnames(tmp))
-  allpc <- c(allpc, paste(i, rownames(tmp), sep = "_"))
+  allpc <- c(allpc, paste(year, rownames(tmp), sep = "_"))
 }
+
 allsp <- unique(allsp)
 allpc <- unique(allpc)
 
@@ -35,22 +37,20 @@ colnames(mat) <- allsp
 rownames(mat) <- allpc
 
 for (pc in rownames(mat)) {
-  year <- substr(pc, 1, 4)
+  year   <- substr(pc, 1, 4)
   pcorig <- substr(pc, 6, nchar(pc))
-  tmp <- get(paste("weeds", year, sep = ""))
+  tmp    <- get(paste("weeds", year, sep = ""))
+
   # set minimum values to 0
   tmp[tmp == min(tmp)] <- 0
 
-  for (sp in colnames(mat)) {
-    if (!(sp %in% colnames(tmp))) next
+  for (sp in colnames(tmp)) {
     mat[pc, sp] <- tmp[pcorig, sp]
   }
 }
 
-dat <- mat
-
 # remove interface
-dat <- dat[!(grepl("In", rownames(dat))),]
+dat <- mat[!(grepl("In", rownames(mat))),]
 
 # truncate the values to the smaller greater integer
 dat <- ceiling(dat)
@@ -60,14 +60,21 @@ dat <- dat[rowSums(dat) != 0,]
 
 
 # -- compute the lda models ----------------------------------------------------
-aic <- numeric()
+# lda model on all years grouped together
+
+cl <- makeCluster(4)
+registerDoSNOW(cl)
 
 control <- list(seed = 42, burnin = 10000, thin = 500, iter = 50000)
-for (k in 2:3) {
-  Gibbs <- LDA(dat, k = k, method = "Gibbs", control = control)
 
-  ll <- logLik(Gibbs)
-  dfree <- Gibbs@k * length(Gibbs@terms)
+all_ldas <- foreach(k = 2:15, .export = "LDA") %dopar% {
+  # get file and model name
+  filename <- paste0("data/generated/lda_all_years_", k, "_groups.Rdata")
+  modelname <- paste0("lda_all_years_", k, "_groups")
+  assign(modelname, LDA(dat, k = k, method = "Gibbs", control = control))
 
-  aic <- c(aic, (-2 * ll + 2 * dfree)[][1])
+  save(list = modelname, file = filename)
+  return(get(modelname))
 }
+
+stopCluster(cl)
