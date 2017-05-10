@@ -153,9 +153,9 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE
   # rapporter à 1 m^2
   abond_per_plot <- abond_per_plot / surf
 
-  return(abond_per_plot)
-
   stopCluster(cl)
+
+  return(abond_per_plot)
 }
 
 # ------------------------------------------------------------------------------
