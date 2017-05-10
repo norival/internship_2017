@@ -43,7 +43,7 @@ gammapoisson <- function(param, v, maxtheta = 30) {
 
   # prevents the function to block on high parameter values, 30 seems to be a
   # reasonable choice
-  if (max(param) > maxtheta) return(100000)
+  if (!any(is.nan(param)) && max(param) > maxtheta) return(100000)
 
   # log-likelihood to observe 0 plant
   lp0 <- lgpoisson(k = 0, param[1], param[2])
