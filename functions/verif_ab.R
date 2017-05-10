@@ -201,3 +201,46 @@ optim_maxtheta <- function(transposed, maxtheta, fun = "gammapoisson", surf = 1,
 
   return(results)
 }
+
+# ------------------------------------------------------------------------------
+
+min_quadras <- function(tab, min = 5) {
+  max <- ncol(tab) - 3
+
+  results <- data.frame(nqd = rep(max:min, rep(nrow(tab), length(max:min))),
+                        observed = 0,
+                        estimate = 0)
+
+  for (i in max:min) {
+    # i <- 40
+    cat("Estimation for", i, "quadrates...\n")
+    # i <- max
+    # resample the number of quadrates
+    newtab <- t(apply(tab[, 4:length(tab)], 1, function(x) sample(x, i)))
+
+    # create fake columns
+    newtaborig <- cbind.data.frame(sp         = tab$sp,
+                                   carre.parc = tab$carre.parc,
+                                   position   = tab$position,
+                                   newtab,
+                                   stringsAsFactors = FALSE)
+
+    newtab[newtab > 2] <- 2
+    newtabb2 <- cbind.data.frame(sp         = tab$sp,
+                                 carre.parc = tab$carre.parc,
+                                 position   = tab$position,
+                                 newtab,
+                                 stringsAsFactors = FALSE)
+
+    # compute estimations
+    estim <- estim_abundance(newtabb2, surf = 1, n_cores = 2, fun = "gammapoisson",
+                             maxtheta = 20, addpos = FALSE)
+
+    estimsum <- estim_summary(tab = newtaborig, tab_estim = estim, surf = 1)
+    results$observed[results$nqd == i] <- estimsum$real
+    results$estimate[results$nqd == i] <- estimsum$estimate
+    rm(list = c("newtab", "newtaborig", "newtabb2", "estim", "estimsum"))
+  }
+
+  return(results)
+}

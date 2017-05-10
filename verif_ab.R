@@ -168,8 +168,6 @@ mod_gpoisson_sum <-
                      quantile(bootgpoisson$estimate, 0.025),
                      quantile(bootgpoisson$estimate, 0.975)))
 
-save.image('data/generated/data_verif.RData')
-
 
 # ------------------------------------------------------------------------------
 # optimisation of minimisation parameters
@@ -221,3 +219,46 @@ save.image('data/generated/data_verif.RData')
 #         axis.text  = element_text(size = 14),
 #         legend.text  = element_text(size = 14))
 # # ggsave("~/desktop/graphs/binom_log.png")
+
+# ------------------------------------------------------------------------------
+# Check the minimum number of quadra to have a good estimation
+
+a <- min_quadras(transposed[["orig"]], min = 10)
+a$error <- abs(a$observed - a$estimate)
+b <- unlist(lapply(split(a$error, f = a$nqd), mean))
+b <- cbind.data.frame(nqd = as.numeric(names(b)), error = b)
+plot(b$nqd, b$error)
+
+nboot <- 2500
+results <- data.frame(nqd   = rep(unique(a$nqd), rep(length(0:30), length(unique(a$nqd)))),
+                      x     = 0,
+                      moy   = 0,
+                      icinf = 0,
+                      icsup = 0)
+
+for (nqd in unique(a$nqd)) {
+  cat("Bootstrap for", nqd, "quadrates...\n")
+  tmp   <- a[a$nqd == nqd,]
+  tab   <- cbind.data.frame(real = log(tmp$observed), estimate = log(tmp$estimate))
+  boot  <- bootstrap(nboot, tab[!is.infinite(tab$real),])
+
+  cat("Values predictions...\n")
+  pred <- bootpred(0:30, boot)
+
+  results$x[results$nqd == nqd]     <- pred$x
+  results$moy[results$nqd == nqd]   <- pred$moy
+  results$icinf[results$nqd == nqd] <- pred$icinf
+  results$icsup[results$nqd == nqd] <- pred$icsup
+}
+results$nqd <- as.character(results$nqd)
+
+results %>%
+  dplyr::filter(x != 0) %>%
+  ggplot(aes(x = x, y = moy, colour = nqd)) +
+  geom_line() +
+  geom_abline(slope = 1, intercept = 0) +
+  facet_wrap(~ nqd) +
+  geom_ribbon(aes(ymin = icinf, ymax = icsup, fill = nqd), alpha = 0.3)
+
+
+save.image('data/generated/data_verif.RData')
