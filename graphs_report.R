@@ -79,6 +79,41 @@ plot(p)
 dev.off()
 
 # ------------------------------------------------------------------------------
+# variations of errors
+
+orig <- transposed[["orig"]]
+orig <- as.matrix(orig[, 4:length(orig)])
+results <- data.frame(mean = numeric(nrow(orig)),
+                      var  = numeric(nrow(orig)),
+                      se   = numeric(nrow(orig)))
+results$mean <- apply(orig, 1, mean)
+results$var  <- apply(orig, 1, var)
+results$se   <- apply(orig, 1, sd) / sqrt(ncol(orig))
+results <- results[results$mean != 0,]
+
+# error on the model
+estim <- cbind.data.frame(real = cor_gpoisson$real, estimate = cor_gpoisson$estimate)
+estim <- estim[estim$real != 0,]
+estim$error <- abs(estim$real - estim$estimate)
+
+tab <- cbind.data.frame(observed = results$se, estimated = estim$error)
+
+p <-
+  ggplot(tab, aes(x = log(estimated), y = log(observed))) +
+  geom_point(size = 1.2, shape = 1, position = "jitter") +
+  geom_abline(slope = 1, intercept = 0, col = "red", size = 0.7) +
+  theme_bw() +
+  theme(axis.title = element_text(size = rel(1.2))) +
+  theme(axis.text = element_text(size = rel(1))) +
+  xlab("Erreur sur estimation (log)") +
+  ylab("Erreur sur observations (log)")
+
+pdf(paf("erreurs.pdf"), height = 3.2, width = 3.2)
+plot(p)
+dev.off()
+
+
+# ------------------------------------------------------------------------------
 # estimation in english for slides
 aa <-
   rbind.data.frame(cbind.data.frame(method = "Poisson", cor_base0[,1:4]),
