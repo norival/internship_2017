@@ -204,42 +204,58 @@ optim_maxtheta <- function(transposed, maxtheta, fun = "gammapoisson", surf = 1,
 
 # ------------------------------------------------------------------------------
 
-min_quadras <- function(tab, min = 5) {
+min_quadras <- function(tab, min = 5, nboot = 50) {
+
   max <- ncol(tab) - 3
 
   results <- data.frame(nqd = rep(max:min, rep(nrow(tab), length(max:min))),
                         observed = 0,
-                        estimate = 0)
+                        estimate = 0,
+                        est_inf  = 0,
+                        est_sup  = 0)
 
   for (i in max:min) {
-    # i <- 40
     cat("Estimation for", i, "quadrates...\n")
-    # i <- max
-    # resample the number of quadrates
-    newtab <- t(apply(tab[, 4:length(tab)], 1, function(x) sample(x, i)))
+    restmp <- array(0, c(nrow(tab), nboot, 2))
 
-    # create fake columns
-    newtaborig <- cbind.data.frame(sp         = tab$sp,
+    for (j in 1:nboot) {
+      cat("Bootstrap ", j, "/", nboot, "...\n", sep = "")
+
+      # resample the number of quadrates
+      newtab <- t(apply(tab[, 4:length(tab)], 1, function(x) sample(x, i)))
+
+      # create fake columns
+      newtaborig <- cbind.data.frame(sp         = tab$sp,
+                                     carre.parc = tab$carre.parc,
+                                     position   = tab$position,
+                                     newtab,
+                                     stringsAsFactors = FALSE)
+
+      newtab[newtab > 2] <- 2
+      newtabb2 <- cbind.data.frame(sp         = tab$sp,
                                    carre.parc = tab$carre.parc,
                                    position   = tab$position,
                                    newtab,
                                    stringsAsFactors = FALSE)
 
-    newtab[newtab > 2] <- 2
-    newtabb2 <- cbind.data.frame(sp         = tab$sp,
-                                 carre.parc = tab$carre.parc,
-                                 position   = tab$position,
-                                 newtab,
-                                 stringsAsFactors = FALSE)
+      # compute estimations
+      estim <- estim_abundance(newtabb2, surf = 1, n_cores = 2, fun = "gammapoisson",
+                               maxtheta = 20, addpos = FALSE, progress = F)
 
-    # compute estimations
-    estim <- estim_abundance(newtabb2, surf = 1, n_cores = 2, fun = "gammapoisson",
-                             maxtheta = 20, addpos = FALSE)
+      estimsum <- estim_summary(tab = newtaborig, tab_estim = estim, surf = 1)
+      restmp[,j,1] <- estimsum$real
+      restmp[,j,2] <- estimsum$estimate
+    }
 
-    estimsum <- estim_summary(tab = newtaborig, tab_estim = estim, surf = 1)
-    results$observed[results$nqd == i] <- estimsum$real
-    results$estimate[results$nqd == i] <- estimsum$estimate
-    rm(list = c("newtab", "newtaborig", "newtabb2", "estim", "estimsum"))
+    # get mean for observed values
+    results$observed[results$nqd == i] <- apply(restmp, c(1,3), mean)[,1]
+    # get mean for estimated values
+    results$estimate[results$nqd == i] <- apply(restmp, c(1,3), mean)[,2]
+
+    results$est_inf[results$nqd == i]  <-
+      apply(restmp, c(1,3), function(x) quantile(x, 0.025))[,2]
+    results$est_sup[results$nqd == i]  <-
+      apply(restmp, c(1,3), function(x) quantile(x, 0.975))[,2]
   }
 
   return(results)
