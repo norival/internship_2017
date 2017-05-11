@@ -1,3 +1,46 @@
+par_lda <- function(tab, groups, control, datname, path, ncores = 3) {
+  # wrapper function to run in parallel LDA fitting on several groups.
+  # models are saved in 'path' and returned as a list. Fitting can be very long
+  # and sometimes parallelization crashes, so, writing the result to a file a
+  # safety measure.
+  # - tab is a matrix site*species
+  # - groups is a vector containing every group to test
+  # - control is a list of control parameters passed to the LDA function
+  # - datname is the name given to the data to be saved, constructed like this:
+  #   'lda_year_2006_K_groups' where K is the place where the number of groups
+  #   will be put (it is replaced automatically for each group)
+  # - path is the path where the data is stored
+
+  library(topicmodels)
+  library(doSNOW)
+
+  # adds trailing '/' to path if not present
+  if (!grepl("/$", path)) {
+    path <- paste0(path, "/")
+  }
+
+  cl <- makeCluster(ncores, outfile = "")
+  registerDoSNOW(cl)
+
+  all_ldas <- foreach(k = groups, .export = "LDA") %dopar% {
+
+    # get file and model name
+    modelname <- gsub("K", k, datname)
+    filename  <- paste0(path, modelname, ".Rdata")
+    assign(modelname, LDA(tab, k = k, method = "Gibbs", control = control))
+
+    save(list = modelname, file = filename)
+    return(get(modelname))
+  }
+
+  stopCluster(cl)
+
+  return(all_ldas)
+
+}
+
+# ------------------------------------------------------------------------------
+
 tidy_lda_post <- function(.post) {
 
   .plots  <- .post$topics

@@ -62,19 +62,29 @@ dat <- dat[rowSums(dat) != 0,]
 # -- compute the lda models ----------------------------------------------------
 # lda model on all years grouped together
 
-cl <- makeCluster(4)
-registerDoSNOW(cl)
-
 control <- list(seed = 42, burnin = 10000, thin = 500, iter = 50000)
 
-all_ldas <- foreach(k = 2:15, .export = "LDA") %dopar% {
-  # get file and model name
-  filename <- paste0("data/generated/lda_all_years_", k, "_groups.Rdata")
-  modelname <- paste0("lda_all_years_", k, "_groups")
-  assign(modelname, LDA(dat, k = k, method = "Gibbs", control = control))
+ldas_all_years <-
+  par_lda(tab = dat, groups = 2:15, control = control, ncores = 3,
+          datname = "lda_all_years_K_groups",
+          path    = "data/generated")
 
-  save(list = modelname, file = filename)
-  return(get(modelname))
+
+# lda model year by year
+ldas_by_year <- list()
+
+for (year in 2006:2016) {
+  if (year == 2012) next
+
+  cat("year ", year, "...\n", sep = "")
+  dat_year <- as.matrix(get(paste0("weeds", year)))
+  dat_year <- dat_year[!(grepl("In", rownames(dat_year))),]
+  dat_year[dat_year == min(dat_year)] <- 0
+  dat_year <- ceiling(dat_year)
+  dat_year <- dat_year[rowSums(dat_year) != 0,]
+
+  ldas_by_year[[as.character(year)]] <-
+    par_lda(tab = dat_year, groups = 2:15, control = control, ncores = 3,
+            datname = paste0("lda_year_", year, "_K_groups"),
+            path    = "data/generated")
 }
-
-stopCluster(cl)
