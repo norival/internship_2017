@@ -103,7 +103,7 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE
   cl <- makeCluster(n_cores)
   registerDoSNOW(cl)
   
-  export <- c(fun, "lgpoisson", "maxtheta")
+  export <- c(fun, "lgpoisson")
 
   a <- foreach(i = 1:nrow(x), .combine = rbind, .export = export, .options.snow = opts) %dopar% {
 
