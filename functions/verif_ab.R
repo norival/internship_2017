@@ -209,8 +209,10 @@ min_quadras <- function(tab, min = 5, nboot = 50) {
   max <- ncol(tab) - 3
 
   results <- data.frame(nqd = rep(max:min, rep(nrow(tab), length(max:min))),
-                        observed = 0,
-                        estimate = 0,
+                        obs_mean = 0,
+                        est_mean = 0,
+                        obs_inf  = 0,
+                        obs_sup  = 0,
                         est_inf  = 0,
                         est_sup  = 0)
 
@@ -248,9 +250,14 @@ min_quadras <- function(tab, min = 5, nboot = 50) {
     }
 
     # get mean for observed values
-    results$observed[results$nqd == i] <- apply(restmp, c(1,3), mean)[,1]
+    results$obs_mean[results$nqd == i] <- apply(restmp, c(1,3), mean)[,1]
     # get mean for estimated values
-    results$estimate[results$nqd == i] <- apply(restmp, c(1,3), mean)[,2]
+    results$est_mean[results$nqd == i] <- apply(restmp, c(1,3), mean)[,2]
+
+    results$obs_inf[results$nqd == i]  <-
+      apply(restmp, c(1,3), function(x) quantile(x, 0.025))[,1]
+    results$obs_sup[results$nqd == i]  <-
+      apply(restmp, c(1,3), function(x) quantile(x, 0.975))[,1]
 
     results$est_inf[results$nqd == i]  <-
       apply(restmp, c(1,3), function(x) quantile(x, 0.025))[,2]

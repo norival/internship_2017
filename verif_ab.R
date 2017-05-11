@@ -223,19 +223,23 @@ mod_gpoisson_sum <-
 # ------------------------------------------------------------------------------
 # Check the minimum number of quadra to have a good estimation
 
-a <- min_quadras(transposed[["orig"]], min = 15, nboot = 50)
+a <- min_quadras(transposed[["orig"]], min = 10, nboot = 500)
 write.csv(a, "data/generated/smoothed_bootstraps.csv")
 # a <- read.csv("data/generated/smoothed_bootstraps.csv")
 
 # remove plots with 0 abundance
-a <- a[a$observed != 0,]
+a <- a[a$obs_mean != 0,]
 # compute mean error and confidence intervals
-a$err_mean <- abs(a$observed - a$estimate)
-a$err_inf  <- abs(a$observed - a$est_inf)
-a$err_sup  <- abs(a$observed - a$est_sup)
+a$err_mean <- abs(a$obs_mean - a$est_mean)
+a$err_inf  <- abs(a$obs_inf - a$est_inf)
+a$err_sup  <- abs(a$obs_sup - a$est_sup)
 errmean <- sapply(split(a$err_mean, f = a$nqd), mean)
 errinf  <- sapply(split(a$err_inf, f = a$nqd), mean)
 errsup  <- sapply(split(a$err_sup, f = a$nqd), mean)
 errsum <- cbind.data.frame(nqd = as.numeric(names(errmean)), errmean, errinf, errsup)
+
+ggplot(errsum, aes(x = nqd, y = errmean)) +
+  geom_point() +
+  geom_ribbon(aes(ymin = errinf, ymax = errsup), alpha = 0.3)
 
 save.image('data/generated/data_verif.RData')
