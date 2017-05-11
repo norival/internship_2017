@@ -205,65 +205,72 @@ optim_maxtheta <- function(transposed, maxtheta, fun = "gammapoisson", surf = 1,
 # ------------------------------------------------------------------------------
 
 min_quadras <- function(tab, min = 5, nboot = 50) {
+  library(doSNOW)
 
   max <- ncol(tab) - 3
 
-  results <- data.frame(nqd = rep(max:min, rep(nrow(tab), length(max:min))),
-                        obs_mean = 0,
-                        est_mean = 0,
-                        obs_inf  = 0,
-                        obs_sup  = 0,
-                        est_inf  = 0,
-                        est_sup  = 0)
+  # 3 dimension array with:
+  #   1: plots    | this table is the one estimated
+  #   2: quadras  |
+  #   3: bootstraps
+  wrap_estim <- function(.tab) {
+    source("functions/abundance.R")
+    source("functions/verif_ab.R")
 
-  for (i in max:min) {
-    cat("Estimation for", i, "quadrates...\n")
-    restmp <- array(0, c(nrow(tab), nboot, 2))
+    # stick false columns
+    .taborig <- cbind.data.frame(sp         = tab$sp,
+                                 carre.parc = tab$carre.parc,
+                                 position   = tab$position,
+                                 .tab,
+                                 stringsAsFactors = FALSE)
 
-    for (j in 1:nboot) {
-      cat("Bootstrap ", j, "/", nboot, "...\n", sep = "")
+    # convert to base 2
+    .tab[.tab > 2] <- 2
+    .tab <- cbind.data.frame(sp         = tab$sp,
+                             carre.parc = tab$carre.parc,
+                             position   = tab$position,
+                             .tab,
+                             stringsAsFactors = FALSE)
 
-      # resample the number of quadrates
-      newtab <- t(apply(tab[, 4:length(tab)], 1, function(x) sample(x, i)))
+    .estim <- estim_abundance(.tab, surf = 1, fun = "gammapoisson", n_cores = 1,
+                              maxtheta = 20, addpos = FALSE, progress = F)
+    .estimsum <- estim_summary(.taborig, tab_estim = .estim, surf = 1)
 
-      # create fake columns
-      newtaborig <- cbind.data.frame(sp         = tab$sp,
-                                     carre.parc = tab$carre.parc,
-                                     position   = tab$position,
-                                     newtab,
-                                     stringsAsFactors = FALSE)
+    return(as.matrix(.estimsum[,4]))
 
-      newtab[newtab > 2] <- 2
-      newtabb2 <- cbind.data.frame(sp         = tab$sp,
-                                   carre.parc = tab$carre.parc,
-                                   position   = tab$position,
-                                   newtab,
-                                   stringsAsFactors = FALSE)
-
-      # compute estimations
-      estim <- estim_abundance(newtabb2, surf = 1, n_cores = 2, fun = "gammapoisson",
-                               maxtheta = 20, addpos = FALSE, progress = F)
-
-      estimsum <- estim_summary(tab = newtaborig, tab_estim = estim, surf = 1)
-      restmp[,j,1] <- estimsum$real
-      restmp[,j,2] <- estimsum$estimate
-    }
-
-    # get mean for observed values
-    results$obs_mean[results$nqd == i] <- apply(restmp, c(1,3), mean)[,1]
-    # get mean for estimated values
-    results$est_mean[results$nqd == i] <- apply(restmp, c(1,3), mean)[,2]
-
-    results$obs_inf[results$nqd == i]  <-
-      apply(restmp, c(1,3), function(x) quantile(x, 0.025))[,1]
-    results$obs_sup[results$nqd == i]  <-
-      apply(restmp, c(1,3), function(x) quantile(x, 0.975))[,1]
-
-    results$est_inf[results$nqd == i]  <-
-      apply(restmp, c(1,3), function(x) quantile(x, 0.025))[,2]
-    results$est_sup[results$nqd == i]  <-
-      apply(restmp, c(1,3), function(x) quantile(x, 0.975))[,2]
   }
 
-  return(results)
+  nqd <- sort(rep(max:min, nrow(tab)))
+  results <- matrix(0, length(nqd), 7)
+  colnames(results) <- c("nqd", "obs_mean", "obs_inf", "obs_sup",
+                         "est_mean", "est_inf", "est_sup")
+  results[,"nqd"] <- nqd
+
+  for (nqd in max:min) {
+    nqd <- 40
+    cat("Estimating for", nqd, "quadras...\n")
+    tabtmp <- array(0, c(nrow(tab), nqd, nboot))
+
+    for (boot in 1:nboot) {
+      tabtmp[,1:nqd,boot] <- t(apply(tab[, 4:length(tab)], 1, function(x) sample(x, nqd)))
+    }
+    cl <- makeCluster(3)
+    registerDoSNOW(cl)
+
+    line <- which(results[,"nqd"] == nqd)
+    obs_means <- parApply(cl, tabtmp, c(1, 3), mean)
+    results[line, "obs_mean"] <- parApply(cl, obs_means, 1, mean)
+    results[line, "obs_inf"]  <- parApply(cl, obs_means, 1, mean)
+    results[line, "obs_sup"]  <- parApply(cl, obs_means, 1, mean)
+
+    clusterExport(cl, "tab", envir = environment())
+    est_means <- parApply(cl, tabtmp, 3, wrap_estim)
+    results[line, "est_mean"] <- parApply(cl, est_means, 1, mean)
+    results[line, "est_inf"]  <- parApply(cl, est_means, 1, mean)
+    results[line, "est_sup"]  <- parApply(cl, est_means, 1, mean)
+
+    stopCluster(cl)
+  }
+
+  return(as.data.frame(results))
 }
