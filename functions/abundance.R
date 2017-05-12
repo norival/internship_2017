@@ -325,3 +325,80 @@ estim_nopar <- function(x, out, surf, fun, maxtheta, progress) {
 
   return(out)
 }
+
+# ------------------------------------------------------------------------------
+
+estim_abundance2 <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE,
+                             fun = "h.fct", maxtheta = 30, nopar = FALSE)
+{
+  # fonction to estimate abundances
+
+  library(doSNOW)
+  options(stringsAsFactors = FALSE)
+  # ----------------------------------------------------------------------------
+  # x <- data2006
+  # maxtheta <- 20
+  # n_cores <- 3
+  # surf <- 4
+  # ----------------------------------------------------------------------------
+
+  estim_core <- function(.v, .maxtheta) {
+    .Zu <- nlminb(c(0, 0), gammapoisson, v = .v, maxtheta = .maxtheta,
+                 lower = c(-50, -50), upper = c(50, 50),
+                 control = list(iter.max = 1000, abs.tol = 1e-20))
+
+    .r <- exp(.Zu$par[1])
+    .p <- 1 / (exp(.Zu$par[2]) + 1)
+    .mm <- .r * ((1 - .p) / .p)
+
+    return(.mm)
+  }
+
+  # build empty matrix to store the final results
+  abond_per_plot <- matrix(0,
+                           ncol = length(unique(x$sp)),
+                           nrow = length(unique(x$carre.parc)))
+
+  colnames(abond_per_plot) <- unique(x$sp)
+  rownames(abond_per_plot) <- unique(x$carre.parc)
+
+  cl <- makeCluster(n_cores)
+  registerDoSNOW(cl)
+
+  clusterExport(cl, c("lgpoisson", "gammapoisson", "estim_core"))
+
+  # remove plots with only '0'
+  x <- x[rowSums(x[,4:length(x)]) != 0, ]
+
+  # separate the numeric parts and the inofrmations part
+  infos <- as.matrix(x[,1:3])
+  tab   <- as.matrix(x[,4:length(x)])
+
+  # sort abundances vectors
+  tabsort <- t(apply(tab, 1, sort))
+
+  # get only unique vectors in tabsort
+  tabsort <- tabsort[!duplicated(tabsort),]
+
+  # collapse abundance vector to get an 'id' vector
+  ids <- as.character(apply(tabsort, 1, function(x) paste0(x, collapse = "")))
+
+  # estimate abundance on unique vectors only
+  ab <- parApply(cl, tabsort, 1,
+                 function(x, maxtheta) estim_core(x, maxtheta),
+                 maxtheta)
+
+  # now get estimates for the whole dataframe
+  ids_full <- as.character(parApply(cl, tab, 1, function(x) paste0(sort(x), collapse = "")))
+  ab_full  <- as.numeric(parSapply(cl, ids_full, function(x, ab, ids) ab[ids == x], ab, ids))
+  
+  a <- cbind.data.frame(infos[,1:2], ab_full)
+
+  for (i in 1:nrow(a)) {
+    abond_per_plot[a[i, 2], a[i, 1]] <- a[i, 3] / surf
+  }
+
+  stopCluster(cl)
+
+  return(abond_per_plot)
+}
