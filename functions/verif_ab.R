@@ -191,71 +191,45 @@ optim_maxtheta <- function(transposed, maxtheta, fun = "gammapoisson", surf = 1,
 
 # ------------------------------------------------------------------------------
 
-min_quadras <- function(tab, min = 5, nboot = 50) {
+min_quadras <- function(tab, min, nboot = 100, n_cores = 2, surf = 1)
+{
+  options(stringsAsFactors = FALSE)
   library(doSNOW)
 
   max <- ncol(tab) - 3
 
-  # 3 dimension array with:
-  #   1: plots    | this table is the one estimated
-  #   2: quadras  |
-  #   3: bootstraps
-  wrap_estim <- function(.tab) {
-    source("functions/abundance.R")
-    source("functions/verif_ab.R")
+  # remove lines with only 0s
+  tab <- tab[rowSums(tab[,4:length(tab)]) != 0,]
 
-    # stick false columns
-    .taborig <- cbind.data.frame(sp         = tab$sp,
-                                 carre.parc = tab$carre.parc,
-                                 position   = tab$position,
-                                 .tab,
-                                 stringsAsFactors = FALSE)
+  cl <- makeCluster(n_cores)
+  registerDoSNOW(cl)
+  toexport <- c("estim_abundance", "estim_core_gpoisson", "lgpoisson",
+                "log_lik_gpoisson", "estim_summary")
 
-    # convert to base 2
-    .tab[.tab > 2] <- 2
-    .tab <- cbind.data.frame(sp         = tab$sp,
-                             carre.parc = tab$carre.parc,
-                             position   = tab$position,
-                             .tab,
-                             stringsAsFactors = FALSE)
-
-    .estim <- estim_abundance(.tab, surf = 1, fun = "gammapoisson", maxtheta = 20)
-    .estimsum <- estim_summary(.taborig, tab_estim = .estim, surf = 1)
-
-    return(as.matrix(.estimsum[,4]))
-
-  }
-
-  nqd <- sort(rep(max:min, nrow(tab)))
-  results <- matrix(0, length(nqd), 7)
-  colnames(results) <- c("nqd", "obs_mean", "obs_inf", "obs_sup",
-                         "est_mean", "est_inf", "est_sup")
-  results[,"nqd"] <- nqd
+  errs <- data.frame(nqd = rep(min:max, rep(nboot, length(min:max))),
+                     err = 0)
 
   for (nqd in max:min) {
-    cat("Estimating for", nqd, "quadras...\n")
-    tabtmp <- array(0, c(nrow(tab), nqd, nboot))
+    cat("estimating for", nqd, "quadras...\n")
+    a <- foreach(i = 1:nboot, .export = toexport, .combine = "c") %dopar% {
+      newtab <-
+        t(apply(tab[,4:length(tab)], 1, function(x) sample(x, nqd, replace = TRUE)))
+      newtabb2 <- t(apply(newtab, 1, function(x) {
+                             x[x > 2] <- 2
+                             return(x)}))
+      newtabb2 <- cbind.data.frame(tab[,1:3], newtabb2)
+      estim <- estim_abundance(newtabb2, surf = 1, fun = "gammapoisson",
+                                maxtheta = 20)
+      newtab <- cbind.data.frame(tab[,1:3], newtab)
+      estim_sum <- estim_summary(newtab, estim, surf)[,3:4]
+      estim_sum$error <- abs(estim_sum$real - estim_sum$estimate)
 
-    for (boot in 1:nboot) {
-      tabtmp[,1:nqd,boot] <- t(apply(tab[, 4:length(tab)], 1, function(x) sample(x, nqd)))
+      return(mean(estim_sum$error))
     }
-    cl <- makeCluster(3)
-    registerDoSNOW(cl)
-
-    line <- which(results[,"nqd"] == nqd)
-    obs_means <- parApply(cl, tabtmp, c(1, 3), mean)
-    results[line, "obs_mean"] <- parApply(cl, obs_means, 1, mean)
-    results[line, "obs_inf"]  <- parApply(cl, obs_means, 1, mean)
-    results[line, "obs_sup"]  <- parApply(cl, obs_means, 1, mean)
-
-    clusterExport(cl, "tab", envir = environment())
-    est_means <- parApply(cl, tabtmp, 3, wrap_estim)
-    results[line, "est_mean"] <- parApply(cl, est_means, 1, mean)
-    results[line, "est_inf"]  <- parApply(cl, est_means, 1, mean)
-    results[line, "est_sup"]  <- parApply(cl, est_means, 1, mean)
-
-    stopCluster(cl)
+    errs$err[errs$nqd == nqd] <- a
   }
 
-  return(as.data.frame(results))
+  stopCluster(cl)
+
+  return(errs)
 }

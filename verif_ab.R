@@ -213,7 +213,7 @@ mod_gpoisson_sum <-
 # ------------------------------------------------------------------------------
 # Check the minimum number of quadra to have a good estimation
 
-a <- min_quadras(transposed[["orig"]], min = 10, nboot = 2500)
+a <- min_quadras(transposed[["orig"]], min = 10, nboot = 2500, n_cores = 3)
 write.csv(a, "data/generated/smoothed_bootstraps.csv")
 # a <- read.csv("data/generated/smoothed_bootstraps.csv")
 
