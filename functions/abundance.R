@@ -139,8 +139,8 @@ group_subqd <- function(x, base2 = TRUE, n.subqd = 4) {
 # wrapper functions
 # ------------------------------------------------------------------------------
 
-estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE,
-                            fun = "gammapoisson", maxtheta = 30, nopar = FALSE)
+estim_abundance <- function(x, surf, progress = TRUE, fun = "gammapoisson",
+                            maxtheta = 30)
 {
   # -- function to estimate abundances -----------------------------------------
   # How it works:
@@ -152,7 +152,6 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE
   # stored in a matrix site * species and returned
   # ----------------------------------------------------------------------------
 
-  library(doSNOW)
   options(stringsAsFactors = FALSE)
 
   # build empty site*species matrix to store the final results
@@ -162,18 +161,6 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE
 
   colnames(abond_per_plot) <- unique(x$sp)
   rownames(abond_per_plot) <- unique(x$carre.parc)
-
-  # start cluster
-  cl <- makeCluster(n_cores)
-  registerDoSNOW(cl)
-
-  # wee need to export the core functions to the cluster environnement
-  if (fun == "gammapoisson") {
-    clusterExport(cl, c("lgpoisson", "log_lik_gpoisson", "estim_core_gpoisson"))
-  }
-  if (fun == "compoisson") {
-    clusterExport(cl, c("h.fct", "estim_core_gpoisson"))
-  }
 
   # remove plots with only '0'
   x <- x[rowSums(x[,4:length(x)]) != 0, ]
@@ -193,26 +180,24 @@ estim_abundance <- function(x, surf, n_cores = 2, progress = TRUE, addpos = TRUE
 
   # estimate abundance on unique vectors only
   if (fun == "gammapoisson") {
-    ab <- parApply(cl, tabsort, 1,
-                   function(x, maxtheta) estim_core_gpoisson(x, maxtheta),
-                   maxtheta)
+    ab <- apply(tabsort, 1,
+                function(x, maxtheta) estim_core_gpoisson(x, maxtheta),
+                maxtheta)
   } else if (fun == "compoisson") {
-    ab <- parApply(cl, tabsort, 1,
-                   function(x, maxtheta) estim_core_compoisson(x, maxtheta),
-                   maxtheta)
+    ab <- apply(tabsort, 1,
+                function(x, maxtheta) estim_core_compoisson(x, maxtheta),
+                maxtheta)
   }
 
   # now get estimates for the whole dataframe
-  ids_full <- as.character(parApply(cl, tab, 1, function(x) paste0(sort(x), collapse = "")))
-  ab_full  <- as.numeric(parSapply(cl, ids_full, function(x, ab, ids) ab[ids == x], ab, ids))
+  ids_full <- as.character(apply(tab, 1, function(x) paste0(sort(x), collapse = "")))
+  ab_full  <- as.numeric(sapply(ids_full, function(x, ab, ids) ab[ids == x], ab, ids))
   
   a <- cbind(infos[,1:2], ab_full)
 
   for (i in 1:nrow(a)) {
     abond_per_plot[a[i, 2], a[i, 1]] <- as.numeric(a[i, 3]) / surf
   }
-
-  stopCluster(cl)
 
   return(abond_per_plot)
 }
