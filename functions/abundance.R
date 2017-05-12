@@ -88,7 +88,7 @@ estim_core_gpoisson <- function(v, maxtheta) {
   # mean and returns it
   Zu <- nlminb(c(0, 0), log_lik_gpoisson, v = v, maxtheta = maxtheta,
                lower = c(-50, -50), upper = c(50, 50),
-               control = list(itermax = 1000, abstol = 1e-20))
+               control = list(iter.max = 1000, abs.tol = 1e-20))
 
   r  <- exp(Zu$par[1])
   p  <- 1 / (exp(Zu$par[2]) + 1)
@@ -107,7 +107,7 @@ estim_core_compoisson <- function(v, maxtheta) {
 
   Zu <- nlminb(c(0, 0), h.fct, v = v1, maxtheta = maxtheta,
                lower = c(-50, -50), upper = c(50, 50),
-               control = list(itermax = 1000, abstol = 1e-20))
+               control = list(iter.max = 1000, abs.tol = 1e-20))
 
   mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
 
