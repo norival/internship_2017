@@ -146,12 +146,27 @@ group_subqd <- function(x, base2 = TRUE, n.subqd = 4) {
   return(cbind.data.frame(x[, 1:3], newmat))
 }
 
+addpos <- function(x) {
+
+  if (sum(grepl("Pa|In", x$carre.parc)) != length(x$carre.parc)) {
+    # adds the position to the name of the plot, like in the old days
+    pos <- x$position
+    substr(pos, 1, 1) <- toupper(substr(pos, 1, 1))
+    x$carre.parc <- paste(x$carre.parc, pos, sep = "-")
+  } else {
+    cat("Position is already in the name, nothing to do")
+    return(x)
+  }
+
+  return(x)
+
+}
+
 # ------------------------------------------------------------------------------
-# wrapper functions
+# wrapper function, the one to use
 # ------------------------------------------------------------------------------
 
-estim_abundance <- function(x, surf, progress = TRUE, fun = "gammapoisson",
-                            maxtheta = 30)
+estim_abundance <- function(x, surf, fun = "gammapoisson", maxtheta = 30)
 {
   # -- function to estimate abundances -----------------------------------------
   # How it works:
@@ -214,44 +229,3 @@ estim_abundance <- function(x, surf, progress = TRUE, fun = "gammapoisson",
 
   return(abond_per_plot)
 }
-
-# ------------------------------------------------------------------------------
-# this is just a non-parellelized version of the part that do the estimation,
-# used when 'nopar' arg is set to TRUE.
-
-estim_nopar <- function(x, out, surf, fun, maxtheta, progress) {
-
-  cat("No parallelization! This can be very slow!\n")
-  cat("Estimation of abundances...\n")
-
-  if (progress) {
-    pb  <- txtProgressBar(min = 0, max = nrow(x), style = 3, width = 80)
-  }
-
-  for (i in 1:nrow(x)) {
-    if (progress) setTxtProgressBar(pb, i)
-
-    v1 <- as.numeric(x[i, 4:ncol(x)])
-
-    if (fun == "h.fct") {
-      Zu <- nlminb(c(0, 0), h.fct, v = v1, lower = c(-50, -50), upper = c(50, 50))
-      mm <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
-
-    } else if (fun == "gammapoisson") {
-      Zu <- nlminb(c(0, 0), gammapoisson, v = v1, maxtheta = maxtheta,
-                   lower = c(-50, -50), upper = c(50, 50),
-                   control = list(iter.max = 1000, abs.tol = 1e-20))
-
-      r <- exp(Zu$par[1])
-      p <- 1 / (exp(Zu$par[2]) + 1)
-      mm <- r * ((1 - p) / p)
-    }
-
-    out[x$carre.parc[i], x$sp[i]] <- mm / surf
-  }
-
-  if (progress) close(pb)
-
-  return(out)
-}
-

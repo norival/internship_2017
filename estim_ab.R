@@ -107,6 +107,7 @@ data2014 <- read.csv("data/generated/transpose_abondance_per_sousquadrat2014.csv
 
 # grouping
 data2014 <- group_subqd(data2014, base2 = TRUE, n.subqd = 4)
+data2014 <- addpos(data2014)
 
 abond_per_plot <- estim_abundance(data2014, surf = 1, fun = "gammapoisson",
                                   maxtheta = 20)
@@ -123,6 +124,7 @@ data2015 <- read.csv("data/generated/transpose_abondance_per_sousquadrat2015.csv
 
 # grouping
 data2015 <- group_subqd(data2015, base2 = TRUE, n.subqd = 4)
+data2015 <- addpos(data2015)
 
 abond_per_plot <- estim_abundance(data2015, surf = 1, fun = "gammapoisson",
                                   maxtheta = 20)
@@ -139,6 +141,7 @@ data2016 <- read.csv("data/generated/transpose_abondance_per_sousquadrat2016.csv
 
 # grouping
 data2016 <- group_subqd(data2016, base2 = TRUE, n.subqd = 4)
+data2016 <- addpos(data2016)
 
 abond_per_plot <- estim_abundance(data2016, surf = 1,
                                   fun = "gammapoisson", maxtheta = 20)
