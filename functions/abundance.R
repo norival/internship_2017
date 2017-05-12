@@ -71,6 +71,17 @@ log_lik_gpoisson <- function(param, v, maxtheta = 30) {
 
 # ------------------------------------------------------------------------------
 
+estim_core_poisson <- function(v) {
+  n1 <- length(v[v == 0])
+  n2 <- length(v[v == 1])
+
+  lambda <- log((n1 + n2) / n1)
+
+  return(lambda)
+}
+
+# ------------------------------------------------------------------------------
+
 estim_core_gpoisson <- function(v, maxtheta) {
   # core function to estimate abundance from the gamma-poisson mixture law (or
   # negative binomial). It minimises the function log_lik_gpoisson, computes the
@@ -187,6 +198,8 @@ estim_abundance <- function(x, surf, progress = TRUE, fun = "gammapoisson",
     ab <- apply(tabsort, 1,
                 function(x, maxtheta) estim_core_compoisson(x, maxtheta),
                 maxtheta)
+  } else if (fun == "poisson") {
+    ab <- apply(tabsort, 1, function(x) estim_core_poisson(x))
   }
 
   # now get estimates for the whole dataframe
@@ -200,104 +213,6 @@ estim_abundance <- function(x, surf, progress = TRUE, fun = "gammapoisson",
   }
 
   return(abond_per_plot)
-}
-
-# ------------------------------------------------------------------------------
-
-estim_abundance01 <- function(x, surf, gp.subquadra = FALSE, base2 = FALSE,
-                              progress = TRUE, addpos = TRUE, fun = "h.fct") {
-  # estimates abundance when data is 0/1
-  # This one is not used anymore for estimations but is used by the script that
-  # checks estimations
-
-  if (addpos & sum(grepl("Pa|In", x$carre.parc)) == 0) {
-    # adds the position to the name of the plot, like in the old days
-    pos <- gsub("[[:digit:]]+", "", x$position)
-    x$carre.parc <- paste(x$carre.parc, stringr::str_to_title(pos), sep = "-")
-  }
-
-  # if we decide to pass the results to log base2, we must group the subquadras
-  if (base2) gp.subquadra <- TRUE
-
-  # Création d'un tableau vide pour récupérer les estmations d'abondances
-  abond_per_plot <- matrix(Inf,
-                           ncol = length(unique(x$sp)),
-                           nrow = length(unique(x$carre.parc)))
-
-  colnames(abond_per_plot) <- unique(x$sp)
-  rownames(abond_per_plot) <- unique(x$carre.parc)
-
-  iparc <- 0
-  for (parc in unique(x$carre.parc)) {
-    # pour chaque parcelle
-    dat_parc <- x[x$carre.parc == parc, ]
-    # print(head(dat_parc[dat_parc$position == "pa2",]))
-
-    if (progress) {
-      iparc <- iparc+1
-      ipb <- 0
-      cat("Computing parc ", parc, " (", iparc, "/",
-          length(unique(x$carre.parc)), ")...\n", sep = "")
-      pb <- txtProgressBar(min = 0, max = length(unique(dat_parc$sp)),
-                            style = 3, width = 80)
-    }
-
-    for (sp in unique(dat_parc$sp)) {
-      # pour chaque espèce
-      if (progress) {
-        ipb <- ipb+1
-        setTxtProgressBar(pb, ipb)
-      }
-
-      dat_sp <- dat_parc[dat_parc$sp == sp, ]
-
-      ab_subq <- NULL
-      for (i in 1:nrow(dat_sp)) {
-        # combiner les pa1 et pa2, donne 80 sous quadra
-        ab_subq <- c(ab_subq, as.numeric(dat_sp[i, 4:ncol(dat_sp)]))
-      }
-
-      if (gp.subquadra) {
-        # group subquadra into on quadra
-        ab_q <- NULL
-        for(i in 1:10) {
-          # compte tous les sous quadras
-          ii <- 4*(i-1) + (1:4)
-          v1 <- sum(ab_subq[ii])
-          if (base2) {
-            # si > 2, plusieurs plantes dans le quadra -> 2
-            v1[v1 > 2] <- 2
-          } else {
-            # si > 1, plusieurs plantes dans le quadra -> 1
-            v1[v1 > 1] <- 1
-          }
-          ab_q <- c(ab_q, v1)
-        }
-      } else {
-        ab_q <- ab_subq
-      }
-
-      if (base2) {
-        # on estime l'abondance de la parcelle par la loi de poisson
-        Zu <- nlminb(c(0, 0), h.fct, v = ab_q, lower = c(-50, -50),upper = c(50, 50))
-
-        # on fait la moyenne de poisson sur le paramètre de Zu, qui correspond aux
-        # moyennes. On repasse en exponentielle car on avait fait un log
-        lambda <- com.mean(exp(Zu$par[1]), exp(Zu$par[2]))
-      } else {
-        n1 <- length(ab_q[ab_q == 0])
-        n2 <- length(ab_q[ab_q == 1])
-        lambda <- log((n1 + n2) / n1)
-      }
-
-      # On rajoute cette moyenne dans le tableau vide initial
-      abond_per_plot[parc, sp] <- lambda / surf
-    }
-    if (progress) close(pb)
-  }
-
-  return(abond_per_plot)
-
 }
 
 # ------------------------------------------------------------------------------

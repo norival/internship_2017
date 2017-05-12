@@ -44,7 +44,7 @@ gmean[gmean == 5] <- exp(mean(log(c(10000, 99999))))
 cor_gmean <- estim_summary_gm(tab = transposed[["orig"]], gmean, surf = 1)
 
 ## estimate with Poisson distribution
-estim01 <- estim_abundance01(x = transposed[["base0"]], surf = 1, addpos = FALSE)
+estim01 <- estim_abundance(x = transposed[["base0"]], surf = 1, fun = "poisson")
 cor_base0 <- estim_summary(transposed[["orig"]], estim01, surf = 1)
 
 ## estimate with COM-Poisson distribution
