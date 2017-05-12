@@ -70,35 +70,22 @@ transpose_flora_tot <- function(tab) {
 
 # ------------------------------------------------------------------------------
 
-estim_summary <- function(tab, tab_estim, surf) {
+estim_summary <- function(tab_orig, tab_estim, surf) {
 
-  # replace very small estimate values with 0
-  tab_estim[tab_estim <= min(tab_estim)] <- 0
+  options(stringsAsFactors = FALSE)
+  tab_orig <- tab_orig[rowSums(tab_orig[,4:length(tab_orig)]) != 0,]
+  surfech  <- surf * (length(tab) - 3)
 
-  # mat_vide <- matrix(0, ncol = 9, nrow = nrow(abond_per_plot) * ncol(abond_per_plot))
-  mat_vide <- matrix(0, ncol = 7, nrow = nrow(tab))
-  dat <- data.frame(mat_vide)
-  colnames(dat) <- c("parc", "sp", "real", "estimate", paste("n", 0:2, sep = ""))
-
-  # create table with 2 column: one for the real value and one for the estimate
-  # value
-  surfech <- surf * (length(tab) - 3)
-  i <- 0
-  for (parc in rownames(tab_estim)) {
-    for (sp in colnames(tab_estim)) {
-      i <- i+1
-      abreal <- as.numeric(tab[tab$carre.parc == parc & tab$sp == sp, 4:length(tab)])
-      dat$real[i]     <- sum(abreal) / surfech
-      dat$n0[i]       <- sum(abreal == 0)
-      dat$n1[i]       <- sum(abreal == 1)
-      dat$n2[i]       <- length(abreal) - dat$n0[i] - dat$n1[i]
-      dat$sp[i]       <- sp
-      dat$parc[i]     <- parc
-      dat$estimate[i] <- tab_estim[parc, sp]
-    }
+  group <- function(x, surfech) {
+    cbind(sum(as.numeric(x[4:length(x)])) / surfech,
+          tab_estim[x[2], x[1]])
   }
 
-  return(dat)
+  a <- t(apply(tab_orig, 1, group, surfech))
+  result <- cbind.data.frame(tab_orig[,1:2], a)
+  colnames(result)[3:4] <- c("real", "estimate")
+
+  return(result)
 }
 
 # ------------------------------------------------------------------------------
@@ -232,8 +219,7 @@ min_quadras <- function(tab, min = 5, nboot = 50) {
                              .tab,
                              stringsAsFactors = FALSE)
 
-    .estim <- estim_abundance(.tab, surf = 1, fun = "gammapoisson", n_cores = 1,
-                              maxtheta = 20, addpos = FALSE, progress = F)
+    .estim <- estim_abundance(.tab, surf = 1, fun = "gammapoisson", maxtheta = 20)
     .estimsum <- estim_summary(.taborig, tab_estim = .estim, surf = 1)
 
     return(as.matrix(.estimsum[,4]))
@@ -247,7 +233,6 @@ min_quadras <- function(tab, min = 5, nboot = 50) {
   results[,"nqd"] <- nqd
 
   for (nqd in max:min) {
-    nqd <- 40
     cat("Estimating for", nqd, "quadras...\n")
     tabtmp <- array(0, c(nrow(tab), nqd, nboot))
 
