@@ -41,7 +41,7 @@ test[test$abondance > 2, ]$abondance <- 2
 #############################################################################
 source("functions/format_flora.R")
 
-A <- transpose_df(tab = test, n_quadras = 10, pos = c("pa", "in"))
+A <- transpose_df(tab = test, n_quadras = 10)
 
 write.table(A, "data/generated/transpose_abondance_per_quadrat2010.csv", sep = ";")
 

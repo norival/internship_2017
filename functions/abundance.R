@@ -146,22 +146,6 @@ group_subqd <- function(x, base2 = TRUE, n.subqd = 4) {
   return(cbind.data.frame(x[, 1:3], newmat))
 }
 
-addpos <- function(x) {
-
-  if (sum(grepl("Pa|In", x$carre.parc)) != length(x$carre.parc)) {
-    # adds the position to the name of the plot, like in the old days
-    pos <- x$position
-    substr(pos, 1, 1) <- toupper(substr(pos, 1, 1))
-    x$carre.parc <- paste(x$carre.parc, pos, sep = "-")
-  } else {
-    cat("Position is already in the name, nothing to do")
-    return(x)
-  }
-
-  return(x)
-
-}
-
 # ------------------------------------------------------------------------------
 # wrapper function, the one to use
 # ------------------------------------------------------------------------------

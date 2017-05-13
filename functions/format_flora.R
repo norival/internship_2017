@@ -1,60 +1,54 @@
-transpose_df <- function(tab, n_quadras, n_subqd = 1, pos = "") {
+transpose_df <- function(tab, n_quadras, n_subqd = 1) {
 
   # get rid of factors in 'tab'
   i <- sapply(tab, is.factor)
   tab[i] <- lapply(tab[i], as.character)
 
+  # tab$position <- tolower(tab$position)
+
+  # adds the position to the name of the plot if not present already
+  if (sum(grepl("Pa|In", tab$carre.parc)) != length(tab$carre.parc)) {
+    a <- tab$position
+    substr(a, 1, 1) <- toupper(substr(a, 1, 1))
+    tab$carre.parc <- paste(tab$carre.parc, a, sep = "-")
+  }
+
+  # generate all possible combinations of sp * carre.parc * position
+  idstab <- expand.grid(sp         = unique(tab$sp),
+                        carre.parc = unique(tab$carre.parc),
+                        position   = unique(tab$position),
+                        KEEP.OUT.ATTRS   = FALSE,
+                        stringsAsFactors = FALSE)
+
+  # remove impossible combinations
+  test <- as.character(sapply(idstab$carre.parc, function(x) {
+                                test <- unlist(strsplit(x, "-"))
+                                test[length(test)]}))
+  COND    <- (tolower(test) == idstab$position)
+  idstab  <- idstab[COND,]
+
+  # create ids variable
+  ids <- paste0(idstab$sp, idstab$carre.parc, idstab$position)
+
   # create empty matrix to store abundance data
-  n_sp <- length(unique(tab$sp))
-  n_pl <- length(unique(tab$carre.parc))
-  nrowA <- n_pl * n_sp * length(pos)
-  ncolA <- n_quadras * n_subqd
-  A <- matrix(0, nrowA, ncolA)
+  A <- matrix(0, nrow = length(ids), ncol = (n_quadras * n_subqd))
 
   # generate quadras names
-  qd <- rep(paste("q", 1:n_quadras, sep = ""), rep(n_subqd, n_quadras))
+  qd <- rep(paste0("q", 1:n_quadras), rep(n_subqd, n_quadras))
   if (n_subqd > 1) {
-    colnames(A) <- paste(qd, letters[1:n_subqd], sep = "")
+    colnames(A) <- paste0(qd, letters[1:n_subqd])
   } else {
     colnames(A) <- qd
   }
 
-  # create ids to get the line number
-  sp <- rep(unique(tab$sp), n_pl * length(pos))
-
-  # create a 'carre.parc' variable
-  parc <- unique(tab$carre.parc)
-  carre.parc <- rep(parc, rep(n_sp * length(pos), n_pl))
-
-  # create a 'position' variable
-  position <- rep(pos, rep(n_sp, length(pos)))
-  position <- rep(position, length(parc))
-
-  # create single 'ids' variable to get row numbers
-  ids <- paste(sp, carre.parc, position)
-
-  if (n_subqd > 1) {
-    for (i in 1:nrow(tab)) {
-      iid <- which(ids == paste(tab$sp[i], tab$carre.parc[i], tab$position[i]))
-      iqd <- paste("q", tab$plot[i], tab$quadrat[i], sep = "")
-      A[iid, iqd] <- tab$abondance[i]
-    }
-  } else {
-    for (i in 1:nrow(tab)) {
-    # for (i in 1:50) {
-      iid <- which(ids == paste(tab$sp[i], tab$carre.parc[i], tab$position[i]))
-      iqd <- paste("q", tab$quadrat[i], sep = "")
-      # print(iid)
-      A[iid, iqd] <- tab$abondance[i]
-    }
+  for (i in 1:nrow(tab)) {
+    iid <- which(ids == paste0(tab$sp[i], tab$carre.parc[i], tab$position[i]))
+    iqd <- paste0("q", tab$plot[i], tab$quadrat[i], sep = "")
+    A[iid, iqd] <- tab$abondance[i]
   }
 
-  # bind ids + data
-  A <- cbind.data.frame(sp, carre.parc, position, A, stringsAsFactors = FALSE)
-
-  c1 <- !(grepl("In", A$carre.parc) & A$position == "in")
-  c2 <- !(grepl("Pa", A$carre.parc) & A$position == "pa")
-  A <- A[(c1 | c2),]
+  # bind idstab + data
+  A <- cbind.data.frame(idstab, A, stringsAsFactors = FALSE)
 
   return(A)
 }

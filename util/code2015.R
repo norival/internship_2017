@@ -44,10 +44,9 @@ source("functions/format_flora.R", encoding = "utf8")
 test$quadrat <- tolower(test$quadrat)
 test$plot[test$plot == " 1"] <- "1"
 
-A <- transpose_df(tab=test, n_quadras = 10, n_subqd = 4, pos = c("pa1", "pa2", "in"))
+A <- transpose_df(tab=test, n_quadras = 10, n_subqd = 4)
 
 write.table(A, "data/generated/transpose_abondance_per_sousquadrat2015.csv", sep = ";")
-
 
 # ------------------------------------------------------------------------------
 # I commented the stuff below because I don't use it and it is quite slow to run

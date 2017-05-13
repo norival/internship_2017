@@ -45,7 +45,7 @@ source("functions/format_flora.R", encoding = "utf8")
 # supprimer les quadrats en interface
 test_noin <- test[-which(test$position == "in"),]
 
-A <- transpose_df(tab = test_noin, n_quadras = 32, pos = "pa")
+A <- transpose_df(tab = test_noin, n_quadras = 32)
 
 #head(A, 25)
 write.table(A, "data/generated/transpose_abondance_per_quadrat2009.csv", sep = ";")
