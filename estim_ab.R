@@ -8,6 +8,7 @@
 
 # -- packages and functions ----------------------------------------------------
 source("functions/abundance.R")
+seed <- 144
 
 # -- estimations ---------------------------------------------------------------
 # as this is quite long, each year is estimated one by one
@@ -107,6 +108,7 @@ data2014 <- read.csv("data/generated/transpose_abondance_per_sousquadrat2014.csv
 
 # grouping
 data2014 <- group_subqd(data2014, base2 = TRUE, n.subqd = 4)
+data2014 <- choose_pos(data2014, seed)
 
 abond_per_plot <- estim_abundance(data2014, surf = 1, fun = "gammapoisson",
                                   maxtheta = 20)
@@ -123,6 +125,7 @@ data2015 <- read.csv("data/generated/transpose_abondance_per_sousquadrat2015.csv
 
 # grouping
 data2015 <- group_subqd(data2015, base2 = TRUE, n.subqd = 4)
+data2015 <- choose_pos(data2015, seed)
 
 abond_per_plot <- estim_abundance(data2015, surf = 1, fun = "gammapoisson",
                                   maxtheta = 20)
@@ -139,6 +142,7 @@ data2016 <- read.csv("data/generated/transpose_abondance_per_sousquadrat2016.csv
 
 # grouping
 data2016 <- group_subqd(data2016, base2 = TRUE, n.subqd = 4)
+data2016 <- choose_pos(data2016, seed)
 
 abond_per_plot <- estim_abundance(data2016, surf = 1,
                                   fun = "gammapoisson", maxtheta = 20)

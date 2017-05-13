@@ -146,6 +146,26 @@ group_subqd <- function(x, base2 = TRUE, n.subqd = 4) {
   return(cbind.data.frame(x[, 1:3], newmat))
 }
 
+choose_pos <- function(x, seed) {
+  # function to randomly choose one position from 'pa1' and 'pa2'
+  # we cannot group them because some plots have only one of them
+  set.seed(seed)
+
+  # remove '1' or '2' from 'Pax' in 'carre.parc'
+  x$carre.parc <- gsub("[[:digit:]]$", "", x$carre.parc)
+
+  # randomy choose only one of 'pa1' or 'pa2'
+  b <- aggregate(x[,4:length(x)],
+                 list(sp = x$sp, carre.parc = x$carre.parc),
+                 sample, 1)
+
+  position <- as.character(sapply(b$carre.parc, function(x) {
+                                    test <- unlist(strsplit(x, "-"))
+                                    test[length(test)]}))
+
+  return(cbind.data.frame(b[,1:2], position, b[,3:length(b)]))
+}
+
 # ------------------------------------------------------------------------------
 # wrapper function, the one to use
 # ------------------------------------------------------------------------------
