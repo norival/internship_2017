@@ -2,7 +2,7 @@
 # core estimations functions
 # ------------------------------------------------------------------------------
 
-h.fct <- function(ltheta, v = v) {
+h.fct <- function(ltheta, v = v, maxtheta = maxtheta) {
   # calcule la vraissemblance des données des quadras
   # v = observations
   # ltheta = log du paramètre de poisson (intensité)
@@ -11,7 +11,7 @@ h.fct <- function(ltheta, v = v) {
   theta <- exp(ltheta)
 
   # si param est énorme, pas possible
-  if(max(theta)>30){return(100000)}
+  if(max(theta)>maxtheta){return(100000)}
 
   # proba d'abondance pour les espèces ayant un indice d'abondance de 0
   lp0 <- com.log.density(0,theta[1],theta[2])
@@ -105,7 +105,7 @@ estim_core_compoisson <- function(v, maxtheta) {
   # mean and returns it
   library(compoisson)
 
-  Zu <- nlminb(c(0, 0), h.fct, v = v1, maxtheta = maxtheta,
+  Zu <- nlminb(c(0, 0), h.fct, v = v, maxtheta = maxtheta,
                lower = c(-50, -50), upper = c(50, 50),
                control = list(iter.max = 1000, abs.tol = 1e-20))
 
