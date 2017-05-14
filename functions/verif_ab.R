@@ -74,7 +74,7 @@ estim_summary <- function(tab_orig, tab_estim, surf) {
 
   options(stringsAsFactors = FALSE)
   tab_orig <- tab_orig[rowSums(tab_orig[,4:length(tab_orig)]) != 0,]
-  surfech  <- surf * (length(tab) - 3)
+  surfech  <- surf * (length(tab_orig) - 3)
 
   group <- function(x, surfech) {
     cbind(sum(as.numeric(x[4:length(x)])) / surfech,
