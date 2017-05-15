@@ -124,6 +124,48 @@ plot(p)
 dev.off()
 
 
+# -- dataset description -------------------------------------------------------
+# histogram
+tab <- transposed[["orig"]]
+tab <- tab[rowSums(tab[,4:length(tab)]) != 0,]
+b <- apply(tab[,4:length(tab)], 1, sum)
+
+binsize <- diff(range(b)) / 20
+p <- ggplot(data.frame(x = b), aes(x = x)) +
+  geom_rect(aes(xmin = quantile(x, 0.025), xmax = quantile(x, 0.975),
+                ymin = -Inf, ymax = Inf), fill = "lightslategrey", alpha = 0.02) +
+  geom_histogram(binwidth = binsize, fill = "white", col = "black") +
+  geom_vline(aes(xintercept = median(x)), col = "red", linetype = "dotted") +
+  geom_vline(aes(xintercept = quantile(x, 0.025)), col = "darkgreen", linetype = "dashed") +
+  geom_vline(aes(xintercept = quantile(x, 0.975)), col = "darkgreen", linetype = "dashed") +
+  xlab("Abondance observée") +
+  ylab("Fréquence") +
+  theme_bw() +
+  theme(axis.title = element_text(size = rel(1.2))) +
+  theme(axis.text = element_text(size = rel(1))) #+
+
+pdf(paf("description1.pdf"), height = 2.4, width = 2.8)
+plot(p)
+dev.off()
+
+# variation of errors
+bb <- data.frame(t(apply(tab[,4:length(tab)], 1, function(x) cbind(mean(x), sd(x)))))
+colnames(bb) <- c("mean", "sd")
+
+p <- ggplot(bb, aes(x = log(mean), y = log(sd))) +
+  geom_point(size = 1.2, shape = 1, position = "jitter") +
+  geom_abline(slope = 1, intercept = 0, col = "red", size = 0.7, linetype = "dashed") +
+  xlab("log(moyenne observée)") +
+  ylab("log(écart-type observé)") +
+  theme_bw() +
+  theme(axis.title = element_text(size = rel(1.2))) +
+  theme(axis.text = element_text(size = rel(1))) #+
+
+pdf(paf("description2.pdf"), height = 2.4, width = 2.8)
+plot(p)
+dev.off()
+
+
 # ------------------------------------------------------------------------------
 # graphics for zapvs talk slides
 # ------------------------------------------------------------------------------
