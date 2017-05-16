@@ -222,8 +222,8 @@ min_quadras <- function(tab, min, nboot = 100, n_cores = 2, surf = 1)
       estim <- estim_abundance(newtabb2, surf = 1, fun = "gammapoisson",
                                 maxtheta = 20)
       newtab <- cbind.data.frame(tab[,1:3], newtab)
-      estim_sum <- estim_summary(newtab, estim, surf)[,3:4]
-      estim_sum$error <- abs(estim_sum$real - estim_sum$estimate)
+      estim_sum <- estim_summary(tab, estim, surf)
+      estim_sum$error <- abs(estim_sum$observed - estim_sum$estimate)
 
       return(mean(estim_sum$error))
     }
