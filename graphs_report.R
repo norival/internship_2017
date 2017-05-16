@@ -33,22 +33,27 @@ load('data/generated/data_verif.RData')
 
 # -- estimations Vs observed ---------------------------------------------------
 aa <-
-  rbind.data.frame(cbind.data.frame(method = "Loi de Poisson", cor_base0[,1:4]),
-                   cbind.data.frame(method = "Loi de COM-Poisson", cor_base2[,1:4]),
-                   cbind.data.frame(method = "Moyenne Géométrique",  cor_gmean[,1:4]),
-                   cbind.data.frame(method = "Loi Binomiale Négative", cor_gpoisson[,1:4]))
+  rbind.data.frame(cbind.data.frame(method = "Moyenne Géométrique", cor_gmean),
+                   cbind.data.frame(method = "Loi de Poisson", cor_poisson),
+                   cbind.data.frame(method = "Loi de COM-Poisson", cor_cpoisson),
+                   cbind.data.frame(method = "Loi Binomiale Négative", cor_gpoisson))
+aa <- aa[aa$observed != 0,]
 
 aa$estim <- "Bon"
-aa$diff <- aa$estimate - aa$real
-aa$estim[aa$diff > 1] <- "Sur-estimé"
-aa$estim[aa$diff < -1] <- "Sous-estimé"
+aa$error <- aa$estimate - aa$observed
+aa$estim[aa$error > 40] <- "Sur-estimé"
+aa$estim[aa$error < -40] <- "Sous-estimé"
 
-p <- ggplot(aa, aes(x = log(estimate), y = log(real), colour = estim)) +
+aa$method <- factor(aa$method,
+                    levels = unique(aa$method))
+
+p <-
+  ggplot(aa, aes(x = log(estimate), y = log(observed), colour = estim)) +
   geom_point(size = 1.2, shape = 1, position = "jitter") +
   geom_abline(slope = 1, intercept = 0) +
   facet_wrap(~ method, scales = "fixed") +
-  xlab("log(Densité estimée)") +
-  ylab("log(Densité observée)") +
+  xlab("log(Abondance estimée)") +
+  ylab("log(Abondance observée)") +
   theme_bw() +
   labs(colour = "Estimation") +
   guides(colour = guide_legend(override.aes = list(size = 3, shape = 19))) +
@@ -65,27 +70,26 @@ dev.off()
 
 # -- Bootstraps on models ------------------------------------------------------
 
-tab_boot$estimation <- as.factor(tab_boot$estimation)
-levels(tab_boot$estimation) <- unique(aa$method)
+tab_boot$estimation <- factor(tab_boot$estimation,
+                              levels = unique(tab_boot$estimation))
 
-p <- ggplot(tab_boot, aes(x = x, y = moy, fill = estimation)) +
-  geom_line(aes(colour = estimation), size = 1) +
+p <- ggplot(tab_boot, aes(x = x, y = moy)) +
+  geom_line(size = 1) +
   geom_ribbon(aes(ymin = icinf, ymax = icsup), alpha = 0.3) +
   geom_abline(slope = 1, intercept = 0, col = "red", size = 0.7,
               linetype = "dashed") +
-  xlim(c(0, 30)) +
-  coord_cartesian(ylim = c(0, 35)) +
-  xlab("Densité estimée") +
-  ylab("Densité observée") +
-  labs(fill = "Méthode") +
-  labs(colour = "Méthode") +
+  facet_wrap(~ estimation) +
+  xlim(c(0, 1000)) +
+  coord_cartesian(ylim = c(0, 1000)) +
+  xlab("Abondance estimée") +
+  ylab("Abondance observée") +
   theme_bw() +
+  theme(strip.background = element_rect(fill = "white", size = rel(1))) +
+  theme(strip.text = element_text(size = rel(1.1))) +
   theme(axis.title = element_text(size = rel(1.2))) +
-  theme(axis.text = element_text(size = rel(1))) +
-  scale_colour_manual(values = cb_palette) +
-  scale_fill_manual(values = cb_palette)
+  theme(axis.text = element_text(size = rel(1)))
 
-pdf(paf("bootstrap.pdf"), height = 3.4, width = 5.4)
+pdf(paf("bootstrap.pdf"), height = 5, width = 5)
 plot(p)
 dev.off()
 
@@ -93,24 +97,19 @@ dev.off()
 # -- variations of errors ------------------------------------------------------
 
 orig <- transposed[["orig"]]
-orig <- as.matrix(orig[, 4:length(orig)])
-results <- data.frame(mean = numeric(nrow(orig)),
-                      var  = numeric(nrow(orig)),
-                      se   = numeric(nrow(orig)))
-results$mean <- apply(orig, 1, mean)
-results$var  <- apply(orig, 1, var)
-results$se   <- apply(orig, 1, sd) / sqrt(ncol(orig))
-results <- results[results$mean != 0,]
+observed_ab <- apply(orig[,4:length(orig)], 1, sum)
+observed_ab <- observed_ab[observed_ab != 0]
 
 # error on the model
-estim <- cbind.data.frame(real = cor_gpoisson$real, estimate = cor_gpoisson$estimate)
-estim <- estim[estim$real != 0,]
-estim$error <- abs(estim$real - estim$estimate)
+estim <- cor_gpoisson[cor_gpoisson$observed != 0,]
+estim_error <- abs(estim$observed - estim$estimate)
+estim_error[estim_error < 1e-04] <- 0
 
-tab <- cbind.data.frame(observed = results$se, estimated = estim$error)
+tab <- cbind.data.frame(observed_ab, estim_error)
+tab <- tab[tab$estim_error != 0,]
 
 p <-
-  ggplot(tab, aes(x = log(estimated), y = log(observed))) +
+  ggplot(tab, aes(x = log(estim_error), y = log(observed_ab))) +
   geom_point(size = 1.2, shape = 1, position = "jitter") +
   geom_abline(slope = 1, intercept = 0, col = "red", size = 0.7) +
   theme_bw() +
@@ -149,14 +148,14 @@ plot(p)
 dev.off()
 
 # variation of errors
-bb <- data.frame(t(apply(tab[,4:length(tab)], 1, function(x) cbind(mean(x), sd(x)))))
-colnames(bb) <- c("mean", "sd")
+bb <- data.frame(t(apply(tab[,4:length(tab)], 1, function(x) cbind(sum(x), sd(x)))))
+colnames(bb) <- c("sum", "sd")
 
-p <- ggplot(bb, aes(x = log(mean), y = log(sd))) +
+p <- ggplot(bb, aes(x = log(sum), y = log(sd))) +
   geom_point(size = 1.2, shape = 1, position = "jitter") +
   geom_abline(slope = 1, intercept = 0, col = "red", size = 0.7, linetype = "dashed") +
-  xlab("log(moyenne observée)") +
-  ylab("log(écart-type observé)") +
+  xlab("log(Abondance observée)") +
+  ylab("log(Écart-type observé)") +
   theme_bw() +
   theme(axis.title = element_text(size = rel(1.2))) +
   theme(axis.text = element_text(size = rel(1))) #+
@@ -166,176 +165,235 @@ plot(p)
 dev.off()
 
 
-# ------------------------------------------------------------------------------
-# graphics for zapvs talk slides
-# ------------------------------------------------------------------------------
+# -- errors on estimations -----------------------------------------------------
 
-# -- estimation in english for slides (no log) ---------------------------------
+l <- list(gmean    = cor_gmean[cor_gmean$observed != 0,],
+          poisson  = cor_poisson[cor_poisson$observed != 0,],
+          cpoisson = cor_cpoisson[cor_cpoisson$observed != 0,],
+          gpoisson = cor_gpoisson[cor_gpoisson$observed != 0,])
+a <- unlist(lapply(l, function(x) (x$estimate - x$observed)))
+tab <- cbind.data.frame(estimation = gsub("[[:digit:]]*", "", names(a)),
+                        error = a)
 
-aa <-
-  rbind.data.frame(cbind.data.frame(method = "Poisson", cor_base0[,1:4]),
-                   cbind.data.frame(method = "COM-Poisson", cor_base2[,1:4]),
-                   cbind.data.frame(method = "Geometric mean",  cor_gmean[,1:4]),
-                   cbind.data.frame(method = "Negative binomiale", cor_gpoisson[,1:4]))
+tab$estimation[tab$estimation == "gmean"]    <- "Moyenne Géométrique"
+tab$estimation[tab$estimation == "poisson"]  <- "Loi de Poisson"
+tab$estimation[tab$estimation == "cpoisson"] <- "Loi de COM-Poisson"
+tab$estimation[tab$estimation == "gpoisson"] <- "Loi Binomiale Négative"
 
-aa$estim <- "Good"
-aa$diff <- aa$estimate - aa$real
-aa$estim[aa$diff > 2] <- "Over estimated"
-aa$estim[aa$diff < -2] <- "Under estimated"
+tab$estimation <- factor(tab$estimation,
+                         levels = unique(tab$estimation))
 
-p <- ggplot(aa, aes(x = log(estimate), y = log(real), colour = estim)) +
+binsize <- diff(range(error)) / 25
+p <- ggplot(tab, aes(x = error)) +
+  geom_rect(aes(xmin = quantile(error, 0.025), xmax = quantile(error, 0.975),
+                ymin = -Inf, ymax = Inf), fill = "lightslategrey", alpha = 0.02) +
+  geom_histogram(binwidth = binsize, fill = "white", col = "black", size = 0.2) +
+  facet_wrap(~ estimation, scales = "free_x") +
+  geom_vline(aes(xintercept = median(error)), col = "red", linetype = "dotted") +
+  geom_vline(aes(xintercept = quantile(error, 0.025)),
+             col = "darkgreen", linetype = "dashed") +
+  geom_vline(aes(xintercept = quantile(error, 0.975)),
+             col = "darkgreen", linetype = "dashed") +
+  xlab("Erreur sur l'estimation") +
+  ylab("Effectif") +
+  theme_bw() +
+  theme(strip.background = element_rect(fill = "white", size = rel(1))) +
+  theme(strip.text = element_text(size = rel(1.1))) +
+  theme(axis.title = element_text(size = rel(1.2))) +
+  theme(axis.text = element_text(size = rel(1)))
+
+pdf(paf("estimation_errors.pdf"), height = 4, width = 5)
+plot(p)
+dev.off()
+
+
+# -- min number of quadras -----------------------------------------------------
+
+p <- boot_quadras %>%
+  group_by(nqd) %>%
+  summarise(errmean = mean(err),
+            errinf  = quantile(err, 0.025),
+            errsup  = quantile(err, 0.975)) %>%
+  ggplot(aes(x = nqd, y = errmean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = errinf, ymax = errsup)) +
+  # geom_hline(yintercept = 40, linetype = "dashed", col = "red") +
+  theme_bw()
+
+pdf(paf("min_quadras.pdf"), height = 3.2, width = 3.2)
+plot(p)
+dev.off()
+
+# # ------------------------------------------------------------------------------
+# # graphics for zapvs talk slides
+# # ------------------------------------------------------------------------------
+
+# # -- estimation in english for slides (no log) ---------------------------------
+
+# aa <-
+#   rbind.data.frame(cbind.data.frame(method = "Poisson", cor_base0[,1:4]),
+#                    cbind.data.frame(method = "COM-Poisson", cor_base2[,1:4]),
+#                    cbind.data.frame(method = "Geometric mean",  cor_gmean[,1:4]),
+#                    cbind.data.frame(method = "Negative binomiale", cor_gpoisson[,1:4]))
+
+# aa$estim <- "Good"
+# aa$diff <- aa$estimate - aa$real
+# aa$estim[aa$diff > 2] <- "Over estimated"
+# aa$estim[aa$diff < -2] <- "Under estimated"
+
+# p <- ggplot(aa, aes(x = log(estimate), y = log(real), colour = estim)) +
+# # p <- ggplot(aa, aes(x = estimate, y = real, colour = estim)) +
+#   geom_point(size = 1.2, shape = 1, position = "jitter") +
+#   geom_abline(slope = 1, intercept = 0) +
+#   facet_wrap(~ method, scales = "fixed") +
+#   xlab("log(Estimated density)") +
+#   ylab("log(Observed density)") +
+#   theme_bw() +
+#   labs(colour = "Estimation") +
+#   guides(colour = guide_legend(override.aes = list(size = 3, shape = 19))) +
+#   theme(strip.background = element_rect(fill = "white", size = rel(1))) +
+#   theme(strip.text = element_text(size = rel(1.1))) +
+#   theme(axis.title = element_text(size = rel(1.2))) +
+#   theme(axis.text = element_text(size = rel(1))) +
+#   scale_colour_manual(values = cb_palette)
+#   # scale_colour_manual(values = c("darkgreen", "cyan4", "darkred"))
+
+# pdf(pafs("estimations_log_en.pdf"), height = 4, width = 6)
+# plot(p)
+# dev.off()
+
+
+# # -- estimation in english for slides (log) ------------------------------------
+# aa <-
+#   rbind.data.frame(cbind.data.frame(method = "Poisson", cor_base0[,1:4]),
+#                    cbind.data.frame(method = "COM-Poisson", cor_base2[,1:4]),
+#                    cbind.data.frame(method = "Geometric mean",  cor_gmean[,1:4]),
+#                    cbind.data.frame(method = "Negative binomiale", cor_gpoisson[,1:4]))
+
+# aa$estim <- "Good"
+# aa$diff <- aa$estimate - aa$real
+# aa$estim[aa$diff > 2] <- "Over estimated"
+# aa$estim[aa$diff < -2] <- "Under estimated"
+
 # p <- ggplot(aa, aes(x = estimate, y = real, colour = estim)) +
-  geom_point(size = 1.2, shape = 1, position = "jitter") +
-  geom_abline(slope = 1, intercept = 0) +
-  facet_wrap(~ method, scales = "fixed") +
-  xlab("log(Estimated density)") +
-  ylab("log(Observed density)") +
-  theme_bw() +
-  labs(colour = "Estimation") +
-  guides(colour = guide_legend(override.aes = list(size = 3, shape = 19))) +
-  theme(strip.background = element_rect(fill = "white", size = rel(1))) +
-  theme(strip.text = element_text(size = rel(1.1))) +
-  theme(axis.title = element_text(size = rel(1.2))) +
-  theme(axis.text = element_text(size = rel(1))) +
-  scale_colour_manual(values = cb_palette)
-  # scale_colour_manual(values = c("darkgreen", "cyan4", "darkred"))
+#   geom_point(size = 1.2, shape = 1, position = "jitter") +
+#   geom_abline(slope = 1, intercept = 0) +
+#   facet_wrap(~ method, scales = "fixed") +
+#   xlab("Estimated density") +
+#   ylab("Observed density") +
+#   theme_bw() +
+#   labs(colour = "Estimation") +
+#   guides(colour = guide_legend(override.aes = list(size = 3, shape = 19))) +
+#   theme(strip.background = element_rect(fill = "white", size = rel(1))) +
+#   theme(strip.text = element_text(size = rel(1.1))) +
+#   theme(axis.title = element_text(size = rel(1.2))) +
+#   theme(axis.text = element_text(size = rel(1))) +
+#   scale_colour_manual(values = cb_palette)
 
-pdf(pafs("estimations_log_en.pdf"), height = 4, width = 6)
-plot(p)
-dev.off()
-
-
-# -- estimation in english for slides (log) ------------------------------------
-aa <-
-  rbind.data.frame(cbind.data.frame(method = "Poisson", cor_base0[,1:4]),
-                   cbind.data.frame(method = "COM-Poisson", cor_base2[,1:4]),
-                   cbind.data.frame(method = "Geometric mean",  cor_gmean[,1:4]),
-                   cbind.data.frame(method = "Negative binomiale", cor_gpoisson[,1:4]))
-
-aa$estim <- "Good"
-aa$diff <- aa$estimate - aa$real
-aa$estim[aa$diff > 2] <- "Over estimated"
-aa$estim[aa$diff < -2] <- "Under estimated"
-
-p <- ggplot(aa, aes(x = estimate, y = real, colour = estim)) +
-  geom_point(size = 1.2, shape = 1, position = "jitter") +
-  geom_abline(slope = 1, intercept = 0) +
-  facet_wrap(~ method, scales = "fixed") +
-  xlab("Estimated density") +
-  ylab("Observed density") +
-  theme_bw() +
-  labs(colour = "Estimation") +
-  guides(colour = guide_legend(override.aes = list(size = 3, shape = 19))) +
-  theme(strip.background = element_rect(fill = "white", size = rel(1))) +
-  theme(strip.text = element_text(size = rel(1.1))) +
-  theme(axis.title = element_text(size = rel(1.2))) +
-  theme(axis.text = element_text(size = rel(1))) +
-  scale_colour_manual(values = cb_palette)
-
-pdf(pafs("estimations_nolog_en.pdf"), height = 4, width = 6)
-plot(p)
-dev.off()
+# pdf(pafs("estimations_nolog_en.pdf"), height = 4, width = 6)
+# plot(p)
+# dev.off()
 
 
-# -- bootstraps in english for slides ------------------------------------------
+# # -- bootstraps in english for slides ------------------------------------------
 
-tab_boot$estimation <- as.factor(tab_boot$estimation)
-levels(tab_boot$estimation) <- unique(aa$method)
+# tab_boot$estimation <- as.factor(tab_boot$estimation)
+# levels(tab_boot$estimation) <- unique(aa$method)
 
-p <- ggplot(tab_boot, aes(x = x, y = moy, fill = estimation)) +
-  geom_line(aes(colour = estimation), size = 1) +
-  geom_ribbon(aes(ymin = icinf, ymax = icsup), alpha = 0.3) +
-  geom_abline(slope = 1, intercept = 0, col = "red", size = 0.7,
-              linetype = "dashed") +
-  xlim(c(0, 30)) +
-  coord_cartesian(ylim = c(0, 35)) +
-  xlab("Estimated density") +
-  ylab("Observed density") +
-  labs(fill = "Method") +
-  labs(colour = "Method") +
-  theme_bw() +
-  theme(axis.title = element_text(size = rel(1.2))) +
-  theme(axis.text = element_text(size = rel(1))) +
-  scale_colour_manual(values = cb_palette) +
-  scale_fill_manual(values = cb_palette)
-  # scale_colour_manual(values = c("darkgreen", "cyan4", "greenyellow", "lightseagreen")) +
-  # scale_fill_manual(values = c("darkgreen", "cyan4", "greenyellow", "lightseagreen"))
+# p <- ggplot(tab_boot, aes(x = x, y = moy, fill = estimation)) +
+#   geom_line(aes(colour = estimation), size = 1) +
+#   geom_ribbon(aes(ymin = icinf, ymax = icsup), alpha = 0.3) +
+#   geom_abline(slope = 1, intercept = 0, col = "red", size = 0.7,
+#               linetype = "dashed") +
+#   xlim(c(0, 30)) +
+#   coord_cartesian(ylim = c(0, 35)) +
+#   xlab("Estimated density") +
+#   ylab("Observed density") +
+#   labs(fill = "Method") +
+#   labs(colour = "Method") +
+#   theme_bw() +
+#   theme(axis.title = element_text(size = rel(1.2))) +
+#   theme(axis.text = element_text(size = rel(1))) +
+#   scale_colour_manual(values = cb_palette) +
+#   scale_fill_manual(values = cb_palette)
+#   # scale_colour_manual(values = c("darkgreen", "cyan4", "greenyellow", "lightseagreen")) +
+#   # scale_fill_manual(values = c("darkgreen", "cyan4", "greenyellow", "lightseagreen"))
 
-pdf(pafs("bootstrap_en.pdf"), height = 3.4, width = 5.4)
-plot(p)
-dev.off()
-
-
-# -- Binomial negative estimation bootstrap ------------------------------------
-
-p <-
-  tab_boot[tab_boot$estimation ==  "Negative binomiale",] %>%
-  ggplot(aes(x = x, y = moy)) +
-  geom_line(size = 1) +
-  geom_ribbon(aes(ymin = icinf, ymax = icsup), alpha = 0.3) +
-  geom_abline(slope = 1, intercept = 0, col = "red", size = 0.7,
-              linetype = "dashed") +
-  xlim(c(0, 30)) +
-  coord_cartesian(ylim = c(0, 35)) +
-  xlab("Estimated density") +
-  ylab("Observed density") +
-  theme_bw() +
-  theme(axis.title = element_text(size = rel(1.2))) +
-  theme(axis.text = element_text(size = rel(1))) +
-  scale_colour_manual(values = cb_palette) +
-  scale_fill_manual(values = cb_palette)
-
-pdf(pafs("bootstrap_gpoiss.pdf"), height = 3.4, width = 4.4)
-plot(p)
-dev.off()
+# pdf(pafs("bootstrap_en.pdf"), height = 3.4, width = 5.4)
+# plot(p)
+# dev.off()
 
 
-# -- litle graphs to show distributions shapes ---------------------------------
-gpoisson <- function(k, r, theta) {
-  p <- 1 / (theta + 1)
-  q <- 1 - p
+# # -- Binomial negative estimation bootstrap ------------------------------------
 
-  pk <-
-    gamma(k + r) / (gamma(r) * factorial(k)) * p^r * q^k
+# p <-
+#   tab_boot[tab_boot$estimation ==  "Negative binomiale",] %>%
+#   ggplot(aes(x = x, y = moy)) +
+#   geom_line(size = 1) +
+#   geom_ribbon(aes(ymin = icinf, ymax = icsup), alpha = 0.3) +
+#   geom_abline(slope = 1, intercept = 0, col = "red", size = 0.7,
+#               linetype = "dashed") +
+#   xlim(c(0, 30)) +
+#   coord_cartesian(ylim = c(0, 35)) +
+#   xlab("Estimated density") +
+#   ylab("Observed density") +
+#   theme_bw() +
+#   theme(axis.title = element_text(size = rel(1.2))) +
+#   theme(axis.text = element_text(size = rel(1))) +
+#   scale_colour_manual(values = cb_palette) +
+#   scale_fill_manual(values = cb_palette)
 
-  return(pk)
-}
+# pdf(pafs("bootstrap_gpoiss.pdf"), height = 3.4, width = 4.4)
+# plot(p)
+# dev.off()
 
-dat <- data.frame(x = 0:10)
-dat$y <- dpois(dat$x, lambda = 3)
 
-pdf(pafs("poisson.pdf"), height = 0.9, width = 0.9)
-ggplot(dat, aes(x = x, y = y)) +
-  geom_point(size = 0.6) +
-  theme_bw() +
-  theme(axis.text = element_blank()) +
-  theme(axis.ticks = element_blank()) +
-  theme(axis.title = element_blank()) +
-  theme(panel.grid = element_blank())
-dev.off()
+# # -- litle graphs to show distributions shapes ---------------------------------
+# gpoisson <- function(k, r, theta) {
+#   p <- 1 / (theta + 1)
+#   q <- 1 - p
 
-dat <- data.frame(x = 0:9)
-dat$y <- exp(com.log.density(dat$x, lambda = 3, nu = 2))
+#   pk <-
+#     gamma(k + r) / (gamma(r) * factorial(k)) * p^r * q^k
 
-pdf(pafs("compoisson.pdf"), height = 0.9, width = 0.9)
-ggplot(dat, aes(x = x, y = y)) +
-  geom_point(size = 0.6) +
-  theme_bw() +
-  theme(axis.text = element_blank()) +
-  theme(axis.ticks = element_blank()) +
-  theme(axis.title = element_blank()) +
-  theme(panel.grid = element_blank())
-dev.off()
+#   return(pk)
+# }
 
-dat <- data.frame(x = 0:10)
-dat$y <- gpoisson(dat$x, r = 8, theta = 0.3)
+# dat <- data.frame(x = 0:10)
+# dat$y <- dpois(dat$x, lambda = 3)
 
-pdf(pafs("negbino.pdf"), height = 0.9, width = 0.9)
-ggplot(dat, aes(x = x, y = y)) +
-  geom_point(size = 0.6) +
-  theme_bw() +
-  theme(axis.text = element_blank()) +
-  theme(axis.ticks = element_blank()) +
-  theme(axis.title = element_blank()) +
-  theme(panel.grid = element_blank())
-dev.off()
+# pdf(pafs("poisson.pdf"), height = 0.9, width = 0.9)
+# ggplot(dat, aes(x = x, y = y)) +
+#   geom_point(size = 0.6) +
+#   theme_bw() +
+#   theme(axis.text = element_blank()) +
+#   theme(axis.ticks = element_blank()) +
+#   theme(axis.title = element_blank()) +
+#   theme(panel.grid = element_blank())
+# dev.off()
+
+# dat <- data.frame(x = 0:9)
+# dat$y <- exp(com.log.density(dat$x, lambda = 3, nu = 2))
+
+# pdf(pafs("compoisson.pdf"), height = 0.9, width = 0.9)
+# ggplot(dat, aes(x = x, y = y)) +
+#   geom_point(size = 0.6) +
+#   theme_bw() +
+#   theme(axis.text = element_blank()) +
+#   theme(axis.ticks = element_blank()) +
+#   theme(axis.title = element_blank()) +
+#   theme(panel.grid = element_blank())
+# dev.off()
+
+# dat <- data.frame(x = 0:10)
+# dat$y <- gpoisson(dat$x, r = 8, theta = 0.3)
+
+# pdf(pafs("negbino.pdf"), height = 0.9, width = 0.9)
+# ggplot(dat, aes(x = x, y = y)) +
+#   geom_point(size = 0.6) +
+#   theme_bw() +
+#   theme(axis.text = element_blank()) +
+#   theme(axis.ticks = element_blank()) +
+#   theme(axis.title = element_blank()) +
+#   theme(panel.grid = element_blank())
+# dev.off()

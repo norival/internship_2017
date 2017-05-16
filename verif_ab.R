@@ -36,60 +36,28 @@ gmean[gmean == 5] <- exp(mean(log(c(10000, 99999))))
 cor_gmean <- estim_summary_gm(tab = transposed[["orig"]], gmean, surf = 1)
 
 ## estimate with Poisson distribution
-estim01 <- estim_abundance(x = transposed[["base0"]], surf = 1, fun = "poisson")
-cor_base0 <- estim_summary(transposed[["orig"]], estim01, surf = 1)
+estim_poisson <- estim_abundance(x = transposed[["base0"]],
+                                 surf = 1, fun = "poisson")
+cor_poisson <- estim_summary(transposed[["orig"]], estim_poisson, surf = 1)
 
 ## estimate with COM-Poisson distribution
-estim2 <- estim_abundance(x = transposed[["base2"]], surf = 1, fun = "compoisson")
-cor_base2 <- estim_summary(transposed[["orig"]], estim2, surf = 1)
+estim_cpoisson <- estim_abundance(x = transposed[["base2"]],
+                                  surf = 1, fun = "compoisson")
+cor_cpoisson <- estim_summary(transposed[["orig"]], estim_cpoisson, surf = 1)
 
 ## estimate with negative binomiale distribution
-# The distribution of plants within plots follows a Poisson distribution whith
-# lambda paramater being a random parameter drawn from a gamme distribution.
-# Then we are looking for P(k|lambda), k being the number of plants obsevred in
-# the quadrate and lambda the random parameter drawn from the gamma
-# distribution.
-gpoisson <- estim_abundance(x = transposed[["base2"]], surf = 1,
-                            fun = "gammapoisson", maxtheta = 20)
-cor_gpoisson <- estim_summary(transposed[["orig"]], gpoisson, surf = 1)
-
-
-# ------------------------------------------------------------------------------
-# check distribution of abundances
-
-orig <- transposed[["orig"]]
-allsp <- data.frame(character(), numeric())
-for (sp in unique(orig$sp)) {
-  a <-
-    cbind.data.frame(sp, as.numeric(as.matrix(orig[orig$sp == sp, 4:length(orig)])))
-  allsp <- rbind.data.frame(allsp, a)
-}
-colnames(allsp) <- c("sp", "ab")
-allsp$sp <- as.character(allsp$sp)
-
-p <-
-  allsp[allsp$sp %in% unique(allsp$sp)[1:16],] %>%
-  ggplot(aes(ab)) +
-  geom_histogram(bins = 10) +
-  facet_wrap(~ sp)
-# ggsave("~/desktop/distributions_abondances.png")
-# write.csv(allsp, "~/desktop/distributions_abondances.csv")
-
-a <- colSums(orig[, 4:length(orig)])
-p <-
-  allsp[allsp$sp %in% sample(unique(allsp$sp), 20), ] %>%
-  ggplot(aes(ab)) +
-  geom_histogram(bins = 15) +
-  facet_wrap(~ sp)
+estim_gpoisson <- estim_abundance(x = transposed[["base2"]],
+                                  surf = 1, fun = "gammapoisson", maxtheta = 20)
+cor_gpoisson <- estim_summary(transposed[["orig"]], estim_gpoisson, surf = 1)
 
 
 # ------------------------------------------------------------------------------
 # summary table
-aa <-
-  rbind.data.frame(cbind.data.frame(base = "base0", cor_base0[,1:4]),
-                   cbind.data.frame(base = "base2", cor_base2[,1:4]),
-                   cbind.data.frame(base = "geom",  cor_gmean[,1:4]),
-                   cbind.data.frame(base = "binom", cor_gpoisson[,1:4]))
+cor_summary <-
+  rbind.data.frame(cbind.data.frame(base = "base0", cor_poisson),
+                   cbind.data.frame(base = "base2", cor_cpoisson),
+                   cbind.data.frame(base = "geom",  cor_gmean),
+                   cbind.data.frame(base = "binom", cor_gpoisson))
 
 
 # ------------------------------------------------------------------------------
@@ -100,46 +68,47 @@ nboot <- 10000
 # bootstraps on models
 ## the regression must be done on log-log values so the variance is homogeneous,
 ## we convert the values first
-lcor_base0 <-
-  cbind.data.frame(real = log(cor_base0$real), estimate = log(cor_base0$estimate))
-bootbase0 <- bootstrap(nboot, lcor_base0[!is.infinite(lcor_base0$real) &
-                       !is.infinite(lcor_base0$estimate),])
+lcor_poisson <- cbind.data.frame(observed = log(cor_poisson$observed),
+                                 estimate = log(cor_poisson$estimate))
+bootpoisson <- bootstrap(nboot, lcor_poisson[!is.infinite(lcor_poisson$observed) &
+                         !is.infinite(lcor_poisson$estimate),])
 
-lcor_gmean <-
-  cbind.data.frame(real = log(cor_gmean$real), estimate = log(cor_gmean$estimate))
-bootgmean <- bootstrap(nboot, lcor_gmean[!is.infinite(lcor_gmean$real),])
+lcor_gmean <- cbind.data.frame(observed = log(cor_gmean$observed),
+                               estimate = log(cor_gmean$estimate))
+bootgmean <- bootstrap(nboot, lcor_gmean[!is.infinite(lcor_gmean$observed),])
 
-lcor_cpoisson <-
-  cbind.data.frame(real = log(cor_base2$real), estimate = log(cor_base2$estimate))
-bootcpoisson <- bootstrap(nboot, lcor_cpoisson[!is.infinite(lcor_cpoisson$real),])
+lcor_cpoisson <- cbind.data.frame(observed = log(cor_cpoisson$observed),
+                                  estimate = log(cor_cpoisson$estimate))
+bootcpoisson <- bootstrap(nboot, lcor_cpoisson[!is.infinite(lcor_cpoisson$observed),])
 
-lcor_gpoisson <-
-  cbind.data.frame(real = log(cor_gpoisson$real), estimate = log(cor_gpoisson$estimate))
-bootgpoisson <- bootstrap(nboot, lcor_gpoisson[!is.infinite(lcor_gpoisson$real),])
+lcor_gpoisson <- cbind.data.frame(observed = log(cor_gpoisson$observed),
+                                  estimate = log(cor_gpoisson$estimate))
+bootgpoisson <- bootstrap(nboot, lcor_gpoisson[!is.infinite(lcor_gpoisson$observed),])
 
 # compute predictd values with IC95
-predbootbase0    <- bootpred(0:30, bootbase0)
-predbootgmean    <- bootpred(0:30, bootgmean)
-predbootcpoisson <- bootpred(0:30, bootcpoisson)
-predbootgpoisson <- bootpred(0:30, bootgpoisson)
+predbootpoisson  <- bootpred(0:1000, bootpoisson)
+predbootgmean    <- bootpred(0:1000, bootgmean)
+predbootcpoisson <- bootpred(0:1000, bootcpoisson)
+predbootgpoisson <- bootpred(0:1000, bootgpoisson)
 
 tab_boot <-
-  rbind.data.frame(predbootbase0, predbootgmean, predbootcpoisson, predbootgpoisson)
+  rbind.data.frame(predbootgmean, predbootpoisson, predbootcpoisson, predbootgpoisson)
 tab_boot$estimation <-
-  rep(c("0/1", "gmean", "base2", "gpoisson"), rep(nrow(predbootgmean), 4))
+  rep(c("Moyenne Géométrique", "Loi de Poisson", "Loi de COM-Poisson",
+        "Loi Binomiale Négative"), rep(nrow(predbootgmean), 4))
 
 # summary table for bootstraps
 bootsum <-
   cbind.data.frame(estim   = c("Poisson", "Moyenne géométrique", "COM-Poisson", "Gamma-Poisson"),
-                   r_icinf = rbind(quantile(bootbase0$r.squared,    0.025),
+                   r_icinf = rbind(quantile(bootpoisson$r.squared,    0.025),
                                    quantile(bootgmean$r.squared,    0.025),
                                    quantile(bootcpoisson$r.squared, 0.025),
                                    quantile(bootgpoisson$r.squared, 0.025)),
-                   r_mean  = rbind(mean(bootbase0$r.squared),
+                   r_mean  = rbind(mean(bootpoisson$r.squared),
                                    mean(bootgmean$r.squared),
                                    mean(bootcpoisson$r.squared),
                                    mean(bootgpoisson$r.squared)),
-                   r_icinf = rbind(quantile(bootbase0$r.squared,    0.975),
+                   r_icinf = rbind(quantile(bootpoisson$r.squared,    0.975),
                                    quantile(bootgmean$r.squared,    0.975),
                                    quantile(bootcpoisson$r.squared, 0.975),
                                    quantile(bootgpoisson$r.squared, 0.975)))

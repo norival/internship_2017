@@ -77,13 +77,13 @@ estim_summary <- function(tab_orig, tab_estim, surf) {
   surfech  <- surf * (length(tab_orig) - 3)
 
   group <- function(x, surfech) {
-    cbind(sum(as.numeric(x[4:length(x)])) / surfech,
-          tab_estim[x[2], x[1]])
+    cbind(sum(as.numeric(x[4:length(x)])),
+          tab_estim[x[2], x[1]] * surfech)
   }
 
   a <- t(apply(tab_orig, 1, group, surfech))
   result <- cbind.data.frame(tab_orig[,1:2], a)
-  colnames(result)[3:4] <- c("real", "estimate")
+  colnames(result)[3:4] <- c("observed", "estimate")
 
   return(result)
 }
@@ -94,19 +94,19 @@ estim_summary_gm <- function(tab, tabgm, surf) {
 
   mat_vide <- matrix(0, ncol = 4, nrow = nrow(tab))
   dat <- data.frame(mat_vide)
-  colnames(dat) <- c("parc", "sp", "real", "estimate")
+  colnames(dat) <- c("sp", "carre.parc", "observed", "estimate")
 
-  dat$parc <- tab$carre.parc
-  dat$sp   <- tab$sp
+  dat$carre.parc <- tab$carre.parc
+  dat$sp         <- tab$sp
 
   surfech <- surf * (length(tab) - 3)
 
   for (i in 1:nrow(tab)) {
-    dat$real[i]     <- sum(as.numeric(tab[i, 4:length(tab)])) / surfech
-    dat$estimate[i] <- sum(as.numeric(tabgm[i, ])) / surfech
+    dat$observed[i] <- sum(as.numeric(tab[i, 4:length(tab)]))
+    dat$estimate[i] <- sum(as.numeric(tabgm[i, ]))
   }
 
-  return(dat)
+  return(dat[dat$observed != 0,])
 }
 
 # ------------------------------------------------------------------------------
@@ -119,9 +119,9 @@ bootstrap <- function(nboot, tab) {
 
   for (i in 1:nboot) {
     samp <- sample(1:nrow(tab), nrow(tab), replace = TRUE)
-    dat <- tab[samp, c("real", "estimate")]
+    dat <- tab[samp, c("observed", "estimate")]
 
-    mod <- lm(real ~ estimate, data = dat)
+    mod <- lm(observed ~ estimate, data = dat)
 
     bootres[i, "interc"]    <- as.numeric(mod$coefficients[1])
     bootres[i, "estimate"]  <- as.numeric(mod$coefficients[2])
@@ -173,7 +173,8 @@ optim_maxtheta <- function(transposed, maxtheta, fun = "gammapoisson", surf = 1,
     cor_estim <- estim_summary(transposed[["orig"]], estim, surf = surf)
 
     lcor_estim <-
-      cbind.data.frame(real = log(cor_estim$real), estimate = log(cor_estim$estimate))
+      cbind.data.frame(observed = log(cor_estim$observed),
+                       estimate = log(cor_estim$estimate))
 
     cat("bootstrap...\n")
     bootestim <- bootstrap(nboot, lcor_estim)
