@@ -136,18 +136,16 @@ bootstrap <- function(nboot, tab) {
 
 bootpred <- function(x, boot) {
 
-  mat <- matrix(nrow = length(x), ncol = nrow(boot), 0)
-
-  for (i in 1:length(x)) {
-    for (j in 1:nrow(boot)) {
-      mat[i, j] <- boot[j, 2] * log(x[i]) + boot[j, 1]
-      mat[i, j] <- exp(mat[i, j]) * exp(boot[j, 4]^2 / 2)
-    }
+  funpred <- function(bootline, x) {
+    val <- bootline[2] * log(x) + bootline[1]
+    exp(val) * exp(bootline[4]^2 / 2)
   }
 
-  moy   <- rowMeans(mat)
-  icinf <- apply(mat, 1, function(x) quantile(x, 0.025))
-  icsup <- apply(mat, 1, function(x) quantile(x, 0.975))
+  pred <- apply(boot, 1, funpred, x = x)
+
+  moy   <- rowMeans(pred)
+  icinf <- apply(pred, 1, function(x) quantile(x, 0.025))
+  icsup <- apply(pred, 1, function(x) quantile(x, 0.975))
   dat   <- cbind.data.frame(x, moy, icinf, icsup)
 
   return(dat)
