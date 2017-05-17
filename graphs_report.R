@@ -109,14 +109,14 @@ tab <- cbind.data.frame(observed_ab, estim_error)
 tab <- tab[tab$estim_error != 0,]
 
 p <-
-  ggplot(tab, aes(x = log(estim_error), y = log(observed_ab))) +
+  ggplot(tab, aes(x = log(observed_ab), y = log(estim_error))) +
   geom_point(size = 1.2, shape = 1, position = "jitter") +
   geom_abline(slope = 1, intercept = 0, col = "red", size = 0.7) +
   theme_bw() +
   theme(axis.title = element_text(size = rel(1.2))) +
   theme(axis.text = element_text(size = rel(1))) +
-  xlab("Erreur sur estimation (log)") +
-  ylab("Erreur sur observations (log)")
+  xlab("Abondance observée (log)") +
+  ylab("Erreur sur l'estimation (log)")
 
 pdf(paf("erreurs.pdf"), height = 3.2, width = 3.2)
 plot(p)
@@ -148,14 +148,14 @@ plot(p)
 dev.off()
 
 # variation of errors
-bb <- data.frame(t(apply(tab[,4:length(tab)], 1, function(x) cbind(sum(x), sd(x)))))
+bb <- data.frame(t(apply(tab[,4:length(tab)], 1, function(x) cbind(sum(x), var(x)))))
 colnames(bb) <- c("sum", "sd")
 
 p <- ggplot(bb, aes(x = log(sum), y = log(sd))) +
   geom_point(size = 1.2, shape = 1, position = "jitter") +
   geom_abline(slope = 1, intercept = 0, col = "red", size = 0.7, linetype = "dashed") +
   xlab("log(Abondance observée)") +
-  ylab("log(Écart-type observé)") +
+  ylab("log(Variance observé)") +
   theme_bw() +
   theme(axis.title = element_text(size = rel(1.2))) +
   theme(axis.text = element_text(size = rel(1))) #+
@@ -217,6 +217,7 @@ p <- boot_quadras %>%
   ggplot(aes(x = nqd, y = errmean)) +
   geom_point() +
   geom_errorbar(aes(ymin = errinf, ymax = errsup)) +
+  geom_hline(aes(yintercept = 40), col = 'red', linetype = "dashed") +
   # geom_hline(yintercept = 40, linetype = "dashed", col = "red") +
   theme_bw()
 
