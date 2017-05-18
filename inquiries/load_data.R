@@ -78,13 +78,3 @@ data_full$id_parc_tri <- paste(data_full$ID_Parcelle, data_full$ID_Exploitation,
 kept  <- c("id_parc_tri", "Produit_Ferti", "Dose_Ferti", "Unité_dose")
 tab   <- data_full[, kept]
 n_doses <- n_dose(tab, fert)
-
-# -- flora ---------------------------------------------------------------------
-# adds scripts to compute estimates of abundance
-source("util/code_annee_tot.R", encoding = "latin1")
-
-for (i in c(2006:2011, 2013:2016)) {
-  print(paste("year", i))
-  filename <- paste("util/code", i, ".R", sep = "")
-  source(filename, encoding = "latin1")
-}
