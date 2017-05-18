@@ -41,37 +41,34 @@ par_lda <- function(tab, groups, control, datname, path, ncores = 3) {
 
 # ------------------------------------------------------------------------------
 
-tidy_lda_post <- function(.post) {
+tidy_lda_post <- function(mod) {
+  post <- posterior(mod)
 
-  .plots  <- .post$topics
-  .spp    <- .post$terms
+  plots <- post$topics
+  spp   <- post$terms
 
   # group the data in a tidy manner so it can be easily plotted
   ## plots data
-  .all_plots <-
-    data.frame(parc = character(), x = numeric(), val = numeric(), id = character())
-  for (i in 1:ncol(.plots)) {
-    .tmp <-
-      cbind.data.frame(rownames(.plots), 1:nrow(.plots), .plots[, i], paste("gp", i, sep = ""))
-    .all_plots <- rbind.data.frame(.all_plots, .tmp)
+  all_plots <- matrix(0, 0, 3)
+  for (i in 1:ncol(plots)) {
+    tmp <- cbind(rownames(plots), paste("gp", i, sep = ""), plots[, i])
+    all_plots <- rbind(all_plots, tmp)
   }
-  colnames(.all_plots) <- c("parc", "x", "val", "gp")
-  .all_plots$parc <- as.character(.all_plots$parc)
-  .all_plots$gp   <- as.character(.all_plots$gp)
+  rownames(all_plots) <- 1:nrow(all_plots)
+  all_plots <- data.frame(all_plots, stringsAsFactors = FALSE)
+  colnames(all_plots) <- c("parc", "group", "percent")
+  all_plots$percent   <- as.numeric(all_plots$percent)
 
   ## species data
-  .all_spp <-
-    data.frame(sp = character(), x = numeric(), val = numeric(), id = character())
-  for (i in 1:nrow(.spp)) {
-    .tmp <-
-      cbind.data.frame(colnames(.spp), 1:ncol(.spp), .spp[i, ], paste("gp", i, sep = ""))
-    .all_spp <- rbind.data.frame(.all_spp, .tmp)
+  all_spp <- matrix(0, 0, 3)
+  for (i in 1:nrow(spp)) {
+    tmp <- cbind(colnames(spp), paste0("gp", i), spp[i,])
+    all_spp <- rbind.data.frame(all_spp, tmp)
   }
-  colnames(.all_spp) <- c("sp", "x", "rel_ab", "gp")
-  .all_spp$sp <- as.character(.all_spp$sp)
-  .all_spp$gp <- as.character(.all_spp$gp)
+  rownames(all_spp) <- 1:nrow(all_spp)
+  all_spp <- data.frame(all_spp, stringsAsFactors = FALSE)
+  colnames(all_spp) <- c("sp", "group", "rel_ab")
+  all_spp$rel_ab    <- as.numeric(all_spp$rel_ab)
 
-  .tidy_dat <- list(plots = .all_plots, spp = .all_spp)
-
-  return(.tidy_dat)
+  return(list(plots = all_plots, spp = all_spp))
 }
