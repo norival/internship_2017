@@ -187,4 +187,21 @@ boot_quadras <- min_quadras(transposed[["orig"]], min = 10, nboot = 2500, n_core
 
 boot_quadras <- read.csv("data/generated/smoothed_bootstraps.csv")
 
+tab <- rbind.data.frame(cor_gmean, cor_poisson, cor_cpoisson, cor_gpoisson)
+tab$method <- rep(c("Moyenne géométrique", "Loi de Poisson", "Loi de COM-Poisson",
+                    "Loi Binomiale Négative"), rep(nrow(tab) / 4, 4))
+
+tabsum <-
+  tab %>%
+  mutate(error = estimate - observed) %>%
+  group_by(method) %>%
+  summarise(sous = sum(error >= 40) / length(error) * 100,
+            sur  = sum(error <= -40) / length(error) * 100,
+            errmoy = mean(error[!is.infinite(error)], na.rm = TRUE),
+            errinf = quantile(error, 0.025),
+            errsup = quantile(error, 0.975),
+            errmax = max(error),
+            errmin = min(error))
+# print(xtable::xtable(tabsum, digits = 2), include.rownames = FALSE)
+
 save.image('data/generated/data_verif.RData')
