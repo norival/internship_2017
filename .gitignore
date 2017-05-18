@@ -1,0 +1,35 @@
+# generic files
+*~
+.~*
+.RData
+*.aux
+*.out
+*.log
+*.synctex.gz
+*.sw*
+*.bbl
+*.blg
+*.gl*
+*.xdy
+*.nav
+*.toc
+*.snm
+*.Rhistory
+*.Rout
+*.fdb_latexmk
+*.fls
+*.glsdefs
+*.ist
+*.lof
+
+# specific files
+reporting.pdf
+lab_meeting.html
+*.pdf
+junk.R
+
+# directories
+data/
+Figs/
+
+# keep specific files
