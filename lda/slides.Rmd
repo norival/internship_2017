@@ -1,0 +1,117 @@
+---
+title: "Groupements par méthode LDA"
+date: \today
+lang: fr
+fontsize: 12pt
+output:
+  ioslides_presentation
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=4, fig.height=4, fig.path='Figs/',
+                      echo=TRUE, warning=FALSE, message=FALSE)
+```
+```{r, loading_data, echo=FALSE}
+library(ggplot2)
+library(dplyr)
+load("data/generated/envir_lda.Rdata")
+```
+
+## AIC par année
+
+```{r aics_by_year, echo=FALSE, fig.width=7, fig.height=4.5}
+plot(p_aics_by_year)
+```
+
+## AIC sur toutes les années groupées
+
+```{r aics_all_years, echo=FALSE, fig.width=7, fig.height=4.5}
+plot(p_aics_all_years)
+```
+
+## Sélection des espèces par seuil d'occurence
+
+Nombre total d'espèces : `r length(lda_all_years_10_groups@terms)`
+
+```{r by_thrs, echo=FALSE, fig.width=7, fig.height=4.5}
+tab <- cbind.data.frame(threshold = as.character(unique(aics_by_thrs$percent)),
+                        n_species = as.numeric(unique(aics_by_thrs$nsp)),
+                        stringsAsFactors = FALSE)
+tab <- tab[order(tab$n_species, decreasing = TRUE),]
+print(tab, row.names = FALSE)
+```
+
+## AIC en sélectionnant les espèces par seuil d'occurence
+
+```{r aics_by_thrs, echo=FALSE, fig.width=7, fig.height=4.5}
+plot(p_aics_by_thrs)
+```
+
+## Analyses des posterior
+
+Utilisation du modèle sur 5 % d'occurence minimum et avec 5 groupes.
+
+## Groupe 1
+
+LDA sur seuil à 5 % avec 5 groupes. Composition des groupes (abondance relative
+supérieure à 5 %)
+
+```{r group1, echo=FALSE, fig.width=7, fig.height=4.5}
+tab <-
+  tidy_spp %>%
+  filter(group == "gp1", rel_ab > 0.05)  %>%
+  dplyr::select(sp, rel_ab)
+print(tab[order(tab$rel_ab, decreasing = T),], row.names = FALSE)
+```
+
+## Groupe 2
+
+LDA sur seuil à 5 % avec 5 groupes. Composition des groupes (abondance relative
+supérieure à 5 %)
+
+```{r group2, echo=FALSE, fig.width=7, fig.height=4.5}
+tab <-
+  tidy_spp %>%
+  filter(group == "gp2", rel_ab > 0.05)  %>%
+  select(sp, rel_ab)
+print(tab[order(tab$rel_ab, decreasing = T),], row.names = FALSE)
+```
+
+## Groupe 3
+
+LDA sur seuil à 5 % avec 5 groupes. Composition des groupes (abondance relative
+supérieure à 5 %)
+
+```{r group3, echo=FALSE, fig.width=7, fig.height=4.5}
+tab <-
+  tidy_spp %>%
+  filter(group == "gp3", rel_ab > 0.05)  %>%
+  select(sp, rel_ab)
+print(tab[order(tab$rel_ab, decreasing = T),], row.names = FALSE)
+```
+
+## Groupe 4
+
+LDA sur seuil à 5 % avec 5 groupes. Composition des groupes (abondance relative
+supérieure à 5 %)
+
+```{r group4, echo=FALSE, fig.width=7, fig.height=4.5}
+tab <-
+  tidy_spp %>%
+  filter(group == "gp4", rel_ab > 0.05)  %>%
+  select(sp, rel_ab)
+print(tab[order(tab$rel_ab, decreasing = T),], row.names = FALSE)
+```
+
+## Groupe 5
+
+LDA sur seuil à 5 % avec 5 groupes. Composition des groupes (abondance relative
+supérieure à 5 %)
+
+```{r group5, echo=FALSE, fig.width=7, fig.height=4.5}
+tab <-
+  tidy_spp %>%
+  filter(group == "gp5", rel_ab > 0.05)  %>%
+  select(sp, rel_ab)
+print(tab[order(tab$rel_ab, decreasing = T),], row.names = FALSE)
+```
