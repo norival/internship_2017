@@ -63,7 +63,7 @@ tidy_lda_post <- function(mod) {
   all_spp <- matrix(0, 0, 3)
   for (i in 1:nrow(spp)) {
     tmp <- cbind(colnames(spp), paste0("gp", i), spp[i,])
-    all_spp <- rbind.data.frame(all_spp, tmp)
+    all_spp <- rbind(all_spp, tmp)
   }
   rownames(all_spp) <- 1:nrow(all_spp)
   all_spp <- data.frame(all_spp, stringsAsFactors = FALSE)
