@@ -27,12 +27,15 @@ for (lda in ldas) {
   aics <- rbind(aics, cbind(year, k, aic))
 }
 
-aics <- as.data.frame(aics, stringsAsFactors = FALSE)
-aics$aic <- as.numeric(aics$aic)
-aics$k   <- as.numeric(aics$k)
+aics_by_year <- as.data.frame(aics, stringsAsFactors = FALSE)
+aics_by_year$aic <- as.numeric(aics_by_year$aic)
+aics_by_year$k   <- as.numeric(aics_by_year$k)
 
-ggplot(aics, aes(x = k, y = aic, colour = year)) +
-  geom_point()
+p_aics_by_year <-
+  ggplot(aics_by_year, aes(x = k, y = aic, colour = year)) +
+  geom_point() +
+  scale_x_continuous(breaks = 2:15) +
+  theme_bw()
 
 
 ## all years grouped
@@ -46,38 +49,46 @@ for (lda in ldas) {
   aics <- rbind(aics, cbind(k, aic))
 }
 
-aics <- as.data.frame(aics, stringsAsFactors = FALSE)
-aics$aic <- as.numeric(aics$aic)
-aics$k   <- as.numeric(aics$k)
+aics_all_years <- as.data.frame(aics, stringsAsFactors = FALSE)
+aics_all_years$aic <- as.numeric(aics_all_years$aic)
+aics_all_years$k   <- as.numeric(aics_all_years$k)
 
-ggplot(aics, aes(x = k, y = aic)) +
-  geom_point()
+p_aics_all_years <-
+  ggplot(aics_all_years, aes(x = k, y = aic)) +
+  geom_point() +
+  scale_x_continuous(breaks = 2:15) +
+  theme_bw()
 
 
 ## all years grouped by threshold
 ldas <- ls(pattern = "lda_[[:digit:]]*_percent")
 
-aics <- matrix(0, 0, 3)
+aics <- matrix(0, 0, 4)
 for (lda in ldas) {
   percent <- strsplit(lda, "_")[[1]][2]
   k       <- strsplit(lda, "_")[[1]][4]
 
-  aic <- AIC(get(lda))
-  aics <- rbind(aics, cbind(percent, k, aic))
+  nsp  <- length(get(lda)@terms)
+  aic  <- AIC(get(lda))
+  aics <- rbind(aics, cbind(percent, k, aic, nsp))
 }
 
-aics <- as.data.frame(aics, stringsAsFactors = FALSE)
-aics$aic <- as.numeric(aics$aic)
-aics$k   <- as.numeric(aics$k)
+aics_by_thrs <- as.data.frame(aics, stringsAsFactors = FALSE)
+aics_by_thrs$aic <- as.numeric(aics_by_thrs$aic)
+aics_by_thrs$k   <- as.numeric(aics_by_thrs$k)
+aics_by_thrs$percent <- paste(aics_by_thrs$percent, "%")
 
-ggplot(aics, aes(x = k, y = aic)) +
+p_aics_by_thrs <-
+  ggplot(aics_by_thrs, aes(x = k, y = aic)) +
   geom_point() +
-  facet_wrap(~ percent, scales = "free_y")
+  scale_x_continuous(breaks = 2:15) +
+  facet_wrap(~ percent, scales = "free_y") +
+  theme_bw()
 
 
 # -- posterior analyses --------------------------------------------------------
 # groups per year
-mod <- lda_all_years_5_groups
+mod <- lda_5_percent_5_groups
 tidy_post  <- tidy_lda_post(mod)
 tidy_plots <- tidy_post[["plots"]]
 tidy_plots$year <- sapply(strsplit(tidy_plots$parc, "_"), function(x) x[1])
