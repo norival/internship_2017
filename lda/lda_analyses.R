@@ -73,3 +73,39 @@ aics$k   <- as.numeric(aics$k)
 ggplot(aics, aes(x = k, y = aic)) +
   geom_point() +
   facet_wrap(~ percent, scales = "free_y")
+
+
+# -- posterior analyses --------------------------------------------------------
+# groups per year
+mod <- lda_all_years_5_groups
+tidy_post  <- tidy_lda_post(mod)
+tidy_plots <- tidy_post[["plots"]]
+tidy_plots$year <- sapply(strsplit(tidy_plots$parc, "_"), function(x) x[1])
+
+# group by year
+a <- aggregate(percent ~ year + group, data = tidy_plots,
+               mean)
+
+ggplot(a, aes(x = year, y = percent, fill = group)) +
+  geom_bar(stat = 'identity')
+
+# group by crop
+## get the crop
+cor_crops <- read.csv("data/generated/corres_parc_crop.csv",
+                      stringsAsFactors = FALSE)
+
+tidy_plots$crop <- ""
+for (parc in unique(tidy_plots$parc)) {
+  num_parc <- strsplit(parc, "_")[[1]][2]
+  num_parc <- gsub("-Pa$", "", num_parc)
+
+  tidy_plots$crop[tidy_plots$parc == parc] <-
+    cor_crops$crop.analyses[grepl(num_parc, cor_crops$carre.parc)]
+}
+
+a <- aggregate(percent ~ crop + group, data = tidy_plots,
+               mean)
+a <- a[a$crop %in% c("cereal", "osr", "sunflower", "maize"),]
+
+ggplot(a, aes(x = crop, y = percent, fill = group)) +
+  geom_bar(stat = 'identity')
