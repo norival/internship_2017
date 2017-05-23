@@ -66,7 +66,8 @@ for (method in unique(aa$method)) {
                      "Binomiale négative" = "nbino")
   filename <- paste0("estimations_", filename, ".pdf")
 
-  pdf(pafs(filename), height = 3, width = 4)
+  width <- ifelse(method == "COM-Poisson", 2.8, 4)
+  pdf(pafs(filename), height = 3, width = width)
 
   p <-
     aa[aa$method == method,] %>%
@@ -82,7 +83,9 @@ for (method in unique(aa$method)) {
     theme(axis.text = element_text(size = rel(1))) +
     scale_colour_manual(values = cb_palette)
 
-  plot(p)
+  ifelse(method == "COM-Poisson",
+         plot(p + guides(colour = FALSE)),
+         plot(p))
   dev.off()
 }
 
