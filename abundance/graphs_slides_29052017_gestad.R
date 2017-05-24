@@ -107,10 +107,10 @@ for (method in unique(tab_boot$estimation)) {
     geom_ribbon(aes(ymin = icinf, ymax = icsup), alpha = 0.3) +
     geom_abline(slope = 1, intercept = 0, col = "red", size = 0.7,
                 linetype = "dashed") +
-    xlim(c(0, 1000)) +
-    coord_cartesian(ylim = c(0, 1000)) +
-    xlab("Abondance estimée") +
-    ylab("Abondance observée") +
+    xlim(c(0, 6)) +
+    coord_cartesian(ylim = c(0, 6)) +
+    xlab("log(Abondance estimée)") +
+    ylab("log(Abondance observée)") +
     theme_bw() +
     theme(axis.title = element_text(size = rel(1.2))) +
     theme(axis.text = element_text(size = rel(1)))
