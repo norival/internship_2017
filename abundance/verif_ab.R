@@ -1,6 +1,7 @@
 # -- packages and functions ----------------------------------------------------
 library(ggplot2)
 library(magrittr)
+library(dplyr)
 source("functions/verif_ab.R", encoding = "utf8")
 source("functions/abundance.R", encoding = "utf8")
 
@@ -86,10 +87,10 @@ lcor_gpoisson <- cbind.data.frame(observed = log(cor_gpoisson$observed),
 bootgpoisson <- bootstrap(nboot, lcor_gpoisson[!is.infinite(lcor_gpoisson$observed),])
 
 # compute predictd values with IC95
-predbootpoisson  <- bootpred(0:1000, bootpoisson)
-predbootgmean    <- bootpred(0:1000, bootgmean)
-predbootcpoisson <- bootpred(0:1000, bootcpoisson)
-predbootgpoisson <- bootpred(0:1000, bootgpoisson)
+predbootpoisson  <- bootpred(log(1:1000), bootpoisson)
+predbootgmean    <- bootpred(log(1:1000), bootgmean)
+predbootcpoisson <- bootpred(log(1:1000), bootcpoisson)
+predbootgpoisson <- bootpred(log(1:1000), bootgpoisson)
 
 tab_boot <-
   rbind.data.frame(predbootgmean, predbootpoisson, predbootcpoisson, predbootgpoisson)
@@ -182,7 +183,7 @@ mod_gpoisson_sum <-
 # ------------------------------------------------------------------------------
 # Check the minimum number of quadra to have a good estimation
 
-boot_quadras <- min_quadras(transposed[["orig"]], min = 10, nboot = 2500, n_cores = 3)
+# boot_quadras <- min_quadras(transposed[["orig"]], min = 10, nboot = 2500, n_cores = 3)
 # write.csv(a, "data/generated/smoothed_bootstraps.csv")
 
 boot_quadras <- read.csv("data/generated/smoothed_bootstraps.csv")

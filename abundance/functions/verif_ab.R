@@ -136,17 +136,12 @@ bootstrap <- function(nboot, tab) {
 
 bootpred <- function(x, boot) {
 
-  funpred <- function(bootline, x) {
-    val <- bootline[2] * log(x) + bootline[1]
-    exp(val) * exp(bootline[4]^2 / 2)
-  }
+  a <- apply(boot, 2, function(x) rbind(quantile(x, c(0.025)),
+                                        mean(x),
+                                        quantile(x, 0.975)))
 
-  pred <- apply(boot, 1, funpred, x = x)
-
-  moy   <- rowMeans(pred)
-  icinf <- apply(pred, 1, function(x) quantile(x, 0.025))
-  icsup <- apply(pred, 1, function(x) quantile(x, 0.975))
-  dat   <- cbind.data.frame(x, moy, icinf, icsup)
+  pred <- apply(a, 1, function(line) line[1] + x * line[2])
+  dat <- cbind.data.frame(x, moy = pred[,2], icinf = pred[,1], icsup = pred[,3])
 
   return(dat)
 }
