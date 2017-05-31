@@ -148,6 +148,35 @@ bootpred <- function(x, boot) {
 
 # ------------------------------------------------------------------------------
 
+boot_error <- function(x, nboot) {
+  # compute the statistic
+  t <- mean(x)
+
+  # resample the vector of errors
+  boot.sample <- sample(x, length(x) * nboot, replace = TRUE)
+  boot.sample <- matrix(boot.sample, nrow = nboot)
+
+  # compute the statistic on each boot sample
+  boot.t <- rowMeans(boot.sample)
+  # and the mean of that bootstrapped statistic
+  boot.tmean <- mean(boot.t)
+
+  # compute the estimate of the bias
+  b <- boot.tmean - t
+
+  # compute the bootstrapped standard error of t
+  boot.se <- sqrt(sum((boot.t - boot.tmean)^2) / (nboot - 1))
+
+  # compute the confidence interval for alpha = 0.05
+  ci.inf <- (t - b) - 1.96 * boot.se
+  ci.sup <- (t - b) + 1.96 * boot.se
+
+  # return values
+  return(c(boot.tmean = boot.tmean, ci.inf = ci.inf, ci.sup = ci.sup))
+}
+
+# ------------------------------------------------------------------------------
+
 optim_maxtheta <- function(transposed, maxtheta, fun = "gammapoisson", surf = 1,
                            nboot = 2500) {
 

@@ -54,11 +54,12 @@ cor_gpoisson <- estim_summary(transposed[["orig"]], estim_gpoisson, surf = 1)
 
 # ------------------------------------------------------------------------------
 # summary table
-cor_summary <-
-  rbind.data.frame(cbind.data.frame(base = "base0", cor_poisson),
-                   cbind.data.frame(base = "base2", cor_cpoisson),
-                   cbind.data.frame(base = "geom",  cor_gmean),
-                   cbind.data.frame(base = "binom", cor_gpoisson))
+cor_all <-
+  rbind.data.frame(cbind.data.frame(method = "Moyenne Géométrique (log10)", cor_gmean),
+                   cbind.data.frame(method = "Loi de Poisson (0/1)", cor_poisson),
+                   cbind.data.frame(method = "Loi de COM-Poisson (log2)", cor_cpoisson),
+                   cbind.data.frame(method = "Loi Binomiale Négative (log2)", cor_gpoisson))
+cor_all$error <- cor_all$estimate - cor_all$observed
 
 
 # ------------------------------------------------------------------------------
@@ -204,5 +205,10 @@ tabsum <-
             errmax = max(error),
             errmin = min(error))
 # print(xtable::xtable(tabsum, digits = 2), include.rownames = FALSE)
+
+err_sum <- aggregate(error ~ method, cor_all[!is.infinite(cor_all$estimate),],
+                     boot_error, nboot = 10000)
+err_sum <- data.frame(err_sum$method, data.frame(err_sum$error))
+colnames(err_sum) <- c("method", "mean", "ci_inf", "ci_sup")
 
 save.image('data/generated/data_verif.RData')
