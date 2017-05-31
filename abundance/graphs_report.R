@@ -29,12 +29,12 @@ cb_palette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442",
 load('data/generated/data_verif.RData')
 
 
-# -- estimations Vs observed ---------------------------------------------------
+# -- estimations Vs observed + bootstraps --------------------------------------
 aa <-
-  rbind.data.frame(cbind.data.frame(method = "Moyenne Géométrique", cor_gmean),
-                   cbind.data.frame(method = "Loi de Poisson", cor_poisson),
-                   cbind.data.frame(method = "Loi de COM-Poisson", cor_cpoisson),
-                   cbind.data.frame(method = "Loi Binomiale Négative", cor_gpoisson))
+  rbind.data.frame(cbind.data.frame(method = "Moyenne Géométrique (log10)", cor_gmean),
+                   cbind.data.frame(method = "Loi de Poisson (0/1)", cor_poisson),
+                   cbind.data.frame(method = "Loi de COM-Poisson (log2)", cor_cpoisson),
+                   cbind.data.frame(method = "Loi Binomiale Négative (log2)", cor_gpoisson))
 aa <- aa[aa$observed != 0,]
 
 aa$estim <- "Bon"
@@ -44,11 +44,21 @@ aa$estim[aa$error < -40] <- "Sous-estimé"
 
 aa$method <- factor(aa$method,
                     levels = unique(aa$method))
+colnames(tab_boot)[length(tab_boot)] <- "method"
+
+tab_boot$method <- unlist(lapply(tab_boot$method, function(old, new)
+                                 match.arg(old, new), new = unique(aa$method)))
 
 p <-
-  ggplot(aa, aes(x = log(estimate), y = log(observed), colour = estim)) +
-  geom_point(size = 1.2, shape = 1, position = "jitter") +
-  geom_abline(slope = 1, intercept = 0) +
+  ggplot(aa, aes(x = log(estimate), y = log(observed))) +
+  geom_point(size = 0.8, shape = 1, position = "jitter") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  geom_line(data = tab_boot, aes(x = x, y = moy),
+            colour = "red") +
+  geom_ribbon(data = tab_boot, aes(ymin = icinf, ymax = icsup, x = x),
+              inherit.aes = FALSE,
+              fill = "red",
+              alpha = 0.3) +
   facet_wrap(~ method, scales = "fixed") +
   xlab("log(Abondance estimée)") +
   ylab("log(Abondance observée)") +
@@ -61,33 +71,7 @@ p <-
   theme(axis.text = element_text(size = rel(1))) +
   scale_colour_manual(values = cb_palette)
 
-pdf(paf("estimations_log.pdf"), height = 4, width = 6)
-plot(p)
-dev.off()
-
-
-# -- Bootstraps on models ------------------------------------------------------
-
-tab_boot$estimation <- factor(tab_boot$estimation,
-                              levels = unique(tab_boot$estimation))
-
-p <- ggplot(tab_boot, aes(x = x, y = moy)) +
-  geom_line(size = 1) +
-  geom_ribbon(aes(ymin = icinf, ymax = icsup), alpha = 0.3) +
-  geom_abline(slope = 1, intercept = 0, col = "red", size = 0.7,
-              linetype = "dashed") +
-  facet_wrap(~ estimation) +
-  xlim(c(0, 1000)) +
-  coord_cartesian(ylim = c(0, 1000)) +
-  xlab("Abondance estimée") +
-  ylab("Abondance observée") +
-  theme_bw() +
-  theme(strip.background = element_rect(fill = "white", size = rel(1))) +
-  theme(strip.text = element_text(size = rel(1.1))) +
-  theme(axis.title = element_text(size = rel(1.2))) +
-  theme(axis.text = element_text(size = rel(1)))
-
-pdf(paf("bootstrap.pdf"), height = 5, width = 5)
+pdf(paf("estimations_log.pdf"), height = 4.4, width = 6)
 plot(p)
 dev.off()
 
