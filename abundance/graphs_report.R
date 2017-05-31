@@ -30,17 +30,7 @@ load('data/generated/data_verif.RData')
 
 
 # -- estimations Vs observed + bootstraps --------------------------------------
-aa <-
-  rbind.data.frame(cbind.data.frame(method = "Moyenne Géométrique (log10)", cor_gmean),
-                   cbind.data.frame(method = "Loi de Poisson (0/1)", cor_poisson),
-                   cbind.data.frame(method = "Loi de COM-Poisson (log2)", cor_cpoisson),
-                   cbind.data.frame(method = "Loi Binomiale Négative (log2)", cor_gpoisson))
-aa <- aa[aa$observed != 0,]
-
-aa$estim <- "Bon"
-aa$error <- aa$estimate - aa$observed
-aa$estim[aa$error > 40] <- "Sur-estimé"
-aa$estim[aa$error < -40] <- "Sous-estimé"
+aa <- cor_all[cor_all$observed != 0,]
 
 aa$method <- factor(aa$method,
                     levels = unique(aa$method))
@@ -148,43 +138,24 @@ dev.off()
 
 
 # -- errors on estimations -----------------------------------------------------
+# graph to show mean error on estimations + confidence intervals
 
-l <- list(gmean    = cor_gmean[cor_gmean$observed != 0,],
-          poisson  = cor_poisson[cor_poisson$observed != 0,],
-          cpoisson = cor_cpoisson[cor_cpoisson$observed != 0,],
-          gpoisson = cor_gpoisson[cor_gpoisson$observed != 0,])
-a <- unlist(lapply(l, function(x) (x$estimate - x$observed)))
-tab <- cbind.data.frame(estimation = gsub("[[:digit:]]*", "", names(a)),
-                        error = a)
-
-tab$estimation[tab$estimation == "gmean"]    <- "Moyenne Géométrique"
-tab$estimation[tab$estimation == "poisson"]  <- "Loi de Poisson"
-tab$estimation[tab$estimation == "cpoisson"] <- "Loi de COM-Poisson"
-tab$estimation[tab$estimation == "gpoisson"] <- "Loi Binomiale Négative"
-
-tab$estimation <- factor(tab$estimation,
-                         levels = unique(tab$estimation))
-
-binsize <- diff(range(error)) / 25
-p <- ggplot(tab, aes(x = error)) +
-  geom_rect(aes(xmin = quantile(error, 0.025), xmax = quantile(error, 0.975),
-                ymin = -Inf, ymax = Inf), fill = "lightslategrey", alpha = 0.02) +
-  geom_histogram(binwidth = binsize, fill = "white", col = "black", size = 0.2) +
-  facet_wrap(~ estimation, scales = "free_x") +
-  geom_vline(aes(xintercept = median(error)), col = "red", linetype = "dotted") +
-  geom_vline(aes(xintercept = quantile(error, 0.025)),
-             col = "darkgreen", linetype = "dashed") +
-  geom_vline(aes(xintercept = quantile(error, 0.975)),
-             col = "darkgreen", linetype = "dashed") +
-  xlab("Erreur sur l'estimation") +
-  ylab("Effectif") +
+p <-
+  ggplot(err_sum, aes(x = mean, y = method)) +
+  geom_point(size = 3) +
+  geom_errorbarh(aes(xmin = ci_inf, xmax = ci_sup), height = 0.2) +
+  geom_vline(xintercept = 0, lty = "dotted") +
+  xlab("Erreur moyenne") +
+  ylab("") +
   theme_bw() +
-  theme(strip.background = element_rect(fill = "white", size = rel(1))) +
-  theme(strip.text = element_text(size = rel(1.1))) +
-  theme(axis.title = element_text(size = rel(1.2))) +
-  theme(axis.text = element_text(size = rel(1)))
+  theme(panel.grid    = element_blank(),
+        axis.line.x   = element_line(size = 0.5, colour = "black"),
+        axis.text.x   = element_text(size = 9),
+        axis.ticks.y  = element_blank(),
+        axis.title    = element_text(size = 10),
+        panel.border  = element_blank())
 
-pdf(paf("estimation_errors.pdf"), height = 4, width = 5)
+pdf(paf("mean_errors.pdf"), height = 2.5, width = 5)
 plot(p)
 dev.off()
 
