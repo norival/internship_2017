@@ -22,6 +22,17 @@ surf <- 1
 # transpose and convert the dataframe
 transposed <- transpose_flora_tot(flore2013)
 
+# put origin table as a matrix like the one returned from estimation function
+# and save it to a file to conduct some tests on it
+tab <- transposed[["orig"]]
+a   <- rowSums(tab[,4:length(tab)])
+mat <- matrix(a, byrow = TRUE,
+              nrow = length(unique(tab$carre.parc)),
+              ncol = length(unique(tab$sp)))
+colnames(mat) <- unique(tab$sp)
+rownames(mat) <- unique(tab$carre.parc)
+
+write.csv(mat, "data/generated/abond_per_plot_2013_exp_full_counts.csv")
 
 # ------------------------------------------------------------------------------
 # all estimations methods
