@@ -99,35 +99,11 @@ tab_boot$estimation <-
   rep(c("Moyenne Géométrique", "Loi de Poisson", "Loi de COM-Poisson",
         "Loi Binomiale Négative"), rep(nrow(predbootgmean), 4))
 
-# summary table for bootstraps
-bootsum <-
-  cbind.data.frame(estim   = c("Poisson", "Moyenne géométrique", "COM-Poisson", "Gamma-Poisson"),
-                   r_icinf = rbind(quantile(bootpoisson$r.squared,    0.025),
-                                   quantile(bootgmean$r.squared,    0.025),
-                                   quantile(bootcpoisson$r.squared, 0.025),
-                                   quantile(bootgpoisson$r.squared, 0.025)),
-                   r_mean  = rbind(mean(bootpoisson$r.squared),
-                                   mean(bootgmean$r.squared),
-                                   mean(bootcpoisson$r.squared),
-                                   mean(bootgpoisson$r.squared)),
-                   r_icinf = rbind(quantile(bootpoisson$r.squared,    0.975),
-                                   quantile(bootgmean$r.squared,    0.975),
-                                   quantile(bootcpoisson$r.squared, 0.975),
-                                   quantile(bootgpoisson$r.squared, 0.975)))
-colnames(bootsum) <- c("Estimation", "R2 Inf", "R2 moy", "R2 sup")
-
-mod_gpoisson_sum <-
-  data.frame(val = c("mean", "inf", "sup"),
-             r = c(mean(bootgpoisson$r.squared),
-                   quantile(bootgpoisson$r.squared, 0.025),
-                   quantile(bootgpoisson$r.squared, 0.975)),
-             int = c(mean(bootgpoisson$interc),
-                     quantile(bootgpoisson$interc, 0.025),
-                     quantile(bootgpoisson$interc, 0.975)),
-
-             est = c(mean(bootgpoisson$estimate),
-                     quantile(bootgpoisson$estimate, 0.025),
-                     quantile(bootgpoisson$estimate, 0.975)))
+boot_coeff_sum <-
+  rbind.data.frame(cbind.data.frame(method = "Moyenne Géométrique", bootgmean),
+                   cbind.data.frame(method = "Loi de Poisson", bootpoisson),
+                   cbind.data.frame(method = "Loi de COM-Poisson", bootcpoisson),
+                   cbind.data.frame(method = "Loi Binomiale Négative", bootgpoisson))
 
 
 # ------------------------------------------------------------------------------

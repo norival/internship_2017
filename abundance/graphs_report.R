@@ -43,7 +43,7 @@ p <-
   ggplot(aa, aes(x = log(estimate), y = log(observed))) +
   geom_point(size = 0.8, shape = 1, position = "jitter") +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
-  geom_line(data = tab_boot, aes(x = x, y = moy),
+  geom_line(data = tab_boot, aes(x = x, y = mean),
             colour = "red") +
   geom_ribbon(data = tab_boot, aes(ymin = icinf, ymax = icsup, x = x),
               inherit.aes = FALSE,
@@ -155,7 +155,7 @@ p <-
         axis.title    = element_text(size = 10),
         panel.border  = element_blank())
 
-pdf(paf("mean_errors.pdf"), height = 2.5, width = 5)
+pdf(paf("mean_errors.pdf"), height = 2, width = 5)
 plot(p)
 dev.off()
 

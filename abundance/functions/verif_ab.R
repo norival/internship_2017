@@ -117,6 +117,13 @@ bootstrap <- function(nboot, tab) {
                         r.squared = numeric(nboot),
                         sigma     = numeric(nboot))
 
+  # non-bootstrapped model
+  nb.mod <- lm(observed ~ estimate, data = tab) 
+  nb.interc   <- nb.mod$coefficients[1]
+  nb.estimate <- nb.mod$coefficients[2]
+  nb.rsquared <- summary(nb.mod)$r.squared
+
+  # compute model fo each bootstrap sample
   for (i in 1:nboot) {
     samp <- sample(1:nrow(tab), nrow(tab), replace = TRUE)
     dat <- tab[samp, c("observed", "estimate")]
@@ -125,25 +132,51 @@ bootstrap <- function(nboot, tab) {
 
     bootres[i, "interc"]    <- as.numeric(mod$coefficients[1])
     bootres[i, "estimate"]  <- as.numeric(mod$coefficients[2])
-    bootres[i, "r.squared"] <- summary(mod)$r.squared
+    bootres[i, "rsquared"] <- summary(mod)$r.squared
     bootres[i, "sigma"]     <- sigma(mod)
   }
 
-  return(bootres)
+  # compute bootstrapped statistics
+  boot.interc   <- mean(bootres$interc)
+  boot.estimate <- mean(bootres$estimate)
+  boot.rsquared <- mean(bootres$rsquared)
+
+  # compute the estimate of the bias
+  b.interc   <- boot.interc - nb.interc
+  b.estimate <- boot.estimate - nb.estimate
+  b.rsquared <- boot.rsquared - nb.rsquared
+
+  # compute the bootstrapped standard error for the statistics
+  boot.se.interc   <- sqrt(sum((bootres$interc - boot.interc)^2) / (nboot - 1))
+  boot.se.estimate <- sqrt(sum((bootres$estimate - boot.estimate)^2) / (nboot - 1))
+  boot.se.rsquared <- sqrt(sum((bootres$rsquared - boot.rsquared)^2) / (nboot - 1))
+
+  # compute the confidence interval for alpha = 0.05
+  interc.ci.inf <- (nb.interc - b.interc) - 1.96 * boot.se.interc
+  interc.ci.sup <- (nb.interc - b.interc) + 1.96 * boot.se.interc
+  estimate.ci.inf <- (nb.estimate - b.estimate) - 1.96 * boot.se.estimate
+  estimate.ci.sup <- (nb.estimate - b.estimate) + 1.96 * boot.se.estimate
+  rsquared.ci.inf <- (nb.rsquared - b.rsquared) - 1.96 * boot.se.rsquared
+  rsquared.ci.sup <- (nb.rsquared - b.rsquared) + 1.96 * boot.se.rsquared
+
+  res <-
+    cbind.data.frame(stat = c("interc", "estimate", "rsquared"),
+                     mean = c(nb.interc - b.interc, nb.estimate - b.estimate,
+                              nb.rsquared - b.rsquared),
+                     icinf = c(interc.ci.inf, estimate.ci.inf, rsquared.ci.inf),
+                     icsup = c(interc.ci.sup, estimate.ci.sup, rsquared.ci.sup))
+  rownames(res) <- NULL
+
+  return(res)
 }
 
 # ------------------------------------------------------------------------------
 
 bootpred <- function(x, boot) {
 
-  a <- apply(boot, 2, function(x) rbind(quantile(x, c(0.025)),
-                                        mean(x),
-                                        quantile(x, 0.975)))
+  pred <- apply(boot[,2:length(boot)], 2, function(col) col[2] * x + col[1])
 
-  pred <- apply(a, 1, function(line) line[1] + x * line[2])
-  dat <- cbind.data.frame(x, moy = pred[,2], icinf = pred[,1], icsup = pred[,3])
-
-  return(dat)
+  return(cbind.data.frame(x, pred))
 }
 
 # ------------------------------------------------------------------------------
@@ -172,7 +205,7 @@ boot_error <- function(x, nboot) {
   ci.sup <- (t - b) + 1.96 * boot.se
 
   # return values
-  return(c(boot.tmean = boot.tmean, ci.inf = ci.inf, ci.sup = ci.sup))
+  return(c(boot.tmean = t - b, ci.inf = ci.inf, ci.sup = ci.sup))
 }
 
 # ------------------------------------------------------------------------------
