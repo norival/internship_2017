@@ -1,0 +1,174 @@
+---
+title: "Groupements par méthode LDA"
+date: \today
+lang: fr
+fontsize: 12pt
+output:
+  pdf_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=4, fig.height=4, fig.path='Figs/',
+                      echo=TRUE, warning=FALSE, message=FALSE)
+```
+```{r, loading_data, echo=FALSE}
+library(ggplot2)
+library(magrittr)
+library(xtable)
+load("data/generated/envir_lda.Rdata")
+```
+
+## Sélection du nombre de groupes
+
+Figures à mettre en annexe.
+Variation de l'AIC en fonction du nombre de groupes du modèle.
+En se basant sur cette figure, un nombre de groupes correct serait 9 groupes,
+point à partir duquel les variations d'AIC deviennent faibles.
+La méthode par validation croisée donne plus ou moins les mêmes résultats, avec
+une diminution plutôt autour de 10 groupes.
+
+```{r, mod_selection_aic, echo=FALSE, fig.height=3}
+data.frame(k = 3:(length(aics_all_years_delta) + 2), delta = aics_all_years_delta) %>%
+  ggplot(aes(x = k, y = delta)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE) +
+  xlab("Nombre de groupes") +
+  ylab("delta(AIC)") +
+  scale_x_continuous(breaks = 3:15) +
+  theme_bw()
+```
+
+```{r, mod_selection_cv, echo=FALSE, fig.height=3, fig.width=7}
+data.frame(k = sort(unique(cv_results$k))[-1], delta = cv_delta) %>%
+  .[.$k < 40,] %>%
+  ggplot(aes(x = k, y = delta)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE) +
+  xlab("Nombre de groupes") +
+  ylab("delta(perpexlité)") +
+  scale_x_continuous(breaks = c(3:30)) +
+  theme_bw()
+```
+
+## Analyse des posterior en choisissant 9 groupes
+
+### Analyse globale des groupes
+
+Les 9 associations typiques sont présentées dans le tableau suivant (seuil
+d'abondance relative de 10%):
+
+```{r, most_lik_comp, echo=FALSE, fig.height=3, fig.width=3, results='asis'}
+print.xtable(xtable(ml_comp_reporting, align = c("l", "l", "p{14cm}")),
+             include.rownames = FALSE)
+```
+
+Faire ici une petite description des groupes espèce par espèce.
+
+Analyse du groupe le plus probable par parcelle (rappel: chaque parcelle est
+caractérisée par un assemblage de chacun des groupes, le plus probable est donc
+celui qui a la part la plus importante dans cet assemblage).
+Les figures ici représentent le groupe le plus probable en fonction de l'année
+ou de la culture.
+Le pourcentage correspond au pourcentage de parcelles avec chacun des groupes
+comme groupe le plus probable (la somme par année ou parcelle est donc de 1).
+Je trouve ça pas mal comme visualisation, ça permet de montrer qu'il n'y a pas
+de groupe dominant d'une année sur l'autre, qu'il n'y a donc pas de gros
+changements des communautés adventices entre les 10 années.
+À part en 2009 et 2011 où les groupes 5 et 4 sont dominants, respectivement.
+À regarder pourquoi.
+
+La figure de droite montre les proportions des groupes les plus probables par
+culture.
+On voit bien que chaque culture est caracérisée par au moins un ou deux groupe
+dominant, à part les céréales, pour lesquelles la distribution des groupes est à
+peu près homogène.
+Ensuite faire le lien ici entre les groupes dominants au sein de chaque culture
+et leur composition.
+Pour cela, je pense regarder surtout la date de germination des adventices, voir
+si c'est corrélé avec celle des cultures.
+Je suis en train de voir avec Bérenger pour regarder quelques traits
+fonctionnels (je pensai aux trois principaux : SLA, hauteur de la plante et
+masse des graines), et en faire une moyenne par groupe, pondérée par l'abondance
+relative.
+
+```{r, most_lik_by_year, echo=FALSE, fig.height=3, fig.width=3}
+p <- ggplot(mostlik_by_year, aes(x = year, y = mostlik, fill = prop)) +
+  geom_raster() +
+  # geom_text(aes(label = round(prop, 1)), colour = "white") +
+  scale_fill_gradient2(low = muted("green"), mid = "orange", high = muted("red"),
+                       midpoint = 50, limits = c(0, 100)) +
+  scale_y_continuous(breaks = unique(mostlik_by_year$mostlik)) +
+  theme_bw() +
+  theme(panel.background = element_blank(),
+        panel.border = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank()) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1, vjust = 1.5)) +
+  guides(fill = FALSE)
+p + xlab("Année") +
+  ylab("Groupe le plus probable") +
+  labs(fill = "Pourcentage")
+```
+```{r, most_lik_by_crop, echo=FALSE, fig.height=3, fig.width=4}
+p <- ggplot(mostlik_by_crop, aes(x = crop, y = mostlik, fill = prop)) +
+  geom_raster() +
+  # geom_text(aes(label = round(prop, 1)), colour = "white") +
+  scale_fill_gradient2(low = muted("green3"), mid = "orange", high = muted("red"),
+                       midpoint = 50) +
+  scale_y_continuous(breaks = unique(mostlik_by_crop$mostlik)) +
+  theme_bw() +
+  theme(panel.background = element_blank(),
+        panel.border = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank()) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1, vjust = 1.5))
+p + xlab("Culture") +
+  ylab("Groupe le plus probable") +
+  labs(fill = "Pourcentage")
+```
+
+### Autre visualisation possible pour les groupes
+
+```{r, groups_by_year, echo=FALSE, fig.height=5, fig.width=7}
+ggplot(tidy_plots, aes(x = group, y = percent)) +
+  geom_boxplot() +
+  facet_wrap(~ year)
+```
+
+Ici une autre visualisation possible.
+En abcisse, ce sont les groupes, en ordonnée le pourcentage d'appartenance au
+groupe pour chaque parcelle, et en 'facet', le facteur étudié (année ou
+culture).
+Ça montre les mêmes résultats que précédemment avec l'avantage de donner un
+aperçu de la distribution complète des groupes.
+Personnellement je trouve que la première représentation est plus synthétique et
+plus simple à comprendre pour décrire globalement les groupements mais je
+garderais les boxplot en annexe.
+
+```{r, groups_by_crop, echo=FALSE, fig.height=5, fig.width=7}
+ggplot(tidy_plots, aes(x = group, y = percent)) +
+  geom_boxplot() +
+  facet_wrap(~ crop)
+```
+
+### Explication en détail sur 4 cultures
+
+Je terminerais par une explication plus détaillée des groupes au sein de 4
+cultures les plus représentées dans le jeu de données : céréales, maïs,
+tournesol et colza, en donnant la distribution détaillée des groupes (boxplot ou
+barplot) Et en expliquant si les associations ont du sens.
+
+
+## Discussion
+
+- Petit point sur la sélection du nombre de groupes idéal. Essai de plusieurs
+  techniques (AIC, CV, définition d'un seuil d'occurence pour pré-sélectionner
+  les espèces...)
+- Est-ce que les groupes ont du sens ? Explication biologique et écologique.
+- Qu'est-ce qu'ils apportent par rapport à d'autres méthodes ?
+- Est-ce qu'ils ont permis de montrer quelquechose ? De mettre en évidence des
+  relations intéressantes ?
+- Comment ils peuvent être utilisés ? Parler de ce que proposait Joël sur le
+  fait que chaque association typique peut avoir un impact propre sur la culture
+  et que l'effet des adventices peut ainsi être décomposé selon ces associations
+  typiques.

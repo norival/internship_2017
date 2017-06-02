@@ -21,6 +21,7 @@
 *.glsdefs
 *.ist
 *.lof
+*.html
 
 # specific files
 reporting.pdf
