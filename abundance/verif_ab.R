@@ -99,10 +99,10 @@ lcor_gpoisson <- cbind.data.frame(observed = log(cor_gpoisson$observed),
 bootgpoisson <- bootstrap(nboot, lcor_gpoisson[!is.infinite(lcor_gpoisson$observed),])
 
 # compute predictd values with IC95
-predbootpoisson  <- bootpred(log(1:1000), bootpoisson)
-predbootgmean    <- bootpred(log(1:1000), bootgmean)
-predbootcpoisson <- bootpred(log(1:1000), bootcpoisson)
-predbootgpoisson <- bootpred(log(1:1000), bootgpoisson)
+predbootpoisson  <- bootpred(log(1:1300), bootpoisson)
+predbootgmean    <- bootpred(log(1:1300), bootgmean)
+predbootcpoisson <- bootpred(log(1:1300), bootcpoisson)
+predbootgpoisson <- bootpred(log(1:1300), bootgpoisson)
 
 tab_boot <-
   rbind.data.frame(predbootgmean, predbootpoisson, predbootcpoisson, predbootgpoisson)
