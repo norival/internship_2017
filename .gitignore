@@ -22,6 +22,7 @@
 *.ist
 *.lof
 *.html
+*junk*
 
 # specific files
 reporting.pdf
