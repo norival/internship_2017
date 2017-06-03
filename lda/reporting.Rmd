@@ -14,6 +14,7 @@ knitr::opts_chunk$set(fig.width=4, fig.height=4, fig.path='Figs/',
 ```{r, loading_data, echo=FALSE}
 library(ggplot2)
 library(magrittr)
+library(scales)
 library(xtable)
 load("data/generated/envir_lda.Rdata")
 ```
