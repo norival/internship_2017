@@ -141,7 +141,9 @@ ml_comp_reporting <- data.frame(matrix(0, 0, 3))
 for (group in unique(comp_com$group)) {
   ml <- comp_com[comp_com$group == group & comp_com$rel_ab > thrs,]
   ml <- ml[order(ml$rel_ab, decreasing = TRUE),]
-  ml_ <- paste("\textit{", ml$sp, "} (", round(ml$rel_ab, 2), ")", sep = "", collapse = ", ")
+  ml$sp <- gsub("\\.", " ", ml$sp)
+  group <- gsub("gp", "G", group)
+  ml_ <- paste("\\textit{", ml$sp, "} (", round(ml$rel_ab, 2), ")", sep = "", collapse = ", ")
   ml_reporting <-
     paste(ml$sp, " (", round(ml$rel_ab, 2), ")", sep = "", collapse = ", ")
   ml_comp <- rbind(ml_comp, cbind.data.frame(group, ml_, stringsAsFactors = FALSE),
