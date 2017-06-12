@@ -14,6 +14,7 @@ prefix  <- "~/documents/master/m2/stage/report/img/"
 prefixt  <- "~/documents/master/m2/stage/report/tables/"
 paf <- function(string) paste0(prefix, string)
 paft <- function(string) paste0(prefixt, string)
+bold_names <- function(x) paste0("\\textbf{", x, "}")
 
 # colorblind friendly palette
 cb_palette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442",
@@ -78,7 +79,7 @@ delta_aic <- data.frame(k = 3:(length(aics_all_years_delta) + 2),
 p <-
   aics_all_years %>%
   ggplot(aes(x = k, y = aic)) +
-  geom_point() +
+  geom_point(shape = 1) +
   geom_line(data = delta_aic, aes(x = k, y = delta), colour = 'darkgray') +
   # geom_smooth(method = "loess", se = FALSE) +
   xlab("Nombre de groupes") +
@@ -97,10 +98,10 @@ p <-
   cv_results %>%
   .[.$k < 40,] %>%
   ggplot(aes(x = k, y = perplexity)) +
-  geom_point() +
+  geom_point(shape = 1) +
   geom_line(data = delta_cv, aes(x = k, y = delta), colour = "darkgrey") +
   xlab("Nombre de groupes") +
-  ylab("Perpexlité") +
+  ylab("Perplexité") +
   scale_x_continuous(breaks = c(5, 10, 15, 20, 25, 30)) +
   theme_bw()
 
@@ -109,7 +110,6 @@ plot(p)
 dev.off()
 
 # 9 groups table
-bold_names <- function(x) paste0("\\textbf{", x, "}")
 print.xtable(xtable(ml_comp, align = "llX"),
              width = "\\textwidth",
              floating = FALSE,
@@ -164,5 +164,34 @@ p <- ggplot(mostlik_by_crop, aes(x = crop, y = mostlik, fill = prop)) +
   labs(fill = "Pourcentage")
 
 pdf(paf("mostlikgp_by_crop.pdf"), height = 3.5, width = 3)
+plot(p)
+dev.off()
+
+# full distributions for appendix
+ml <- as.data.frame(table(mostlik$ml, mostlik$crop))
+colnames(ml) <- c("group", "crop", "count")
+p <-
+  ggplot(tidy_plots, aes(x = group, y = percent)) +
+  geom_boxplot(outlier.size = 1, outlier.shape = 1) +
+  theme_bw() +
+  xlab("Groupement") +
+  ylab("Abondance relative") +
+  facet_wrap(~ crop)
+
+pdf(paf("groups_by_crop.pdf"), height = 3.7, width = 6.3)
+plot(p)
+dev.off()
+
+ml <- as.data.frame(table(mostlik$ml, mostlik$year))
+colnames(ml) <- c("group", "crop", "count")
+p <-
+  ggplot(tidy_plots, aes(x = group, y = percent)) +
+  geom_boxplot(outlier.size = 1, outlier.shape = 1) +
+  theme_bw() +
+  xlab("Groupement") +
+  ylab("Abondance relative") +
+  facet_wrap(~ year)
+
+pdf(paf("groups_by_year.pdf"), height = 3.7, width = 6.3)
 plot(p)
 dev.off()
