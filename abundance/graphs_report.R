@@ -7,6 +7,7 @@
 library(ggplot2)
 library(compoisson)
 library(magrittr)
+library(dplyr)
 library(tikzDevice)
 
 # little function to create the names of files
@@ -41,7 +42,7 @@ tab_boot$method <- unlist(lapply(tab_boot$method, function(old, new)
 
 p <-
   ggplot(aa, aes(x = log(estimate), y = log(observed))) +
-  geom_point(size = 0.8, shape = 1, position = "jitter") +
+  geom_point(size = 1, shape = 1, position = "jitter") +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
   geom_line(data = tab_boot, aes(x = x, y = mean),
             colour = "red") +
@@ -140,22 +141,27 @@ dev.off()
 # -- errors on estimations -----------------------------------------------------
 # graph to show mean error on estimations + confidence intervals
 
+err_sum$method <- factor(err_sum$method,
+                         levels = c("Loi de Poisson (0/1)",
+                                    "Loi de COM-Poisson (log2)",
+                                    "Loi Binomiale Négative (log2)",
+                                    "Moyenne Géométrique (log10)"))
+
 p <-
   ggplot(err_sum, aes(x = mean, y = method)) +
-  geom_point(size = 3) +
+  geom_point(size = 2) +
   geom_errorbarh(aes(xmin = ci_inf, xmax = ci_sup), height = 0.2) +
   geom_vline(xintercept = 0, lty = "dotted") +
+  scale_x_continuous(breaks = seq(-40, 20, 10)) +
+  scale_y_discrete(limits = rev(levels(err_sum$method))) +
   xlab("Erreur moyenne") +
   ylab("") +
   theme_bw() +
   theme(panel.grid    = element_blank(),
-        axis.line.x   = element_line(size = 0.5, colour = "black"),
         axis.text.x   = element_text(size = 9),
-        axis.ticks.y  = element_blank(),
-        axis.title    = element_text(size = 10),
-        panel.border  = element_blank())
+        axis.title    = element_text(size = 10))
 
-pdf(paf("mean_errors.pdf"), height = 2, width = 5)
+pdf(paf("mean_errors.pdf"), height = 2.5, width = 5)
 plot(p)
 dev.off()
 
