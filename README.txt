@@ -215,3 +215,9 @@ Génère les graphiques et les tableaux nécessaires pour le rapport final.
 Ce contient les débuts d'analyses portant sur les enquêtes de la ZAPVS. Ce sont
 surtout les scripts permettant de nettoyer et convertir les anciennes bases de
 données. Ils ne devraient donc plus être utiles.
+
+
+# Version control
+
+Le projet a été suivi par 'git' depuis sa création. Tout son historique peut
+donc être retrouvé facilement par la commande 'git log'.
