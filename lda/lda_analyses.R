@@ -157,6 +157,45 @@ for (group in unique(comp_com$group)) {
 colnames(ml_comp) <- c("Groupe", "Espèces les plus probables")
 colnames(ml_comp_reporting) <- c("Groupe", "Espèces les plus probables")
 
+a <- by(mostlik_by_year, mostlik_by_year$year, function(x) x[which.max(x$prop),])
+a <- do.call(rbind, a)
+
+# functional analysis ----------------------------------------------------------
+# Are functional traits correlated to groups?
+# The idea here is to average some traits values (SLA, PH, SM) within groups,
+# weighting by the relative abundance of each plant.
+
+# read trait values
+traits.ref <- read.csv("data/generated/traits_val.csv", stringsAsFactors = F)
+groups <- tidy_post$spp
+groups$sp <- gsub("\\.", " ", groups$sp)
+groups$sp <- toupper(groups$sp)
+
+trait_mean <- function(tab, trait, ref) {
+  w.val <-
+    apply(tab, 1, function(x, trait, ref) {
+            sp <- as.character(x["sp"])
+            rel.ab <- as.numeric(x["rel_ab"])
+            ref[ref$sp == sp, trait] * rel.ab},
+          ref = ref, trait = trait)
+  return(as.numeric(w.val))
+}
+
+groups$w.sla <- trait_mean(groups, "SLA", traits.ref)
+groups$w.ph  <- trait_mean(groups, "PH", traits.ref)
+groups$w.sm  <- trait_mean(groups, "SM", traits.ref)
+
+mean.sla <- aggregate(w.sla ~ group, data = groups, sum)
+mean.ph  <- aggregate(w.ph ~ group, data = groups, sum)
+mean.sm  <- aggregate(w.sm ~ group, data = groups, sum)
+tab <- data.frame(mapply(c, mean.sla, mean.ph, mean.sm, SIMPLIFY = FALSE))
+tab$trait <- rep(c("SLA", "PH", "SM"), rep(9, 3))
+colnames(tab)[2] <- "value"
+
+tab2 <- cbind(mean.sla, w.ph = mean.ph[,2], w.sm = mean.sm[,2])
+tab2 <- cbind(mean.sla, w.ph = mean.ph[,2], w.sm = mean.sm[,2])
+
+
 # -- cleaning and saving environment -------------------------------------------
 keep <- c("lda_all_years_9_groups")
 notkeep <- ls(pattern = "lda")
